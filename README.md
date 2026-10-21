@@ -140,7 +140,7 @@ Because this application is completely self-contained with no build steps or bac
 ## Author & Contact
 
 **Rama Wijaya**  
-*Data Analyst | Commercial Quantitative Livestock & Business Intelligence*
+*Data Analyst | Livestock Enthusiast & Business Intelligence*
 
 * **LinkedIn:** [linkedin.com/in/ramawijaya1](https://www.linkedin.com/in/ramawijaya1)
 * **GitHub:** [@wijaya-rama](https://github.com/wijaya-rama)
