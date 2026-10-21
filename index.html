@@ -1,0 +1,1324 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Highwood Feeders — Commercial Feedlot Management & Analytics Story</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F8FAFC;--card:#FFFFFF;--line:#F1F5F9;--bd:#E2E8F0;
+  --t1:#1A1A1A;--t2:#4A4A4A;--t3:#8A8A8A;--mute:#CFCFCF;--ink:#2E2E2E;
+  --brand:#2563EB;--soft:#EFF6FF;
+  --ok:#10B981;--okbg:#ECFDF5;
+  --bad:#EF4444;--badbg:#FEF2F2;
+  --warn:#D97706;--warnbg:#FFFBEB;
+  box-sizing:border-box;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F172A;--card:#162036;--line:#1E293B;--bd:#2A3750;
+    --t1:#F1F5F9;--t2:#CBD5E1;--t3:#94A3B8;--mute:#3B4A63;--ink:#F1F5F9;
+    --brand:#60A5FA;--soft:#1E2A44;
+    --okbg:#0F2F26;--badbg:#3A1A1F;--warnbg:#3A2C12;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F172A;--card:#162036;--line:#1E293B;--bd:#2A3750;
+  --t1:#F1F5F9;--t2:#CBD5E1;--t3:#94A3B8;--mute:#3B4A63;--ink:#F1F5F9;
+  --brand:#60A5FA;--soft:#1E2A44;
+  --okbg:#0F2F26;--badbg:#3A1A1F;--warnbg:#3A2C12;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:125px}
+body{
+  margin:0;background:var(--bg);color:var(--t1);
+  font-family:Inter,system-ui,-apple-system,'Segoe UI',sans-serif;
+  line-height:1.5;font-variant-numeric:tabular-nums;
+}
+body::before{
+  content:"";position:fixed;inset:0 0 auto;
+  height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30;
+}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.w{max-width:1120px;margin:0 auto;padding:0 16px 80px}
+
+/* TOP STICKY BAR */
+.top{
+  position:sticky;top:env(safe-area-inset-top,0px);z-index:20;
+  background:var(--bg);padding:10px 0 8px;border-bottom:1px solid var(--bd);margin-bottom:16px;
+}
+.br{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.br b{font-size:15px;font-weight:700}
+.br>span{font-size:12px;color:var(--t3)}
+.br a{color:var(--brand);text-decoration:none;font-weight:600}
+.hc{display:flex;gap:6px;align-items:center}
+.hc .sg button,.th{padding:3px 10px;font-size:12px}
+.th{
+  border:1px solid var(--bd);background:var(--card);border-radius:99px;
+  display:grid;place-items:center;width:28px;height:26px;padding:0;
+}
+
+nav{display:flex;gap:6px;margin:8px 0;overflow-x:auto}
+nav button,.sg button{
+  border:1px solid var(--bd);background:var(--card);border-radius:99px;
+  padding:5px 13px;font-size:12.5px;font-weight:500;color:var(--t2);white-space:nowrap;
+}
+nav button[aria-selected=true]{background:var(--ink);color:var(--card);border-color:var(--ink)}
+
+/* FILTER CONTAINER PROPOSIONAL */
+.fl-wrap{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fl{
+  display:flex;flex-wrap:wrap;border:1px solid var(--bd);background:var(--card);
+  border-radius:12px;overflow:hidden;flex:1 1 auto;
+}
+.fg{display:flex;gap:4px;align-items:center;flex-wrap:wrap;padding:4px 9px}
+.fg+.fg{border-left:1px solid var(--bd)}
+@media(max-width:850px){.fl{display:block}.fg+.fg{border-left:0;border-top:1px solid var(--bd)}}
+.fg label{font-size:11px;font-weight:600;color:var(--t3);margin-right:2px}
+.sg{display:flex;gap:3px;align-items:center;flex-wrap:wrap}
+.sg button{padding:2px 8px;font-size:11px}
+.sg button[aria-pressed=true]{
+  background:var(--soft);color:var(--brand);border-color:var(--brand);font-weight:600;
+}
+.fl-meta{display:flex;gap:6px;align-items:center;white-space:nowrap}
+.fl-badge{
+  font-size:11.5px;font-weight:600;color:var(--t2);background:var(--line);
+  padding:4px 10px;border-radius:99px;border:1px solid var(--bd);
+}
+.fl-reset{
+  font-size:11px;font-weight:600;padding:4px 10px;border-radius:99px;
+  border:1px solid var(--bd);background:var(--card);color:var(--t2);
+}
+.fl-reset:hover{background:var(--line);color:var(--t1)}
+.fl-reset:disabled{opacity:0.4;cursor:not-allowed}
+
+/* TYPOGRAPHY & CARDS */
+h1{
+  font-size:clamp(24px,3.5vw,38px);line-height:1.15;margin:0 0 8px;
+  font-weight:800;letter-spacing:-.03em;max-width:32ch;
+}
+.sub{color:var(--t2);font-size:14px;margin:0 0 18px;max-width:68ch;line-height:1.55}
+.g{display:grid;gap:14px;grid-template-columns:repeat(12,1fr)}
+.c{
+  background:var(--card);border:1px solid var(--line);border-radius:18px;
+  padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.02);grid-column:span 12;min-width:0;
+}
+@media(min-width:800px){
+  .q{grid-column:span 3}
+  .s6{grid-column:span 6}
+  .s7{grid-column:span 7}
+  .s5{grid-column:span 5}
+  .s4{grid-column:span 4}
+  .s8{grid-column:span 8}
+}
+.hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:13px;font-weight:500;color:var(--t2)}
+.hd .bg{margin-left:auto}
+.ic{width:28px;height:28px;border-radius:9px;background:var(--line);display:grid;place-items:center;color:var(--t2)}
+.bg{font-size:12px;font-weight:600;padding:2px 9px;border-radius:99px}
+.ok{background:var(--okbg);color:var(--ok)}
+.bad{background:var(--badbg);color:var(--bad)}
+.wn{background:var(--warnbg);color:var(--warn)}
+.v{font-size:30px;font-weight:700;letter-spacing:-.03em;line-height:1.1}
+.in{font-size:12px;color:var(--t3);margin:4px 0 6px}
+.in b{color:var(--t2);font-weight:600}
+h2{font-size:16.5px;line-height:1.3;margin:0 0 4px;font-weight:700;letter-spacing:-.01em;max-width:50ch}
+.cs{font-size:12px;color:var(--t3);margin:0 0 12px}
+.go{text-align:left;cursor:pointer;border:1px solid var(--bd);background:var(--card)}
+.go:hover{border-color:var(--brand)}
+.go .in{margin:6px 0 0;color:var(--brand);font-weight:500}
+.bar{margin-bottom:9px}
+.bar-hd{display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-bottom:3px}
+.bar-track{height:8px;background:var(--line);border-radius:99px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:99px;background:var(--brand);transition:width .35s ease}
+.bar-fill.ok{background:var(--ok)}
+.bar-fill.warn{background:var(--warn)}
+.bar-fill.bad{background:var(--bad)}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:4px}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;min-width:580px}
+.tbl th{text-align:left;padding:7px 9px;font-size:11.5px;font-weight:700;color:var(--t3);border-bottom:1px solid var(--bd);white-space:nowrap}
+.tbl td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--line)}
+.tbl td.num{text-align:right;font-weight:600}
+.tbl th.num{text-align:right}
+.wf-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:10px}
+@media(max-width:768px){.wf-grid{grid-template-columns:repeat(2,1fr)}}
+.wf-box{background:var(--line);border-radius:12px;padding:12px;text-align:center}
+.wf-lbl{font-size:11.5px;font-weight:600;color:var(--t3);margin-bottom:3px}
+.wf-val{font-size:16px;font-weight:800}
+.wf-sub{font-size:11px;color:var(--t2);margin-top:2px}
+.rec{border-left:4px solid var(--brand)}
+.rec p{margin:8px 0;font-size:13px;max-width:76ch;color:var(--t2);line-height:1.55}
+.rec b{color:var(--t1)}
+.ft{font-size:12px;color:var(--t3);margin-top:22px;max-width:80ch;line-height:1.6}
+.wm{
+  position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:25;
+  display:flex;gap:7px;align-items:center;background:var(--card);border:1px solid var(--bd);
+  border-radius:99px;padding:6px 12px;font-size:12px;color:var(--t3);text-decoration:none;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+.wm:hover{border-color:var(--brand)}
+.wm b{color:var(--t1);font-weight:600}
+.wm svg{width:14px;height:14px;fill:var(--brand)}
+#tip{
+  position:fixed;z-index:40;background:var(--ink);color:var(--card);
+  font-size:12px;padding:6px 10px;border-radius:8px;pointer-events:none;
+  max-width:260px;box-shadow:0 3px 10px rgba(0,0,0,.15);transform:translate(-50%,-120%);
+}
+svg{width:100%;height:auto;display:block}
+svg text{fill:var(--t2);font-family:inherit}
+[hidden]{display:none!important}
+</style></head>
+<body>
+<div class="w">
+  <div class="top">
+    <div class="br">
+      <div><b>Highwood Feeders Ltd.</b> <span>&bull; Southern Alberta, Canada</span></div>
+      <div class="hc" id="hc"></div>
+    </div>
+    <nav id="nav" role="tablist"></nav>
+    <div class="fl-wrap">
+      <div class="fl" id="fl"></div>
+      <div class="fl-meta" id="fl-meta"></div>
+    </div>
+  </div>
+
+  <main id="app"></main>
+  <p class="ft" id="ft"></p>
+</div>
+
+<a class="wm" id="wm" href="https://www.linkedin.com/in/ramawijaya1" target="_blank" rel="noopener noreferrer"></a>
+<div id="tip" hidden></div>
+
+<script>
+const D = {"ZONES": ["North Yard", "South Yard", "East Sheltered"], "BREEDS": ["Black Angus", "Charolais Cross", "Simmental Cross", "Hereford"], "SEXES": ["Steer", "Heifer"], "PEN_TYPES": ["Open Dirt w/ Windbreak", "Confinement Barn", "Standard Open Dirt"], "REGIONS": ["Southern Alberta", "Central Saskatchewan", "Peace River BC", "Manitoba Foothills"], "DRUGS": ["Tulathromycin", "Florfenicol", "Oxytetracycline", "Ceftiofur", "Supportive Therapy"], "QUARTERS": ["2024Q1", "2024Q2", "2024Q3", "2024Q4", "2025Q1", "2025Q2"], "LOTS": [{"id": "LOT-2024-001", "pen": "PEN-15", "arr": "2024-01-01", "q": 0, "z": 0, "b": 1, "s": 0, "pt": 2, "reg": 3, "feederP": 5.39, "headIn": 143, "sold": 142, "mort": 1, "dof": 175.0, "adg": 1.652, "fcr": 6.69, "entryW": 349.6, "exitW": 638.9, "gain": 289.1, "dmi": 1932.7, "cog": 2.79, "fcog": 2.33, "pCost": 1884.59, "fCost": 672.19, "yCost": 105.0, "vCost": 28.29, "gRev": 3164.59, "margin": 473.38, "totMargin": 65363.61, "dressing": 0.616, "hotW": 393.8, "prime": 5, "aaa": 101, "aa": 30, "bGr": 6, "sickCount": 22, "healthyCount": 121, "brd": 16, "footRot": 4, "bloat": 1, "buller": 1, "healthyMargin": 484.97, "sickMargin": 410.17, "scaleH": [348.7, 395.7, 449.6, 514.2, 639.7], "scaleS": [354.7, 393.6, 445.4, 509.2, 634.4], "lgSold": 93, "lgMargin": 481.13, "lgExitW": 637.4, "lgHCW": 393.4, "lgAdg": 1.651, "medSold": 49, "medMargin": 458.67, "medExitW": 641.8, "medHCW": 394.6, "medAdg": 1.653, "drugs": [[10, 10, 0, 732.0], [3, 3, 0, 204.6], [5, 5, 0, 237.4], [3, 3, 0, 221.7], [1, 1, 0, 65.8]]}, {"id": "LOT-2024-002", "pen": "PEN-11", "arr": "2024-01-03", "q": 0, "z": 0, "b": 1, "s": 0, "pt": 1, "reg": 0, "feederP": 5.41, "headIn": 156, "sold": 153, "mort": 3, "dof": 191.0, "adg": 1.721, "fcr": 6.59, "entryW": 348.8, "exitW": 677.6, "gain": 328.8, "dmi": 2165.4, "cog": 2.74, "fcog": 2.31, "pCost": 1887.12, "fCost": 757.48, "yCost": 114.6, "vCost": 27.9, "gRev": 3337.95, "margin": 550.65, "totMargin": 77996.44, "dressing": 0.616, "hotW": 417.6, "prime": 12, "aaa": 88, "aa": 46, "bGr": 7, "sickCount": 24, "healthyCount": 132, "brd": 19, "footRot": 1, "bloat": 2, "buller": 2, "healthyMargin": 563.33, "sickMargin": 475.16, "scaleH": [348.2, 399.9, 459.3, 524.8, 678.2], "scaleS": [352.4, 396.7, 453.9, 520.4, 674.2], "lgSold": 98, "lgMargin": 549.34, "lgExitW": 676.6, "lgHCW": 417.2, "lgAdg": 1.722, "medSold": 55, "medMargin": 553.0, "medExitW": 679.4, "medHCW": 418.2, "medAdg": 1.719, "drugs": [[4, 3, 1, 257.9], [11, 10, 1, 805.6], [1, 1, 0, 89.7], [6, 6, 0, 380.7], [2, 2, 0, 98.8]]}, {"id": "LOT-2024-003", "pen": "PEN-10", "arr": "2024-01-09", "q": 0, "z": 1, "b": 2, "s": 0, "pt": 0, "reg": 3, "feederP": 5.56, "headIn": 175, "sold": 173, "mort": 2, "dof": 176.0, "adg": 1.676, "fcr": 6.62, "entryW": 349.0, "exitW": 643.6, "gain": 294.9, "dmi": 1949.5, "cog": 2.75, "fcog": 2.3, "pCost": 1940.68, "fCost": 678.34, "yCost": 105.6, "vCost": 25.71, "gRev": 3156.04, "margin": 407.67, "totMargin": 65739.25, "dressing": 0.611, "hotW": 393.5, "prime": 14, "aaa": 115, "aa": 37, "bGr": 7, "sickCount": 22, "healthyCount": 153, "brd": 14, "footRot": 3, "bloat": 1, "buller": 4, "healthyMargin": 421.72, "sickMargin": 305.95, "scaleH": [347.7, 394.8, 449.9, 516.4, 643.8], "scaleS": [358.6, 398.5, 450.0, 514.9, 641.8], "lgSold": 109, "lgMargin": 414.22, "lgExitW": 643.8, "lgHCW": 394.0, "lgAdg": 1.678, "medSold": 64, "medMargin": 396.51, "medExitW": 643.2, "medHCW": 392.6, "medAdg": 1.671, "drugs": [[5, 5, 0, 349.6], [6, 5, 1, 479.4], [5, 5, 0, 243.2], [5, 5, 0, 305.1], [2, 1, 0, 109.1]]}, {"id": "LOT-2024-004", "pen": "PEN-18", "arr": "2024-01-12", "q": 0, "z": 1, "b": 1, "s": 0, "pt": 0, "reg": 1, "feederP": 5.39, "headIn": 159, "sold": 157, "mort": 2, "dof": 169.0, "adg": 1.673, "fcr": 6.58, "entryW": 351.3, "exitW": 634.0, "gain": 282.7, "dmi": 1857.2, "cog": 2.75, "fcog": 2.28, "pCost": 1893.37, "fCost": 644.67, "yCost": 101.4, "vCost": 30.5, "gRev": 3127.8, "margin": 457.46, "totMargin": 67761.63, "dressing": 0.616, "hotW": 390.7, "prime": 9, "aaa": 101, "aa": 40, "bGr": 7, "sickCount": 26, "healthyCount": 133, "brd": 18, "footRot": 6, "bloat": 2, "buller": 0, "healthyMargin": 477.56, "sickMargin": 351.32, "scaleH": [350.7, 398.0, 454.2, 520.9, 636.2], "scaleS": [354.1, 393.1, 446.9, 511.4, 622.8], "lgSold": 105, "lgMargin": 448.83, "lgExitW": 633.9, "lgHCW": 390.9, "lgAdg": 1.665, "medSold": 52, "medMargin": 474.88, "medExitW": 634.4, "medHCW": 390.2, "medAdg": 1.688, "drugs": [[11, 10, 0, 852.0], [6, 6, 0, 435.0], [6, 4, 1, 329.9], [3, 3, 0, 190.8], [3, 2, 0, 202.6]]}, {"id": "LOT-2024-005", "pen": "PEN-19", "arr": "2024-01-16", "q": 0, "z": 1, "b": 0, "s": 0, "pt": 0, "reg": 3, "feederP": 5.53, "headIn": 140, "sold": 138, "mort": 2, "dof": 167.0, "adg": 1.587, "fcr": 6.92, "entryW": 352.5, "exitW": 617.6, "gain": 265.0, "dmi": 1833.1, "cog": 2.89, "fcog": 2.4, "pCost": 1949.24, "fCost": 635.57, "yCost": 100.2, "vCost": 29.52, "gRev": 3031.75, "margin": 316.93, "totMargin": 39606.63, "dressing": 0.608, "hotW": 375.6, "prime": 17, "aaa": 101, "aa": 19, "bGr": 1, "sickCount": 22, "healthyCount": 118, "brd": 15, "footRot": 1, "bloat": 3, "buller": 3, "healthyMargin": 326.26, "sickMargin": 267.72, "scaleH": [353.0, 397.1, 451.2, 513.7, 618.7], "scaleS": [349.9, 387.8, 440.3, 503.7, 611.6], "lgSold": 53, "lgMargin": 319.21, "lgExitW": 616.0, "lgHCW": 374.9, "lgAdg": 1.587, "medSold": 85, "medMargin": 315.51, "medExitW": 618.6, "medHCW": 376.1, "medAdg": 1.587, "drugs": [[5, 5, 0, 394.5], [9, 8, 0, 633.0], [2, 2, 0, 99.6], [1, 1, 0, 67.5], [7, 6, 0, 395.3]]}, {"id": "LOT-2024-006", "pen": "PEN-38", "arr": "2024-01-21", "q": 0, "z": 0, "b": 0, "s": 0, "pt": 0, "reg": 0, "feederP": 5.35, "headIn": 158, "sold": 153, "mort": 5, "dof": 171.0, "adg": 1.605, "fcr": 6.86, "entryW": 349.8, "exitW": 624.8, "gain": 274.5, "dmi": 1882.5, "cog": 2.86, "fcog": 2.38, "pCost": 1871.67, "fCost": 653.64, "yCost": 102.6, "vCost": 26.52, "gRev": 3058.19, "margin": 401.42, "totMargin": 51651.76, "dressing": 0.608, "hotW": 379.9, "prime": 15, "aaa": 119, "aa": 18, "bGr": 1, "sickCount": 25, "healthyCount": 133, "brd": 20, "footRot": 3, "bloat": 1, "buller": 1, "healthyMargin": 413.64, "sickMargin": 320.12, "scaleH": [349.5, 394.2, 450.3, 513.4, 625.8], "scaleS": [351.4, 390.6, 446.0, 506.9, 618.5], "lgSold": 62, "lgMargin": 417.45, "lgExitW": 628.4, "lgHCW": 382.6, "lgAdg": 1.618, "medSold": 91, "medMargin": 390.49, "medExitW": 622.4, "medHCW": 378.1, "medAdg": 1.597, "drugs": [[10, 7, 3, 737.3], [6, 5, 1, 471.6], [2, 2, 0, 130.1], [5, 5, 0, 294.8], [2, 2, 0, 86.5]]}, {"id": "LOT-2024-007", "pen": "PEN-40", "arr": "2024-01-24", "q": 0, "z": 1, "b": 0, "s": 0, "pt": 0, "reg": 1, "feederP": 5.39, "headIn": 165, "sold": 163, "mort": 2, "dof": 166.0, "adg": 1.606, "fcr": 6.79, "entryW": 349.2, "exitW": 616.0, "gain": 266.6, "dmi": 1808.2, "cog": 2.83, "fcog": 2.35, "pCost": 1882.07, "fCost": 627.02, "yCost": 99.6, "vCost": 27.48, "gRev": 3010.64, "margin": 373.62, "totMargin": 56820.66, "dressing": 0.609, "hotW": 374.9, "prime": 16, "aaa": 122, "aa": 21, "bGr": 4, "sickCount": 25, "healthyCount": 140, "brd": 15, "footRot": 5, "bloat": 4, "buller": 1, "healthyMargin": 383.65, "sickMargin": 315.5, "scaleH": [349.2, 393.7, 450.2, 513.1, 617.0], "scaleS": [349.3, 387.6, 443.6, 506.5, 610.1], "lgSold": 73, "lgMargin": 383.61, "lgExitW": 611.8, "lgHCW": 372.8, "lgAdg": 1.606, "medSold": 90, "medMargin": 365.51, "medExitW": 619.3, "medHCW": 376.6, "medAdg": 1.606, "drugs": [[5, 5, 0, 379.3], [6, 5, 0, 385.5], [5, 4, 0, 304.2], [6, 6, 0, 349.8], [5, 4, 1, 292.0]]}, {"id": "LOT-2024-008", "pen": "PEN-12", "arr": "2024-01-26", "q": 0, "z": 2, "b": 1, "s": 1, "pt": 0, "reg": 3, "feederP": 5.33, "headIn": 140, "sold": 139, "mort": 1, "dof": 167.0, "adg": 1.476, "fcr": 6.51, "entryW": 309.7, "exitW": 556.3, "gain": 246.5, "dmi": 1603.8, "cog": 2.77, "fcog": 2.26, "pCost": 1650.76, "fCost": 556.49, "yCost": 100.2, "vCost": 26.23, "gRev": 2745.64, "margin": 411.68, "totMargin": 55523.88, "dressing": 0.616, "hotW": 342.8, "prime": 8, "aaa": 90, "aa": 38, "bGr": 3, "sickCount": 17, "healthyCount": 123, "brd": 11, "footRot": 6, "bloat": 0, "buller": 0, "healthyMargin": 423.16, "sickMargin": 323.43, "scaleH": [310.1, 351.1, 403.5, 461.2, 557.8], "scaleS": [307.0, 342.1, 391.7, 449.1, 545.0], "lgSold": 91, "lgMargin": 423.79, "lgExitW": 556.2, "lgHCW": 343.3, "lgAdg": 1.48, "medSold": 48, "medMargin": 388.72, "medExitW": 556.5, "medHCW": 341.8, "medAdg": 1.469, "drugs": [[4, 3, 0, 313.9], [5, 5, 0, 356.8], [5, 4, 0, 238.2], [5, 4, 1, 294.8], [0, 0, 0, 0.0]]}, {"id": "LOT-2024-009", "pen": "PEN-17", "arr": "2024-01-26", "q": 0, "z": 0, "b": 1, "s": 0, "pt": 0, "reg": 1, "feederP": 5.44, "headIn": 188, "sold": 182, "mort": 6, "dof": 173.0, "adg": 1.702, "fcr": 6.52, "entryW": 350.6, "exitW": 645.3, "gain": 294.4, "dmi": 1919.5, "cog": 2.71, "fcog": 2.27, "pCost": 1907.15, "fCost": 667.31, "yCost": 103.8, "vCost": 24.86, "gRev": 3182.05, "margin": 477.68, "totMargin": 74544.85, "dressing": 0.617, "hotW": 398.0, "prime": 11, "aaa": 122, "aa": 43, "bGr": 6, "sickCount": 22, "healthyCount": 166, "brd": 14, "footRot": 2, "bloat": 3, "buller": 3, "healthyMargin": 489.21, "sickMargin": 378.8, "scaleH": [350.9, 397.9, 458.2, 524.8, 646.8], "scaleS": [347.9, 387.3, 445.4, 510.3, 632.4], "lgSold": 126, "lgMargin": 485.25, "lgExitW": 645.3, "lgHCW": 398.6, "lgAdg": 1.707, "medSold": 56, "medMargin": 460.65, "medExitW": 645.1, "medHCW": 396.8, "medAdg": 1.691, "drugs": [[5, 4, 1, 375.7], [3, 3, 0, 222.5], [3, 3, 0, 197.6], [8, 7, 1, 487.3], [4, 3, 0, 196.1]]}, {"id": "LOT-2024-010", "pen": "PEN-04", "arr": "2024-01-28", "q": 0, "z": 1, "b": 0, "s": 0, "pt": 2, "reg": 1, "feederP": 5.52, "headIn": 170, "sold": 165, "mort": 5, "dof": 170.0, "adg": 1.62, "fcr": 6.8, "entryW": 349.2, "exitW": 624.6, "gain": 275.3, "dmi": 1871.2, "cog": 2.82, "fcog": 2.36, "pCost": 1927.34, "fCost": 649.7, "yCost": 102.0, "vCost": 23.0, "gRev": 3054.42, "margin": 351.6, "totMargin": 47163.37, "dressing": 0.609, "hotW": 380.5, "prime": 25, "aaa": 110, "aa": 24, "bGr": 6, "sickCount": 18, "healthyCount": 152, "brd": 8, "footRot": 5, "bloat": 4, "buller": 1, "healthyMargin": 361.65, "sickMargin": 251.09, "scaleH": [349.5, 394.5, 452.7, 515.9, 626.4], "scaleS": [345.9, 382.8, 438.2, 501.1, 606.6], "lgSold": 61, "lgMargin": 349.89, "lgExitW": 623.9, "lgHCW": 380.8, "lgAdg": 1.616, "medSold": 104, "medMargin": 352.61, "medExitW": 625.1, "medHCW": 380.4, "medAdg": 1.622, "drugs": [[3, 3, 0, 191.9], [3, 1, 2, 243.0], [6, 5, 1, 321.5], [2, 2, 0, 121.1], [5, 4, 0, 251.3]]}, {"id": "LOT-2024-011", "pen": "PEN-31", "arr": "2024-01-30", "q": 0, "z": 1, "b": 3, "s": 1, "pt": 2, "reg": 1, "feederP": 5.43, "headIn": 198, "sold": 196, "mort": 2, "dof": 172.0, "adg": 1.381, "fcr": 6.95, "entryW": 307.3, "exitW": 544.6, "gain": 237.6, "dmi": 1648.7, "cog": 2.97, "fcog": 2.41, "pCost": 1668.71, "fCost": 572.73, "yCost": 103.2, "vCost": 27.62, "gRev": 2601.66, "margin": 230.72, "totMargin": 41232.35, "dressing": 0.599, "hotW": 326.1, "prime": 5, "aaa": 122, "aa": 63, "bGr": 6, "sickCount": 29, "healthyCount": 169, "brd": 14, "footRot": 6, "bloat": 2, "buller": 7, "healthyMargin": 242.26, "sickMargin": 161.46, "scaleH": [308.1, 346.2, 396.0, 449.5, 546.5], "scaleS": [302.8, 333.4, 383.1, 436.5, 533.5], "lgSold": 70, "lgMargin": 241.57, "lgExitW": 544.6, "lgHCW": 326.8, "lgAdg": 1.387, "medSold": 126, "medMargin": 224.69, "medExitW": 544.7, "medHCW": 325.8, "medAdg": 1.378, "drugs": [[7, 6, 0, 571.8], [4, 4, 0, 300.5], [8, 7, 1, 381.7], [6, 6, 0, 421.9], [5, 5, 0, 254.0]]}, {"id": "LOT-2024-012", "pen": "PEN-16", "arr": "2024-01-31", "q": 0, "z": 0, "b": 1, "s": 0, "pt": 1, "reg": 0, "feederP": 5.51, "headIn": 169, "sold": 167, "mort": 2, "dof": 178.0, "adg": 1.757, "fcr": 6.33, "entryW": 348.6, "exitW": 661.3, "gain": 312.7, "dmi": 1979.1, "cog": 2.63, "fcog": 2.21, "pCost": 1920.81, "fCost": 689.96, "yCost": 106.8, "vCost": 23.69, "gRev": 3254.58, "margin": 513.37, "totMargin": 81545.26, "dressing": 0.617, "hotW": 407.8, "prime": 13, "aaa": 105, "aa": 44, "bGr": 5, "sickCount": 17, "healthyCount": 152, "brd": 9, "footRot": 3, "bloat": 4, "buller": 1, "healthyMargin": 525.9, "sickMargin": 386.35, "scaleH": [348.2, 400.1, 463.8, 530.3, 661.8], "scaleS": [352.3, 396.8, 458.3, 524.0, 656.4], "lgSold": 109, "lgMargin": 519.27, "lgExitW": 661.8, "lgHCW": 408.4, "lgAdg": 1.759, "medSold": 58, "medMargin": 502.28, "medExitW": 660.3, "medHCW": 406.7, "medAdg": 1.751, "drugs": [[3, 2, 1, 202.6], [6, 6, 0, 394.9], [6, 4, 1, 315.1], [0, 0, 0, 0.0], [3, 3, 0, 173.8]]}, {"id": "LOT-2024-013", "pen": "PEN-25", "arr": "2024-02-02", "q": 0, "z": 1, "b": 0, "s": 1, "pt": 0, "reg": 1, "feederP": 5.42, "headIn": 166, "sold": 163, "mort": 3, "dof": 185.0, "adg": 1.419, "fcr": 7.0, "entryW": 309.6, "exitW": 572.0, "gain": 262.4, "dmi": 1835.5, "cog": 2.97, "fcog": 2.44, "pCost": 1677.85, "fCost": 640.31, "yCost": 111.0, "vCost": 25.86, "gRev": 2782.32, "margin": 327.52, "totMargin": 47695.4, "dressing": 0.608, "hotW": 347.6, "prime": 23, "aaa": 120, "aa": 15, "bGr": 5, "sickCount": 19, "healthyCount": 147, "brd": 14, "footRot": 0, "bloat": 4, "buller": 1, "healthyMargin": 338.82, "sickMargin": 230.46, "scaleH": [309.4, 348.0, 399.6, 454.3, 572.7], "scaleS": [310.5, 341.6, 393.4, 449.4, 566.1], "lgSold": 68, "lgMargin": 326.59, "lgExitW": 570.1, "lgHCW": 346.1, "lgAdg": 1.413, "medSold": 95, "medMargin": 328.18, "medExitW": 573.3, "medHCW": 348.6, "medAdg": 1.423, "drugs": [[3, 2, 0, 232.1], [6, 5, 1, 464.4], [4, 4, 0, 293.1], [3, 2, 1, 225.2], [4, 4, 0, 224.4]]}, {"id": "LOT-2024-014", "pen": "PEN-33", "arr": "2024-02-04", "q": 0, "z": 0, "b": 0, "s": 1, "pt": 0, "reg": 1, "feederP": 5.46, "headIn": 155, "sold": 151, "mort": 4, "dof": 188.0, "adg": 1.427, "fcr": 7.0, "entryW": 309.4, "exitW": 577.8, "gain": 268.3, "dmi": 1877.5, "cog": 2.95, "fcog": 2.45, "pCost": 1689.15, "fCost": 655.4, "yCost": 112.8, "vCost": 22.47, "gRev": 2805.86, "margin": 325.55, "totMargin": 41724.7, "dressing": 0.608, "hotW": 351.5, "prime": 12, "aaa": 113, "aa": 23, "bGr": 3, "sickCount": 16, "healthyCount": 139, "brd": 9, "footRot": 3, "bloat": 3, "buller": 1, "healthyMargin": 329.46, "sickMargin": 280.26, "scaleH": [309.9, 348.8, 400.8, 455.4, 578.4], "scaleS": [304.5, 338.2, 391.1, 445.4, 570.6], "lgSold": 61, "lgMargin": 335.11, "lgExitW": 580.3, "lgHCW": 353.3, "lgAdg": 1.436, "medSold": 90, "medMargin": 319.08, "medExitW": 576.1, "medHCW": 350.3, "medAdg": 1.421, "drugs": [[3, 2, 1, 192.9], [4, 3, 1, 311.9], [4, 4, 0, 166.5], [2, 1, 1, 135.9], [4, 2, 1, 199.5]]}, {"id": "LOT-2024-015", "pen": "PEN-08", "arr": "2024-02-07", "q": 0, "z": 2, "b": 0, "s": 1, "pt": 1, "reg": 3, "feederP": 5.49, "headIn": 140, "sold": 136, "mort": 4, "dof": 195.0, "adg": 1.443, "fcr": 6.98, "entryW": 310.3, "exitW": 591.6, "gain": 281.4, "dmi": 1961.6, "cog": 2.96, "fcog": 2.44, "pCost": 1703.65, "fCost": 686.41, "yCost": 117.0, "vCost": 29.39, "gRev": 2872.58, "margin": 336.68, "totMargin": 38355.1, "dressing": 0.608, "hotW": 359.9, "prime": 20, "aaa": 87, "aa": 25, "bGr": 4, "sickCount": 26, "healthyCount": 114, "brd": 14, "footRot": 7, "bloat": 2, "buller": 3, "healthyMargin": 351.51, "sickMargin": 263.87, "scaleH": [310.3, 352.9, 406.1, 460.7, 593.5], "scaleS": [310.5, 345.9, 397.5, 450.7, 582.3], "lgSold": 51, "lgMargin": 325.89, "lgExitW": 585.1, "lgHCW": 356.1, "lgAdg": 1.425, "medSold": 85, "medMargin": 343.16, "medExitW": 595.5, "medHCW": 362.2, "medAdg": 1.454, "drugs": [[6, 4, 2, 434.2], [5, 5, 0, 404.0], [10, 8, 0, 520.8], [4, 3, 1, 240.4], [3, 3, 0, 152.5]]}, {"id": "LOT-2024-016", "pen": "PEN-01", "arr": "2024-02-21", "q": 0, "z": 0, "b": 0, "s": 0, "pt": 0, "reg": 0, "feederP": 5.56, "headIn": 140, "sold": 139, "mort": 1, "dof": 183.0, "adg": 1.674, "fcr": 6.73, "entryW": 349.8, "exitW": 656.2, "gain": 306.3, "dmi": 2058.2, "cog": 2.79, "fcog": 2.35, "pCost": 1945.05, "fCost": 718.05, "yCost": 109.8, "vCost": 25.85, "gRev": 3197.65, "margin": 398.66, "totMargin": 53326.63, "dressing": 0.609, "hotW": 399.9, "prime": 18, "aaa": 102, "aa": 16, "bGr": 3, "sickCount": 16, "healthyCount": 124, "brd": 12, "footRot": 0, "bloat": 3, "buller": 1, "healthyMargin": 408.73, "sickMargin": 321.24, "scaleH": [350.6, 398.5, 461.0, 524.7, 658.6], "scaleS": [343.5, 384.3, 443.8, 504.8, 637.8], "lgSold": 61, "lgMargin": 417.25, "lgExitW": 658.6, "lgHCW": 402.3, "lgAdg": 1.678, "medSold": 78, "medMargin": 384.11, "medExitW": 654.3, "medHCW": 398.0, "medAdg": 1.671, "drugs": [[6, 5, 0, 383.0], [6, 6, 0, 482.2], [3, 3, 0, 120.6], [1, 1, 0, 46.3], [1, 1, 0, 59.0]]}, {"id": "LOT-2024-017", "pen": "PEN-13", "arr": "2024-02-21", "q": 0, "z": 2, "b": 0, "s": 1, "pt": 0, "reg": 0, "feederP": 5.5, "headIn": 140, "sold": 140, "mort": 0, "dof": 180.0, "adg": 1.45, "fcr": 6.8, "entryW": 310.6, "exitW": 571.6, "gain": 261.0, "dmi": 1772.3, "cog": 2.88, "fcog": 2.37, "pCost": 1708.37, "fCost": 617.7, "yCost": 108.0, "vCost": 23.98, "gRev": 2778.06, "margin": 320.01, "totMargin": 44800.91, "dressing": 0.609, "hotW": 347.9, "prime": 18, "aaa": 103, "aa": 15, "bGr": 4, "sickCount": 12, "healthyCount": 128, "brd": 10, "footRot": 0, "bloat": 0, "buller": 2, "healthyMargin": 328.67, "sickMargin": 227.63, "scaleH": [310.7, 352.3, 406.3, 461.1, 572.6], "scaleS": [309.9, 343.1, 396.0, 451.2, 561.2], "lgSold": 62, "lgMargin": 326.76, "lgExitW": 570.1, "lgHCW": 348.1, "lgAdg": 1.455, "medSold": 78, "medMargin": 314.64, "medExitW": 572.8, "medHCW": 347.8, "medAdg": 1.446, "drugs": [[4, 4, 0, 260.6], [4, 4, 0, 276.3], [2, 2, 0, 150.0], [1, 1, 0, 90.6], [1, 1, 0, 60.3]]}, {"id": "LOT-2024-018", "pen": "PEN-23", "arr": "2024-02-23", "q": 0, "z": 0, "b": 0, "s": 0, "pt": 2, "reg": 3, "feederP": 5.63, "headIn": 147, "sold": 143, "mort": 4, "dof": 174.0, "adg": 1.655, "fcr": 6.71, "entryW": 351.5, "exitW": 639.7, "gain": 287.9, "dmi": 1931.2, "cog": 2.79, "fcog": 2.34, "pCost": 1978.7, "fCost": 671.73, "yCost": 104.4, "vCost": 25.32, "gRev": 3108.57, "margin": 326.73, "totMargin": 38479.73, "dressing": 0.608, "hotW": 388.9, "prime": 24, "aaa": 95, "aa": 21, "bGr": 3, "sickCount": 19, "healthyCount": 128, "brd": 10, "footRot": 6, "bloat": 2, "buller": 1, "healthyMargin": 340.43, "sickMargin": 218.02, "scaleH": [351.8, 399.7, 461.5, 524.5, 641.2], "scaleS": [349.4, 394.0, 450.6, 511.7, 627.7], "lgSold": 65, "lgMargin": 324.12, "lgExitW": 640.3, "lgHCW": 389.7, "lgAdg": 1.656, "medSold": 78, "medMargin": 328.91, "medExitW": 639.1, "medHCW": 388.2, "medAdg": 1.653, "drugs": [[2, 2, 0, 144.4], [6, 5, 1, 453.3], [10, 8, 1, 487.7], [1, 1, 0, 70.4], [2, 1, 0, 106.1]]}, {"id": "LOT-2024-019", "pen": "PEN-39", "arr": "2024-02-23", "q": 0, "z": 1, "b": 0, "s": 0, "pt": 0, "reg": 3, "feederP": 5.66, "headIn": 211, "sold": 204, "mort": 7, "dof": 174.0, "adg": 1.66, "fcr": 6.69, "entryW": 349.8, "exitW": 638.4, "gain": 288.9, "dmi": 1930.7, "cog": 2.79, "fcog": 2.33, "pCost": 1979.73, "fCost": 671.55, "yCost": 104.4, "vCost": 28.42, "gRev": 3102.75, "margin": 320.29, "totMargin": 49770.02, "dressing": 0.608, "hotW": 388.2, "prime": 26, "aaa": 146, "aa": 26, "bGr": 6, "sickCount": 38, "healthyCount": 173, "brd": 22, "footRot": 5, "bloat": 6, "buller": 5, "healthyMargin": 336.51, "sickMargin": 239.15, "scaleH": [348.6, 396.6, 458.6, 521.5, 638.8], "scaleS": [355.3, 394.0, 454.7, 518.2, 635.9], "lgSold": 84, "lgMargin": 338.66, "lgExitW": 638.7, "lgHCW": 389.1, "lgAdg": 1.673, "medSold": 120, "medMargin": 307.43, "medExitW": 638.1, "medHCW": 387.6, "medAdg": 1.652, "drugs": [[11, 11, 0, 752.6], [8, 6, 2, 556.6], [6, 6, 0, 312.2], [3, 3, 0, 179.9], [10, 8, 2, 563.0]]}, {"id": "LOT-2024-020", "pen": "PEN-32", "arr": "2024-03-01", "q": 0, "z": 0, "b": 0, "s": 0, "pt": 0, "reg": 0, "feederP": 5.63, "headIn": 140, "sold": 139, "mort": 1, "dof": 187.0, "adg": 1.677, "fcr": 6.76, "entryW": 351.1, "exitW": 664.8, "gain": 313.6, "dmi": 2119.6, "cog": 2.81, "fcog": 2.36, "pCost": 1976.68, "fCost": 740.51, "yCost": 112.2, "vCost": 26.34, "gRev": 3222.85, "margin": 366.6, "totMargin": 48925.48, "dressing": 0.608, "hotW": 404.5, "prime": 15, "aaa": 104, "aa": 17, "bGr": 3, "sickCount": 17, "healthyCount": 123, "brd": 11, "footRot": 2, "bloat": 2, "buller": 2, "healthyMargin": 375.73, "sickMargin": 296.38, "scaleH": [351.0, 401.2, 463.1, 526.1, 665.9], "scaleS": [351.6, 397.0, 456.7, 518.0, 656.5], "lgSold": 58, "lgMargin": 349.45, "lgExitW": 664.4, "lgHCW": 404.1, "lgAdg": 1.677, "medSold": 81, "medMargin": 378.87, "medExitW": 665.1, "medHCW": 404.8, "medAdg": 1.677, "drugs": [[5, 4, 1, 402.6], [5, 5, 0, 402.9], [2, 2, 0, 98.0], [3, 2, 0, 178.4], [3, 3, 0, 161.9]]}, {"id": "LOT-2024-021", "pen": "PEN-03", "arr": "2024-03-21", "q": 0, "z": 1, "b": 3, "s": 1, "pt": 0, "reg": 1, "feederP": 5.64, "headIn": 170, "sold": 167, "mort": 3, "dof": 188.0, "adg": 1.447, "fcr": 6.81, "entryW": 307.9, "exitW": 580.0, "gain": 272.1, "dmi": 1849.9, "cog": 2.89, "fcog": 2.38, "pCost": 1736.59, "fCost": 646.75, "yCost": 112.8, "vCost": 26.52, "gRev": 2757.09, "margin": 234.56, "totMargin": 33562.89, "dressing": 0.599, "hotW": 347.2, "prime": 6, "aaa": 113, "aa": 45, "bGr": 3, "sickCount": 23, "healthyCount": 147, "brd": 15, "footRot": 4, "bloat": 2, "buller": 2, "healthyMargin": 246.1, "sickMargin": 154.3, "scaleH": [308.2, 354.3, 407.2, 461.0, 581.9], "scaleS": [306.0, 345.2, 395.5, 448.4, 566.8], "lgSold": 60, "lgMargin": 246.25, "lgExitW": 582.5, "lgHCW": 349.6, "lgAdg": 1.461, "medSold": 107, "medMargin": 228.0, "medExitW": 578.5, "medHCW": 345.9, "medAdg": 1.44, "drugs": [[5, 5, 0, 392.3], [7, 5, 1, 508.9], [5, 5, 0, 247.7], [5, 5, 0, 318.0], [3, 2, 0, 149.0]]}, {"id": "LOT-2024-022", "pen": "PEN-36", "arr": "2024-04-02", "q": 1, "z": 2, "b": 0, "s": 0, "pt": 0, "reg": 0, "feederP": 5.81, "headIn": 189, "sold": 187, "mort": 2, "dof": 188.0, "adg": 1.69, "fcr": 6.71, "entryW": 351.0, "exitW": 668.5, "gain": 317.7, "dmi": 2131.0, "cog": 2.8, "fcog": 2.36, "pCost": 2039.37, "fCost": 749.19, "yCost": 112.8, "vCost": 24.77, "gRev": 3245.59, "margin": 320.54, "totMargin": 55424.77, "dressing": 0.607, "hotW": 406.0, "prime": 22, "aaa": 150, "aa": 14, "bGr": 1, "sickCount": 20, "healthyCount": 169, "brd": 11, "footRot": 3, "bloat": 0, "buller": 6, "healthyMargin": 330.54, "sickMargin": 226.62, "scaleH": [350.5, 404.1, 465.7, 528.6, 669.3], "scaleS": [355.0, 396.8, 457.0, 520.2, 661.3], "lgSold": 64, "lgMargin": 325.07, "lgExitW": 668.3, "lgHCW": 405.6, "lgAdg": 1.703, "medSold": 123, "medMargin": 318.17, "medExitW": 668.6, "medHCW": 406.3, "medAdg": 1.683, "drugs": [[6, 6, 0, 471.2], [2, 1, 1, 133.8], [3, 2, 0, 164.5], [5, 4, 1, 263.4], [6, 5, 0, 362.9]]}, {"id": "LOT-2024-023", "pen": "PEN-37", "arr": "2024-04-04", "q": 1, "z": 0, "b": 1, "s": 0, "pt": 2, "reg": 0, "feederP": 5.78, "headIn": 189, "sold": 187, "mort": 2, "dof": 174.0, "adg": 1.801, "fcr": 6.19, "entryW": 352.6, "exitW": 665.8, "gain": 313.4, "dmi": 1938.7, "cog": 2.59, "fcog": 2.16, "pCost": 2037.95, "fCost": 675.6, "yCost": 104.4, "vCost": 29.72, "gRev": 3248.78, "margin": 402.05, "totMargin": 70680.16, "dressing": 0.617, "hotW": 410.7, "prime": 7, "aaa": 122, "aa": 49, "bGr": 9, "sickCount": 30, "healthyCount": 159, "brd": 21, "footRot": 5, "bloat": 2, "buller": 2, "healthyMargin": 429.01, "sickMargin": 255.12, "scaleH": [353.2, 410.4, 476.5, 543.6, 668.9], "scaleS": [349.4, 396.5, 459.1, 525.1, 649.3], "lgSold": 125, "lgMargin": 412.15, "lgExitW": 666.2, "lgHCW": 411.2, "lgAdg": 1.804, "medSold": 62, "medMargin": 381.67, "medExitW": 665.1, "medHCW": 409.6, "medAdg": 1.796, "drugs": [[8, 7, 0, 598.2], [12, 11, 1, 914.1], [6, 5, 0, 277.1], [3, 2, 0, 208.3], [4, 4, 0, 251.7]]}, {"id": "LOT-2024-024", "pen": "PEN-35", "arr": "2024-04-08", "q": 1, "z": 2, "b": 1, "s": 1, "pt": 0, "reg": 0, "feederP": 5.68, "headIn": 179, "sold": 178, "mort": 1, "dof": 180.0, "adg": 1.553, "fcr": 6.35, "entryW": 310.7, "exitW": 590.3, "gain": 279.6, "dmi": 1772.3, "cog": 2.71, "fcog": 2.22, "pCost": 1764.93, "fCost": 620.94, "yCost": 108.0, "vCost": 26.98, "gRev": 2893.34, "margin": 372.61, "totMargin": 64413.58, "dressing": 0.617, "hotW": 364.0, "prime": 11, "aaa": 124, "aa": 39, "bGr": 4, "sickCount": 24, "healthyCount": 155, "brd": 19, "footRot": 1, "bloat": 2, "buller": 2, "healthyMargin": 387.94, "sickMargin": 269.26, "scaleH": [310.3, 359.8, 416.4, 474.6, 591.4], "scaleS": [313.5, 354.3, 410.3, 468.1, 582.6], "lgSold": 114, "lgMargin": 372.51, "lgExitW": 592.0, "lgHCW": 365.0, "lgAdg": 1.558, "medSold": 64, "medMargin": 372.78, "medExitW": 587.3, "medHCW": 362.2, "medAdg": 1.544, "drugs": [[7, 7, 0, 460.1], [8, 6, 1, 537.9], [3, 3, 0, 162.8], [5, 5, 0, 367.9], [3, 2, 0, 151.2]]}, {"id": "LOT-2024-025", "pen": "PEN-22", "arr": "2024-04-21", "q": 1, "z": 0, "b": 3, "s": 0, "pt": 0, "reg": 0, "feederP": 5.87, "headIn": 145, "sold": 142, "mort": 3, "dof": 174.0, "adg": 1.666, "fcr": 6.59, "entryW": 348.5, "exitW": 638.2, "gain": 289.8, "dmi": 1907.6, "cog": 2.77, "fcog": 2.32, "pCost": 2045.59, "fCost": 671.18, "yCost": 104.4, "vCost": 27.22, "gRev": 3026.2, "margin": 178.2, "totMargin": 18777.94, "dressing": 0.598, "hotW": 382.0, "prime": 6, "aaa": 84, "aa": 48, "bGr": 4, "sickCount": 22, "healthyCount": 123, "brd": 15, "footRot": 6, "bloat": 1, "buller": 0, "healthyMargin": 188.8, "sickMargin": 109.55, "scaleH": [347.9, 400.7, 461.6, 523.5, 638.9], "scaleS": [351.8, 395.9, 455.4, 517.5, 634.1], "lgSold": 55, "lgMargin": 166.26, "lgExitW": 639.0, "lgHCW": 382.4, "lgAdg": 1.66, "medSold": 87, "medMargin": 185.74, "medExitW": 637.8, "medHCW": 381.7, "medAdg": 1.669, "drugs": [[5, 5, 0, 346.4], [6, 5, 0, 454.4], [5, 4, 1, 259.1], [6, 5, 1, 376.1], [1, 0, 1, 67.3]]}, {"id": "LOT-2024-026", "pen": "PEN-28", "arr": "2024-04-24", "q": 1, "z": 1, "b": 0, "s": 0, "pt": 2, "reg": 1, "feederP": 5.86, "headIn": 218, "sold": 216, "mort": 2, "dof": 193.0, "adg": 1.697, "fcr": 6.76, "entryW": 352.4, "exitW": 679.8, "gain": 327.5, "dmi": 2212.5, "cog": 2.87, "fcog": 2.43, "pCost": 2064.79, "fCost": 795.94, "yCost": 115.8, "vCost": 27.93, "gRev": 3315.35, "margin": 311.19, "totMargin": 62534.23, "dressing": 0.609, "hotW": 413.7, "prime": 30, "aaa": 154, "aa": 28, "bGr": 4, "sickCount": 38, "healthyCount": 180, "brd": 20, "footRot": 4, "bloat": 9, "buller": 5, "healthyMargin": 322.99, "sickMargin": 252.21, "scaleH": [353.4, 407.2, 469.2, 532.4, 682.2], "scaleS": [347.6, 393.4, 454.2, 516.5, 668.0], "lgSold": 96, "lgMargin": 310.56, "lgExitW": 678.3, "lgHCW": 412.7, "lgAdg": 1.696, "medSold": 120, "medMargin": 311.69, "medExitW": 681.1, "medHCW": 414.6, "medAdg": 1.698, "drugs": [[6, 6, 0, 459.4], [7, 7, 0, 509.0], [13, 12, 1, 665.5], [4, 4, 0, 223.4], [8, 7, 1, 377.0]]}, {"id": "LOT-2024-027", "pen": "PEN-20", "arr": "2024-04-25", "q": 1, "z": 0, "b": 0, "s": 0, "pt": 0, "reg": 0, "feederP": 5.89, "headIn": 171, "sold": 169, "mort": 2, "dof": 182.0, "adg": 1.703, "fcr": 6.57, "entryW": 348.1, "exitW": 658.1, "gain": 309.9, "dmi": 2034.2, "cog": 2.78, "fcog": 2.34, "pCost": 2050.34, "fCost": 724.69, "yCost": 109.2, "vCost": 26.74, "gRev": 3198.72, "margin": 287.21, "totMargin": 44195.66, "dressing": 0.608, "hotW": 400.0, "prime": 23, "aaa": 126, "aa": 16, "bGr": 4, "sickCount": 22, "healthyCount": 149, "brd": 18, "footRot": 3, "bloat": 1, "buller": 0, "healthyMargin": 299.64, "sickMargin": 194.61, "scaleH": [348.7, 402.9, 465.0, 528.0, 660.1], "scaleS": [343.9, 390.5, 450.7, 512.6, 643.1], "lgSold": 69, "lgMargin": 284.76, "lgExitW": 656.1, "lgHCW": 398.9, "lgAdg": 1.693, "medSold": 100, "medMargin": 288.9, "medExitW": 659.4, "medHCW": 400.7, "medAdg": 1.709, "drugs": [[6, 5, 0, 425.6], [9, 7, 2, 700.7], [4, 4, 0, 185.7], [4, 4, 0, 321.5], [1, 0, 0, 59.6]]}, {"id": "LOT-2024-028", "pen": "PEN-14", "arr": "2024-05-07", "q": 1, "z": 0, "b": 3, "s": 0, "pt": 2, "reg": 3, "feederP": 5.83, "headIn": 157, "sold": 154, "mort": 3, "dof": 178.0, "adg": 1.664, "fcr": 6.66, "entryW": 349.4, "exitW": 645.7, "gain": 296.2, "dmi": 1971.9, "cog": 2.84, "fcog": 2.39, "pCost": 2036.93, "fCost": 706.49, "yCost": 106.8, "vCost": 26.21, "gRev": 3077.91, "margin": 200.72, "totMargin": 24052.68, "dressing": 0.6, "hotW": 387.8, "prime": 6, "aaa": 84, "aa": 57, "bGr": 7, "sickCount": 21, "healthyCount": 136, "brd": 16, "footRot": 3, "bloat": 1, "buller": 1, "healthyMargin": 212.82, "sickMargin": 114.75, "scaleH": [349.5, 402.3, 463.1, 525.0, 646.7], "scaleS": [348.7, 394.6, 452.9, 516.5, 638.7], "lgSold": 68, "lgMargin": 187.77, "lgExitW": 646.4, "lgHCW": 388.0, "lgAdg": 1.659, "medSold": 86, "medMargin": 210.96, "medExitW": 645.2, "medHCW": 387.6, "medAdg": 1.668, "drugs": [[8, 8, 0, 553.1], [8, 5, 1, 540.0], [3, 3, 0, 144.9], [3, 3, 0, 172.7], [1, 0, 1, 63.2]]}, {"id": "LOT-2024-029", "pen": "PEN-05", "arr": "2024-05-08", "q": 1, "z": 0, "b": 3, "s": 0, "pt": 0, "reg": 3, "feederP": 5.87, "headIn": 140, "sold": 138, "mort": 2, "dof": 190.0, "adg": 1.656, "fcr": 6.78, "entryW": 347.7, "exitW": 662.1, "gain": 314.6, "dmi": 2130.4, "cog": 2.91, "fcog": 2.46, "pCost": 2040.94, "fCost": 772.39, "yCost": 114.0, "vCost": 27.74, "gRev": 3167.68, "margin": 213.53, "totMargin": 24967.59, "dressing": 0.598, "hotW": 396.2, "prime": 8, "aaa": 91, "aa": 37, "bGr": 2, "sickCount": 25, "healthyCount": 115, "brd": 13, "footRot": 7, "bloat": 5, "buller": 0, "healthyMargin": 226.7, "sickMargin": 147.69, "scaleH": [347.0, 399.5, 459.8, 521.3, 662.9], "scaleS": [351.1, 395.5, 454.2, 516.4, 658.4], "lgSold": 53, "lgMargin": 215.43, "lgExitW": 667.5, "lgHCW": 399.9, "lgAdg": 1.666, "medSold": 85, "medMargin": 212.35, "medExitW": 658.8, "medHCW": 393.9, "medAdg": 1.649, "drugs": [[4, 4, 0, 300.0], [8, 6, 2, 537.5], [6, 6, 0, 293.0], [4, 4, 0, 215.8], [4, 3, 0, 147.9]]}, {"id": "LOT-2024-030", "pen": "PEN-02", "arr": "2024-05-10", "q": 1, "z": 2, "b": 2, "s": 0, "pt": 1, "reg": 1, "feederP": 5.88, "headIn": 147, "sold": 144, "mort": 3, "dof": 188.0, "adg": 1.784, "fcr": 6.38, "entryW": 351.2, "exitW": 686.5, "gain": 335.4, "dmi": 2137.1, "cog": 2.73, "fcog": 2.31, "pCost": 2064.87, "fCost": 775.24, "yCost": 112.8, "vCost": 26.3, "gRev": 3349.07, "margin": 370.3, "totMargin": 46388.82, "dressing": 0.612, "hotW": 420.0, "prime": 6, "aaa": 92, "aa": 40, "bGr": 6, "sickCount": 21, "healthyCount": 126, "brd": 14, "footRot": 2, "bloat": 4, "buller": 1, "healthyMargin": 388.58, "sickMargin": 250.01, "scaleH": [350.2, 406.8, 471.8, 537.9, 686.6], "scaleS": [357.2, 405.9, 468.0, 535.3, 685.7], "lgSold": 98, "lgMargin": 376.24, "lgExitW": 687.3, "lgHCW": 420.9, "lgAdg": 1.783, "medSold": 46, "medMargin": 357.63, "medExitW": 684.6, "medHCW": 418.0, "medAdg": 1.786, "drugs": [[6, 5, 1, 405.9], [4, 3, 0, 283.0], [3, 3, 0, 166.1], [5, 4, 1, 346.4], [4, 4, 0, 211.1]]}, {"id": "LOT-2024-031", "pen": "PEN-09", "arr": "2024-05-18", "q": 1, "z": 1, "b": 0, "s": 1, "pt": 2, "reg": 1, "feederP": 5.83, "headIn": 140, "sold": 139, "mort": 1, "dof": 187.0, "adg": 1.457, "fcr": 6.84, "entryW": 310.8, "exitW": 583.2, "gain": 272.5, "dmi": 1863.4, "cog": 3.01, "fcog": 2.49, "pCost": 1811.81, "fCost": 678.97, "yCost": 112.2, "vCost": 27.64, "gRev": 2842.66, "margin": 212.6, "totMargin": 27235.62, "dressing": 0.608, "hotW": 354.7, "prime": 11, "aaa": 104, "aa": 20, "bGr": 4, "sickCount": 22, "healthyCount": 118, "brd": 11, "footRot": 2, "bloat": 7, "buller": 2, "healthyMargin": 229.18, "sickMargin": 124.43, "scaleH": [311.0, 357.8, 411.6, 466.1, 584.8], "scaleS": [309.6, 349.8, 402.2, 456.9, 574.8], "lgSold": 57, "lgMargin": 208.16, "lgExitW": 584.3, "lgHCW": 355.8, "lgAdg": 1.459, "medSold": 82, "medMargin": 215.68, "medExitW": 582.4, "medHCW": 353.9, "medAdg": 1.456, "drugs": [[7, 7, 0, 538.1], [3, 3, 0, 227.3], [1, 1, 0, 36.5], [3, 3, 0, 164.7], [8, 8, 0, 373.5]]}, {"id": "LOT-2024-032", "pen": "PEN-27", "arr": "2024-05-24", "q": 1, "z": 0, "b": 0, "s": 0, "pt": 0, "reg": 0, "feederP": 5.85, "headIn": 191, "sold": 188, "mort": 3, "dof": 172.0, "adg": 1.694, "fcr": 6.53, "entryW": 351.2, "exitW": 642.5, "gain": 291.4, "dmi": 1901.0, "cog": 2.8, "fcog": 2.36, "pCost": 2054.8, "fCost": 686.8, "yCost": 103.2, "vCost": 25.76, "gRev": 3137.43, "margin": 267.47, "totMargin": 43707.1, "dressing": 0.609, "hotW": 391.2, "prime": 27, "aaa": 134, "aa": 21, "bGr": 6, "sickCount": 25, "healthyCount": 166, "brd": 15, "footRot": 2, "bloat": 4, "buller": 4, "healthyMargin": 277.64, "sickMargin": 190.73, "scaleH": [351.1, 404.9, 466.9, 529.9, 643.7], "scaleS": [352.2, 395.5, 456.3, 519.5, 634.1], "lgSold": 81, "lgMargin": 280.41, "lgExitW": 645.3, "lgHCW": 393.5, "lgAdg": 1.707, "medSold": 107, "medMargin": 257.67, "medExitW": 640.5, "medHCW": 389.4, "medAdg": 1.685, "drugs": [[4, 4, 0, 305.3], [5, 5, 0, 406.0], [4, 4, 0, 251.6], [4, 4, 0, 251.7], [8, 5, 3, 398.3]]}, {"id": "LOT-2024-033", "pen": "PEN-26", "arr": "2024-05-27", "q": 1, "z": 2, "b": 2, "s": 0, "pt": 1, "reg": 2, "feederP": 5.91, "headIn": 166, "sold": 165, "mort": 1, "dof": 195.0, "adg": 1.778, "fcr": 6.48, "entryW": 351.0, "exitW": 697.9, "gain": 346.8, "dmi": 2245.5, "cog": 2.8, "fcog": 2.39, "pCost": 2074.39, "fCost": 829.64, "yCost": 117.0, "vCost": 24.92, "gRev": 3432.29, "margin": 385.62, "totMargin": 61406.28, "dressing": 0.613, "hotW": 427.6, "prime": 6, "aaa": 109, "aa": 44, "bGr": 6, "sickCount": 21, "healthyCount": 145, "brd": 10, "footRot": 6, "bloat": 2, "buller": 3, "healthyMargin": 395.61, "sickMargin": 313.17, "scaleH": [350.8, 407.8, 473.4, 540.2, 698.7], "scaleS": [352.7, 402.2, 466.7, 532.5, 692.4], "lgSold": 117, "lgMargin": 384.82, "lgExitW": 697.1, "lgHCW": 427.6, "lgAdg": 1.777, "medSold": 48, "medMargin": 387.57, "medExitW": 699.9, "medHCW": 427.7, "medAdg": 1.781, "drugs": [[4, 4, 0, 289.8], [1, 1, 0, 93.1], [6, 6, 0, 247.2], [6, 5, 1, 372.2], [4, 4, 0, 194.2]]}, {"id": "LOT-2024-034", "pen": "PEN-29", "arr": "2024-06-06", "q": 1, "z": 1, "b": 3, "s": 1, "pt": 0, "reg": 1, "feederP": 5.79, "headIn": 180, "sold": 180, "mort": 0, "dof": 177.0, "adg": 1.42, "fcr": 6.89, "entryW": 311.8, "exitW": 563.2, "gain": 251.4, "dmi": 1731.0, "cog": 3.06, "fcog": 2.53, "pCost": 1805.15, "fCost": 634.71, "yCost": 106.2, "vCost": 27.12, "gRev": 2701.9, "margin": 128.72, "totMargin": 23169.92, "dressing": 0.599, "hotW": 337.4, "prime": 7, "aaa": 114, "aa": 51, "bGr": 8, "sickCount": 27, "healthyCount": 153, "brd": 16, "footRot": 4, "bloat": 5, "buller": 2, "healthyMargin": 139.46, "sickMargin": 67.88, "scaleH": [312.4, 358.0, 410.8, 464.7, 565.0], "scaleS": [308.3, 346.0, 398.8, 452.7, 552.7], "lgSold": 70, "lgMargin": 122.35, "lgExitW": 564.9, "lgHCW": 339.2, "lgAdg": 1.429, "medSold": 110, "medMargin": 132.78, "medExitW": 562.0, "medHCW": 336.3, "medAdg": 1.415, "drugs": [[7, 7, 0, 495.7], [5, 5, 0, 342.0], [6, 6, 0, 280.5], [6, 6, 0, 359.8], [3, 3, 0, 163.0]]}, {"id": "LOT-2024-035", "pen": "PEN-34", "arr": "2024-06-06", "q": 1, "z": 2, "b": 1, "s": 0, "pt": 0, "reg": 0, "feederP": 5.97, "headIn": 150, "sold": 148, "mort": 2, "dof": 185.0, "adg": 1.754, "fcr": 6.46, "entryW": 349.4, "exitW": 673.9, "gain": 324.4, "dmi": 2092.0, "cog": 2.82, "fcog": 2.39, "pCost": 2085.75, "fCost": 772.94, "yCost": 111.0, "vCost": 28.55, "gRev": 3332.48, "margin": 333.51, "totMargin": 45047.7, "dressing": 0.617, "hotW": 416.1, "prime": 8, "aaa": 93, "aa": 38, "bGr": 9, "sickCount": 21, "healthyCount": 129, "brd": 18, "footRot": 2, "bloat": 0, "buller": 1, "healthyMargin": 350.97, "sickMargin": 221.76, "scaleH": [349.4, 406.7, 472.2, 538.6, 675.9], "scaleS": [349.0, 395.6, 460.1, 525.3, 661.6], "lgSold": 101, "lgMargin": 322.92, "lgExitW": 676.4, "lgHCW": 417.2, "lgAdg": 1.758, "medSold": 47, "medMargin": 356.26, "medExitW": 668.6, "medHCW": 413.8, "medAdg": 1.744, "drugs": [[11, 9, 0, 831.7], [4, 3, 1, 257.4], [3, 3, 0, 207.7], [5, 5, 0, 318.1], [0, 0, 0, 0.0]]}, {"id": "LOT-2024-036", "pen": "PEN-21", "arr": "2024-06-12", "q": 1, "z": 1, "b": 1, "s": 1, "pt": 0, "reg": 3, "feederP": 5.72, "headIn": 219, "sold": 214, "mort": 5, "dof": 177.0, "adg": 1.51, "fcr": 6.49, "entryW": 310.0, "exitW": 577.2, "gain": 267.3, "dmi": 1734.1, "cog": 2.89, "fcog": 2.39, "pCost": 1772.92, "fCost": 639.25, "yCost": 106.2, "vCost": 25.6, "gRev": 2846.34, "margin": 302.48, "totMargin": 55294.43, "dressing": 0.616, "hotW": 355.6, "prime": 12, "aaa": 123, "aa": 67, "bGr": 12, "sickCount": 28, "healthyCount": 191, "brd": 18, "footRot": 6, "bloat": 3, "buller": 1, "healthyMargin": 316.21, "sickMargin": 193.8, "scaleH": [310.1, 359.0, 415.3, 472.4, 578.5], "scaleS": [309.3, 351.6, 405.6, 462.5, 566.7], "lgSold": 138, "lgMargin": 314.32, "lgExitW": 579.3, "lgHCW": 357.4, "lgAdg": 1.522, "medSold": 76, "medMargin": 281.0, "medExitW": 573.4, "medHCW": 352.5, "medAdg": 1.488, "drugs": [[8, 4, 2, 572.0], [6, 6, 0, 406.9], [7, 7, 0, 319.9], [6, 5, 1, 382.6], [3, 3, 0, 202.3]]}, {"id": "LOT-2024-037", "pen": "PEN-24", "arr": "2024-06-17", "q": 1, "z": 0, "b": 0, "s": 0, "pt": 0, "reg": 2, "feederP": 5.84, "headIn": 190, "sold": 190, "mort": 0, "dof": 175.0, "adg": 1.649, "fcr": 6.73, "entryW": 350.8, "exitW": 639.4, "gain": 288.6, "dmi": 1940.9, "cog": 2.94, "fcog": 2.49, "pCost": 2048.8, "fCost": 716.85, "yCost": 105.0, "vCost": 26.69, "gRev": 3135.42, "margin": 238.07, "totMargin": 45233.84, "dressing": 0.609, "hotW": 389.3, "prime": 28, "aaa": 129, "aa": 24, "bGr": 9, "sickCount": 26, "healthyCount": 164, "brd": 15, "footRot": 4, "bloat": 5, "buller": 2, "healthyMargin": 249.82, "sickMargin": 163.97, "scaleH": [351.6, 405.1, 466.9, 529.8, 641.8], "scaleS": [345.9, 391.2, 451.4, 514.0, 624.4], "lgSold": 89, "lgMargin": 246.69, "lgExitW": 640.8, "lgHCW": 390.7, "lgAdg": 1.657, "medSold": 101, "medMargin": 230.48, "medExitW": 638.2, "medHCW": 388.1, "medAdg": 1.642, "drugs": [[6, 6, 0, 473.6], [5, 5, 0, 339.5], [4, 4, 0, 223.0], [5, 4, 0, 295.6], [7, 7, 0, 320.1]]}, {"id": "LOT-2024-038", "pen": "PEN-06", "arr": "2024-06-20", "q": 1, "z": 0, "b": 2, "s": 0, "pt": 2, "reg": 3, "feederP": 5.82, "headIn": 150, "sold": 147, "mort": 3, "dof": 177.0, "adg": 1.724, "fcr": 6.47, "entryW": 350.0, "exitW": 654.7, "gain": 305.1, "dmi": 1972.3, "cog": 2.84, "fcog": 2.4, "pCost": 2037.26, "fCost": 731.48, "yCost": 106.2, "vCost": 25.76, "gRev": 3221.37, "margin": 323.24, "totMargin": 40491.43, "dressing": 0.611, "hotW": 400.0, "prime": 11, "aaa": 97, "aa": 35, "bGr": 4, "sickCount": 21, "healthyCount": 129, "brd": 13, "footRot": 3, "bloat": 3, "buller": 2, "healthyMargin": 341.04, "sickMargin": 195.66, "scaleH": [348.6, 405.4, 470.3, 536.3, 655.7], "scaleS": [358.7, 406.3, 468.6, 531.2, 647.3], "lgSold": 95, "lgMargin": 332.44, "lgExitW": 657.0, "lgHCW": 401.7, "lgAdg": 1.73, "medSold": 52, "medMargin": 306.44, "medExitW": 650.5, "medHCW": 396.8, "medAdg": 1.711, "drugs": [[7, 7, 0, 454.2], [4, 3, 1, 302.2], [5, 4, 1, 254.4], [2, 1, 1, 152.1], [4, 3, 0, 216.5]]}, {"id": "LOT-2024-039", "pen": "PEN-30", "arr": "2024-06-30", "q": 1, "z": 0, "b": 0, "s": 0, "pt": 1, "reg": 1, "feederP": 5.76, "headIn": 173, "sold": 170, "mort": 3, "dof": 179.0, "adg": 1.672, "fcr": 6.67, "entryW": 347.0, "exitW": 646.2, "gain": 299.4, "dmi": 1995.9, "cog": 2.94, "fcog": 2.49, "pCost": 1998.99, "fCost": 745.77, "yCost": 107.4, "vCost": 24.37, "gRev": 3185.77, "margin": 310.44, "totMargin": 46217.31, "dressing": 0.609, "hotW": 393.4, "prime": 16, "aaa": 131, "aa": 17, "bGr": 6, "sickCount": 18, "healthyCount": 155, "brd": 12, "footRot": 4, "bloat": 1, "buller": 1, "healthyMargin": 323.29, "sickMargin": 186.82, "scaleH": [347.4, 401.6, 463.6, 527.1, 648.3], "scaleS": [344.4, 385.8, 446.0, 508.4, 626.1], "lgSold": 61, "lgMargin": 312.63, "lgExitW": 642.3, "lgHCW": 390.9, "lgAdg": 1.664, "medSold": 109, "medMargin": 309.22, "medExitW": 648.4, "medHCW": 394.8, "medAdg": 1.677, "drugs": [[3, 3, 0, 237.1], [6, 6, 0, 450.5], [5, 3, 1, 267.2], [3, 2, 1, 210.6], [2, 2, 0, 86.1]]}, {"id": "LOT-2024-040", "pen": "PEN-07", "arr": "2024-07-01", "q": 2, "z": 0, "b": 0, "s": 0, "pt": 0, "reg": 1, "feederP": 5.92, "headIn": 190, "sold": 188, "mort": 2, "dof": 182.0, "adg": 1.627, "fcr": 6.93, "entryW": 349.6, "exitW": 645.7, "gain": 296.2, "dmi": 2050.1, "cog": 3.06, "fcog": 2.6, "pCost": 2069.52, "fCost": 768.59, "yCost": 109.2, "vCost": 28.42, "gRev": 3196.85, "margin": 221.54, "totMargin": 37256.85, "dressing": 0.608, "hotW": 392.9, "prime": 26, "aaa": 135, "aa": 26, "bGr": 1, "sickCount": 31, "healthyCount": 159, "brd": 16, "footRot": 9, "bloat": 3, "buller": 3, "healthyMargin": 236.04, "sickMargin": 145.2, "scaleH": [349.5, 403.6, 465.6, 528.9, 647.1], "scaleS": [349.8, 396.5, 455.9, 518.6, 638.2], "lgSold": 69, "lgMargin": 214.12, "lgExitW": 645.7, "lgHCW": 392.2, "lgAdg": 1.631, "medSold": 119, "medMargin": 225.85, "medExitW": 645.7, "medHCW": 393.3, "medAdg": 1.626, "drugs": [[7, 6, 0, 524.1], [6, 6, 0, 494.6], [5, 4, 1, 221.7], [11, 10, 0, 564.5], [4, 4, 0, 208.6]]}, {"id": "LOT-2024-041", "pen": "PEN-18", "arr": "2024-08-21", "q": 2, "z": 1, "b": 1, "s": 0, "pt": 0, "reg": 0, "feederP": 5.59, "headIn": 152, "sold": 150, "mort": 2, "dof": 169.0, "adg": 1.634, "fcr": 6.79, "entryW": 350.8, "exitW": 627.3, "gain": 276.1, "dmi": 1873.9, "cog": 3.07, "fcog": 2.6, "pCost": 1960.92, "fCost": 718.25, "yCost": 101.4, "vCost": 26.02, "gRev": 3147.81, "margin": 338.73, "totMargin": 46580.83, "dressing": 0.616, "hotW": 386.7, "prime": 5, "aaa": 99, "aa": 37, "bGr": 9, "sickCount": 18, "healthyCount": 134, "brd": 11, "footRot": 3, "bloat": 3, "buller": 1, "healthyMargin": 351.78, "sickMargin": 243.01, "scaleH": [351.1, 407.7, 473.1, 533.2, 628.8], "scaleS": [348.2, 396.5, 459.5, 520.4, 616.8], "lgSold": 102, "lgMargin": 342.56, "lgExitW": 627.7, "lgHCW": 387.2, "lgAdg": 1.637, "medSold": 48, "medMargin": 330.59, "medExitW": 626.5, "medHCW": 385.4, "medAdg": 1.626, "drugs": [[10, 9, 0, 741.8], [2, 2, 0, 142.2], [3, 3, 0, 153.7], [1, 1, 0, 32.2], [3, 3, 0, 133.6]]}, {"id": "LOT-2024-042", "pen": "PEN-10", "arr": "2024-09-01", "q": 2, "z": 1, "b": 1, "s": 0, "pt": 0, "reg": 3, "feederP": 5.56, "headIn": 164, "sold": 162, "mort": 2, "dof": 175.0, "adg": 1.617, "fcr": 6.89, "entryW": 348.2, "exitW": 631.2, "gain": 283.0, "dmi": 1948.0, "cog": 3.13, "fcog": 2.66, "pCost": 1936.07, "fCost": 752.61, "yCost": 105.0, "vCost": 26.18, "gRev": 3172.36, "margin": 352.59, "totMargin": 52939.84, "dressing": 0.617, "hotW": 389.2, "prime": 4, "aaa": 92, "aa": 54, "bGr": 12, "sickCount": 19, "healthyCount": 145, "brd": 13, "footRot": 1, "bloat": 4, "buller": 1, "healthyMargin": 366.17, "sickMargin": 236.73, "scaleH": [348.6, 405.4, 470.8, 527.8, 632.6], "scaleS": [345.3, 393.5, 457.4, 515.9, 620.0], "lgSold": 106, "lgMargin": 358.17, "lgExitW": 634.2, "lgHCW": 391.5, "lgAdg": 1.626, "medSold": 56, "medMargin": 342.02, "medExitW": 625.6, "medHCW": 384.9, "medAdg": 1.602, "drugs": [[5, 3, 1, 369.7], [2, 2, 0, 134.5], [3, 2, 0, 199.7], [7, 5, 1, 455.2], [5, 5, 0, 297.5]]}, {"id": "LOT-2024-043", "pen": "PEN-15", "arr": "2024-09-01", "q": 2, "z": 0, "b": 0, "s": 0, "pt": 2, "reg": 2, "feederP": 5.67, "headIn": 140, "sold": 138, "mort": 2, "dof": 176.0, "adg": 1.535, "fcr": 7.26, "entryW": 347.8, "exitW": 617.8, "gain": 270.2, "dmi": 1959.1, "cog": 3.3, "fcog": 2.8, "pCost": 1972.15, "fCost": 756.7, "yCost": 105.6, "vCost": 26.7, "gRev": 3097.24, "margin": 237.33, "totMargin": 28220.85, "dressing": 0.608, "hotW": 375.7, "prime": 14, "aaa": 109, "aa": 10, "bGr": 5, "sickCount": 22, "healthyCount": 118, "brd": 12, "footRot": 3, "bloat": 6, "buller": 1, "healthyMargin": 248.51, "sickMargin": 171.37, "scaleH": [348.7, 402.8, 465.1, 519.3, 620.3], "scaleS": [342.9, 389.7, 448.5, 501.1, 602.7], "lgSold": 59, "lgMargin": 257.9, "lgExitW": 623.1, "lgHCW": 379.4, "lgAdg": 1.557, "medSold": 79, "medMargin": 221.97, "medExitW": 613.8, "medHCW": 373.0, "medAdg": 1.519, "drugs": [[3, 2, 0, 209.8], [2, 2, 0, 151.5], [4, 4, 0, 207.0], [8, 7, 1, 505.3], [6, 6, 0, 315.8]]}, {"id": "LOT-2024-044", "pen": "PEN-17", "arr": "2024-09-01", "q": 2, "z": 0, "b": 0, "s": 0, "pt": 0, "reg": 0, "feederP": 5.52, "headIn": 217, "sold": 215, "mort": 2, "dof": 168.0, "adg": 1.524, "fcr": 7.24, "entryW": 350.0, "exitW": 606.0, "gain": 256.0, "dmi": 1852.2, "cog": 3.3, "fcog": 2.79, "pCost": 1932.27, "fCost": 712.9, "yCost": 100.8, "vCost": 28.73, "gRev": 3035.98, "margin": 261.29, "totMargin": 52003.99, "dressing": 0.608, "hotW": 368.3, "prime": 30, "aaa": 159, "aa": 21, "bGr": 5, "sickCount": 36, "healthyCount": 181, "brd": 26, "footRot": 3, "bloat": 3, "buller": 4, "healthyMargin": 279.47, "sickMargin": 167.77, "scaleH": [349.2, 402.9, 464.8, 518.6, 606.9], "scaleS": [354.6, 400.7, 461.2, 512.6, 601.6], "lgSold": 85, "lgMargin": 262.43, "lgExitW": 602.4, "lgHCW": 366.2, "lgAdg": 1.517, "medSold": 130, "medMargin": 260.54, "medExitW": 608.4, "medHCW": 369.7, "medAdg": 1.528, "drugs": [[10, 10, 0, 749.5], [9, 9, 0, 648.3], [7, 7, 0, 391.0], [5, 5, 0, 346.9], [5, 4, 1, 203.7]]}, {"id": "LOT-2024-045", "pen": "PEN-38", "arr": "2024-09-10", "q": 2, "z": 0, "b": 1, "s": 0, "pt": 0, "reg": 0, "feederP": 5.61, "headIn": 158, "sold": 154, "mort": 4, "dof": 165.0, "adg": 1.592, "fcr": 6.88, "entryW": 347.8, "exitW": 610.7, "gain": 262.7, "dmi": 1804.6, "cog": 3.14, "fcog": 2.65, "pCost": 1951.34, "fCost": 696.43, "yCost": 99.0, "vCost": 26.84, "gRev": 3093.25, "margin": 318.64, "totMargin": 40476.4, "dressing": 0.616, "hotW": 376.5, "prime": 4, "aaa": 115, "aa": 33, "bGr": 2, "sickCount": 19, "healthyCount": 139, "brd": 16, "footRot": 3, "bloat": 0, "buller": 0, "healthyMargin": 331.97, "sickMargin": 211.17, "scaleH": [348.1, 404.8, 468.9, 524.0, 613.3], "scaleS": [345.6, 390.9, 449.4, 503.7, 589.9], "lgSold": 95, "lgMargin": 322.26, "lgExitW": 612.0, "lgHCW": 377.4, "lgAdg": 1.596, "medSold": 59, "medMargin": 312.8, "medExitW": 608.7, "medHCW": 374.9, "medAdg": 1.586, "drugs": [[5, 5, 0, 385.0], [6, 5, 0, 390.8], [5, 5, 0, 300.9], [6, 2, 1, 432.3], [1, 0, 1, 52.1]]}, {"id": "LOT-2024-046", "pen": "PEN-12", "arr": "2024-09-13", "q": 2, "z": 2, "b": 0, "s": 0, "pt": 0, "reg": 0, "feederP": 5.49, "headIn": 140, "sold": 136, "mort": 4, "dof": 179.0, "adg": 1.504, "fcr": 7.51, "entryW": 351.5, "exitW": 620.5, "gain": 269.3, "dmi": 2019.6, "cog": 3.41, "fcog": 2.91, "pCost": 1929.56, "fCost": 783.96, "yCost": 107.4, "vCost": 26.89, "gRev": 3116.12, "margin": 269.74, "totMargin": 28037.97, "dressing": 0.608, "hotW": 377.0, "prime": 9, "aaa": 113, "aa": 12, "bGr": 2, "sickCount": 19, "healthyCount": 121, "brd": 12, "footRot": 3, "bloat": 1, "buller": 3, "healthyMargin": 283.02, "sickMargin": 176.79, "scaleH": [350.8, 404.5, 464.0, 516.1, 621.2], "scaleS": [355.6, 402.5, 458.7, 511.7, 615.6], "lgSold": 56, "lgMargin": 282.64, "lgExitW": 621.9, "lgHCW": 378.7, "lgAdg": 1.511, "medSold": 80, "medMargin": 260.71, "medExitW": 619.5, "medHCW": 375.8, "medAdg": 1.499, "drugs": [[5, 5, 0, 365.2], [3, 3, 0, 246.9], [5, 4, 1, 235.7], [3, 2, 1, 262.7], [4, 3, 0, 226.1]]}, {"id": "LOT-2024-047", "pen": "PEN-40", "arr": "2024-09-13", "q": 2, "z": 1, "b": 1, "s": 0, "pt": 0, "reg": 2, "feederP": 5.62, "headIn": 158, "sold": 156, "mort": 2, "dof": 179.0, "adg": 1.577, "fcr": 7.11, "entryW": 350.3, "exitW": 632.4, "gain": 282.3, "dmi": 2005.6, "cog": 3.23, "fcog": 2.76, "pCost": 1968.43, "fCost": 779.03, "yCost": 107.4, "vCost": 25.21, "gRev": 3202.25, "margin": 323.11, "totMargin": 46117.15, "dressing": 0.617, "hotW": 390.0, "prime": 2, "aaa": 107, "aa": 40, "bGr": 7, "sickCount": 20, "healthyCount": 138, "brd": 13, "footRot": 4, "bloat": 2, "buller": 1, "healthyMargin": 340.59, "sickMargin": 189.05, "scaleH": [349.0, 405.3, 467.8, 522.7, 632.6], "scaleS": [358.8, 406.4, 466.1, 521.2, 631.1], "lgSold": 102, "lgMargin": 315.45, "lgExitW": 631.8, "lgHCW": 389.4, "lgAdg": 1.575, "medSold": 54, "medMargin": 337.58, "medExitW": 633.6, "medHCW": 391.1, "medAdg": 1.581, "drugs": [[4, 4, 0, 293.8], [3, 2, 1, 205.7], [6, 5, 1, 419.4], [4, 4, 0, 185.1], [3, 3, 0, 144.1]]}, {"id": "LOT-2024-048", "pen": "PEN-16", "arr": "2024-09-16", "q": 2, "z": 0, "b": 0, "s": 0, "pt": 1, "reg": 3, "feederP": 5.44, "headIn": 186, "sold": 179, "mort": 7, "dof": 174.0, "adg": 1.604, "fcr": 6.96, "entryW": 349.3, "exitW": 627.8, "gain": 279.2, "dmi": 1940.8, "cog": 3.17, "fcog": 2.7, "pCost": 1900.32, "fCost": 752.38, "yCost": 104.4, "vCost": 28.46, "gRev": 3139.23, "margin": 357.34, "totMargin": 48393.39, "dressing": 0.607, "hotW": 381.2, "prime": 15, "aaa": 125, "aa": 34, "bGr": 5, "sickCount": 27, "healthyCount": 159, "brd": 19, "footRot": 5, "bloat": 2, "buller": 1, "healthyMargin": 367.98, "sickMargin": 294.7, "scaleH": [349.0, 402.9, 463.0, 520.3, 627.5], "scaleS": [351.5, 398.3, 458.8, 517.6, 629.6], "lgSold": 73, "lgMargin": 362.81, "lgExitW": 632.4, "lgHCW": 384.6, "lgAdg": 1.611, "medSold": 106, "medMargin": 353.57, "medExitW": 624.6, "medHCW": 378.8, "medAdg": 1.6, "drugs": [[8, 8, 0, 658.1], [3, 3, 0, 224.1], [8, 7, 1, 448.3], [7, 6, 0, 497.9], [2, 2, 0, 99.4]]}, {"id": "LOT-2024-049", "pen": "PEN-19", "arr": "2024-09-16", "q": 2, "z": 1, "b": 1, "s": 1, "pt": 0, "reg": 0, "feederP": 5.35, "headIn": 144, "sold": 142, "mort": 2, "dof": 168.0, "adg": 1.373, "fcr": 7.07, "entryW": 309.4, "exitW": 540.0, "gain": 230.6, "dmi": 1628.3, "cog": 3.29, "fcog": 2.74, "pCost": 1655.43, "fCost": 630.32, "yCost": 100.8, "vCost": 27.19, "gRev": 2733.14, "margin": 319.66, "totMargin": 41628.25, "dressing": 0.617, "hotW": 332.9, "prime": 13, "aaa": 79, "aa": 45, "bGr": 5, "sickCount": 20, "healthyCount": 124, "brd": 14, "footRot": 3, "bloat": 2, "buller": 1, "healthyMargin": 335.6, "sickMargin": 209.81, "scaleH": [309.5, 358.7, 412.6, 460.5, 541.6], "scaleS": [308.8, 350.2, 401.4, 448.3, 528.9], "lgSold": 89, "lgMargin": 326.74, "lgExitW": 540.0, "lgHCW": 333.2, "lgAdg": 1.374, "medSold": 53, "medMargin": 307.76, "medExitW": 540.0, "medHCW": 332.3, "medAdg": 1.37, "drugs": [[7, 5, 1, 536.3], [3, 3, 0, 164.6], [4, 4, 0, 298.9], [6, 5, 1, 371.8], [2, 1, 0, 96.2]]}, {"id": "LOT-2024-050", "pen": "PEN-04", "arr": "2024-09-30", "q": 2, "z": 1, "b": 1, "s": 0, "pt": 2, "reg": 1, "feederP": 5.48, "headIn": 171, "sold": 168, "mort": 3, "dof": 171.0, "adg": 1.563, "fcr": 7.1, "entryW": 349.6, "exitW": 616.7, "gain": 267.2, "dmi": 1894.5, "cog": 3.24, "fcog": 2.76, "pCost": 1916.07, "fCost": 736.57, "yCost": 102.6, "vCost": 26.55, "gRev": 3124.9, "margin": 344.2, "totMargin": 51341.21, "dressing": 0.616, "hotW": 380.2, "prime": 9, "aaa": 105, "aa": 46, "bGr": 8, "sickCount": 21, "healthyCount": 150, "brd": 13, "footRot": 3, "bloat": 3, "buller": 2, "healthyMargin": 357.65, "sickMargin": 250.08, "scaleH": [349.5, 405.8, 463.6, 518.9, 617.9], "scaleS": [350.7, 399.9, 454.8, 509.3, 608.4], "lgSold": 109, "lgMargin": 345.4, "lgExitW": 618.4, "lgHCW": 381.5, "lgAdg": 1.57, "medSold": 59, "medMargin": 341.98, "medExitW": 613.4, "medHCW": 377.7, "medAdg": 1.55, "drugs": [[9, 9, 0, 690.4], [2, 1, 0, 156.1], [4, 4, 0, 234.3], [3, 3, 0, 142.8], [4, 4, 0, 213.4]]}, {"id": "LOT-2024-051", "pen": "PEN-11", "arr": "2024-11-02", "q": 3, "z": 0, "b": 0, "s": 1, "pt": 1, "reg": 0, "feederP": 5.39, "headIn": 149, "sold": 147, "mort": 2, "dof": 175.0, "adg": 1.386, "fcr": 7.07, "entryW": 310.9, "exitW": 553.4, "gain": 242.6, "dmi": 1714.2, "cog": 3.25, "fcog": 2.7, "pCost": 1675.62, "fCost": 653.37, "yCost": 105.0, "vCost": 28.78, "gRev": 2785.0, "margin": 322.45, "totMargin": 43582.19, "dressing": 0.608, "hotW": 336.5, "prime": 14, "aaa": 113, "aa": 17, "bGr": 3, "sickCount": 22, "healthyCount": 127, "brd": 16, "footRot": 2, "bloat": 3, "buller": 1, "healthyMargin": 340.99, "sickMargin": 211.23, "scaleH": [310.7, 355.2, 404.6, 455.0, 555.0], "scaleS": [311.9, 347.1, 396.2, 445.6, 544.0], "lgSold": 55, "lgMargin": 346.23, "lgExitW": 555.2, "lgHCW": 338.5, "lgAdg": 1.394, "medSold": 92, "medMargin": 308.23, "medExitW": 552.3, "medHCW": 335.3, "medAdg": 1.382, "drugs": [[8, 7, 0, 613.9], [5, 5, 0, 340.5], [1, 1, 0, 47.3], [7, 6, 1, 455.4], [3, 2, 0, 156.8]]}, {"id": "LOT-2024-052", "pen": "PEN-01", "arr": "2024-11-26", "q": 3, "z": 0, "b": 0, "s": 1, "pt": 0, "reg": 3, "feederP": 5.35, "headIn": 141, "sold": 139, "mort": 2, "dof": 178.0, "adg": 1.328, "fcr": 7.45, "entryW": 311.2, "exitW": 547.6, "gain": 236.4, "dmi": 1758.9, "cog": 3.36, "fcog": 2.78, "pCost": 1664.79, "fCost": 657.32, "yCost": 106.8, "vCost": 28.23, "gRev": 2745.0, "margin": 287.74, "totMargin": 36017.14, "dressing": 0.608, "hotW": 332.7, "prime": 19, "aaa": 101, "aa": 11, "bGr": 8, "sickCount": 20, "healthyCount": 121, "brd": 14, "footRot": 1, "bloat": 3, "buller": 2, "healthyMargin": 301.55, "sickMargin": 200.55, "scaleH": [310.1, 349.2, 394.3, 440.0, 547.7], "scaleS": [317.9, 349.7, 393.0, 438.7, 546.6], "lgSold": 55, "lgMargin": 301.16, "lgExitW": 546.9, "lgHCW": 333.2, "lgAdg": 1.337, "medSold": 84, "medMargin": 278.96, "medExitW": 548.0, "medHCW": 332.3, "medAdg": 1.322, "drugs": [[3, 3, 0, 212.7], [7, 5, 0, 517.8], [3, 3, 0, 205.6], [4, 3, 1, 287.3], [6, 5, 0, 341.4]]}, {"id": "LOT-2024-053", "pen": "PEN-32", "arr": "2024-12-11", "q": 3, "z": 0, "b": 0, "s": 0, "pt": 0, "reg": 2, "feederP": 5.47, "headIn": 147, "sold": 146, "mort": 1, "dof": 190.0, "adg": 1.563, "fcr": 7.32, "entryW": 353.0, "exitW": 649.8, "gain": 297.0, "dmi": 2170.3, "cog": 3.19, "fcog": 2.7, "pCost": 1931.05, "fCost": 801.07, "yCost": 114.0, "vCost": 29.4, "gRev": 3252.96, "margin": 378.31, "totMargin": 53138.37, "dressing": 0.609, "hotW": 395.9, "prime": 20, "aaa": 101, "aa": 21, "bGr": 4, "sickCount": 24, "healthyCount": 123, "brd": 16, "footRot": 3, "bloat": 3, "buller": 2, "healthyMargin": 402.9, "sickMargin": 253.28, "scaleH": [352.9, 397.7, 449.4, 505.1, 651.1], "scaleS": [353.5, 390.9, 442.4, 498.4, 643.4], "lgSold": 58, "lgMargin": 380.13, "lgExitW": 651.6, "lgHCW": 397.1, "lgAdg": 1.569, "medSold": 88, "medMargin": 377.1, "medExitW": 648.7, "medHCW": 395.2, "medAdg": 1.559, "drugs": [[8, 8, 0, 585.4], [7, 6, 0, 521.8], [5, 5, 0, 250.0], [2, 2, 0, 114.4], [3, 3, 0, 192.5]]}, {"id": "LOT-2024-054", "pen": "PEN-25", "arr": "2024-12-25", "q": 3, "z": 1, "b": 0, "s": 1, "pt": 0, "reg": 2, "feederP": 5.48, "headIn": 205, "sold": 199, "mort": 6, "dof": 192.0, "adg": 1.372, "fcr": 7.34, "entryW": 311.0, "exitW": 574.2, "gain": 263.5, "dmi": 1932.5, "cog": 3.22, "fcog": 2.68, "pCost": 1704.36, "fCost": 706.43, "yCost": 115.2, "vCost": 24.81, "gRev": 2862.26, "margin": 313.04, "totMargin": 50125.86, "dressing": 0.608, "hotW": 349.1, "prime": 25, "aaa": 142, "aa": 30, "bGr": 2, "sickCount": 24, "healthyCount": 181, "brd": 16, "footRot": 2, "bloat": 5, "buller": 1, "healthyMargin": 324.87, "sickMargin": 212.78, "scaleH": [311.2, 350.2, 394.9, 446.9, 575.6], "scaleS": [309.9, 342.4, 384.3, 434.7, 562.8], "lgSold": 76, "lgMargin": 325.51, "lgExitW": 574.8, "lgHCW": 349.4, "lgAdg": 1.386, "medSold": 123, "medMargin": 305.34, "medExitW": 573.8, "medHCW": 348.9, "medAdg": 1.364, "drugs": [[6, 6, 0, 460.7], [6, 4, 1, 440.1], [6, 6, 0, 311.8], [2, 0, 2, 117.6], [5, 5, 0, 219.4]]}, {"id": "LOT-2024-055", "pen": "PEN-31", "arr": "2024-12-25", "q": 3, "z": 1, "b": 3, "s": 1, "pt": 2, "reg": 0, "feederP": 5.52, "headIn": 164, "sold": 160, "mort": 4, "dof": 186.0, "adg": 1.335, "fcr": 7.36, "entryW": 307.6, "exitW": 555.7, "gain": 248.3, "dmi": 1824.9, "cog": 3.25, "fcog": 2.69, "pCost": 1698.2, "fCost": 667.35, "yCost": 111.6, "vCost": 27.04, "gRev": 2713.91, "margin": 210.86, "totMargin": 25985.57, "dressing": 0.598, "hotW": 332.6, "prime": 13, "aaa": 100, "aa": 40, "bGr": 7, "sickCount": 22, "healthyCount": 142, "brd": 16, "footRot": 3, "bloat": 2, "buller": 1, "healthyMargin": 218.53, "sickMargin": 153.97, "scaleH": [308.9, 346.9, 390.2, 440.5, 557.2], "scaleS": [299.4, 329.2, 372.5, 424.0, 544.3], "lgSold": 65, "lgMargin": 204.16, "lgExitW": 555.8, "lgHCW": 333.6, "lgAdg": 1.323, "medSold": 95, "medMargin": 215.45, "medExitW": 555.6, "medHCW": 331.8, "medAdg": 1.343, "drugs": [[6, 4, 0, 443.6], [12, 8, 1, 805.8], [3, 3, 0, 115.0], [2, 0, 2, 129.6], [4, 4, 0, 223.3]]}, {"id": "LOT-2024-056", "pen": "PEN-33", "arr": "2024-12-26", "q": 3, "z": 0, "b": 0, "s": 0, "pt": 0, "reg": 0, "feederP": 5.56, "headIn": 174, "sold": 173, "mort": 1, "dof": 188.0, "adg": 1.585, "fcr": 7.09, "entryW": 346.1, "exitW": 644.1, "gain": 298.1, "dmi": 2110.2, "cog": 3.05, "fcog": 2.59, "pCost": 1924.5, "fCost": 771.25, "yCost": 112.8, "vCost": 24.86, "gRev": 3219.22, "margin": 386.39, "totMargin": 64605.03, "dressing": 0.609, "hotW": 392.4, "prime": 21, "aaa": 123, "aa": 26, "bGr": 3, "sickCount": 19, "healthyCount": 155, "brd": 12, "footRot": 3, "bloat": 3, "buller": 1, "healthyMargin": 394.71, "sickMargin": 314.69, "scaleH": [347.4, 392.3, 444.2, 504.3, 646.4], "scaleS": [335.7, 372.2, 422.4, 481.9, 624.3], "lgSold": 73, "lgMargin": 374.79, "lgExitW": 646.3, "lgHCW": 394.5, "lgAdg": 1.584, "medSold": 100, "medMargin": 394.85, "medExitW": 642.5, "medHCW": 390.9, "medAdg": 1.587, "drugs": [[4, 3, 0, 320.6], [5, 3, 1, 361.9], [6, 6, 0, 292.3], [3, 3, 0, 201.3], [3, 3, 0, 148.1]]}, {"id": "LOT-2024-057", "pen": "PEN-03", "arr": "2024-12-30", "q": 3, "z": 1, "b": 2, "s": 0, "pt": 0, "reg": 0, "feederP": 5.51, "headIn": 165, "sold": 159, "mort": 6, "dof": 173.0, "adg": 1.657, "fcr": 6.7, "entryW": 350.5, "exitW": 637.1, "gain": 286.6, "dmi": 1918.2, "cog": 2.9, "fcog": 2.44, "pCost": 1931.19, "fCost": 699.42, "yCost": 103.8, "vCost": 25.59, "gRev": 3189.27, "margin": 429.42, "totMargin": 55126.67, "dressing": 0.612, "hotW": 389.7, "prime": 10, "aaa": 102, "aa": 43, "bGr": 4, "sickCount": 21, "healthyCount": 144, "brd": 14, "footRot": 5, "bloat": 1, "buller": 1, "healthyMargin": 442.27, "sickMargin": 328.72, "scaleH": [350.2, 397.5, 452.1, 516.6, 638.2], "scaleS": [352.6, 392.3, 446.0, 509.3, 628.1], "lgSold": 105, "lgMargin": 424.34, "lgExitW": 636.9, "lgHCW": 389.4, "lgAdg": 1.655, "medSold": 54, "medMargin": 439.29, "medExitW": 637.4, "medHCW": 390.3, "medAdg": 1.66, "drugs": [[7, 5, 1, 568.6], [7, 6, 1, 481.0], [3, 3, 0, 127.3], [5, 4, 1, 259.2], [1, 0, 0, 60.9]]}, {"id": "LOT-2024-058", "pen": "PEN-13", "arr": "2024-12-31", "q": 3, "z": 2, "b": 0, "s": 1, "pt": 0, "reg": 0, "feederP": 5.41, "headIn": 140, "sold": 140, "mort": 0, "dof": 172.0, "adg": 1.369, "fcr": 7.07, "entryW": 308.9, "exitW": 544.4, "gain": 235.5, "dmi": 1663.5, "cog": 3.13, "fcog": 2.58, "pCost": 1671.25, "fCost": 606.16, "yCost": 103.2, "vCost": 26.36, "gRev": 2720.28, "margin": 313.31, "totMargin": 43863.69, "dressing": 0.607, "hotW": 330.6, "prime": 24, "aaa": 94, "aa": 19, "bGr": 3, "sickCount": 18, "healthyCount": 122, "brd": 10, "footRot": 5, "bloat": 2, "buller": 1, "healthyMargin": 322.3, "sickMargin": 252.4, "scaleH": [309.0, 347.9, 392.3, 446.0, 545.4], "scaleS": [308.2, 342.3, 384.7, 439.1, 538.1], "lgSold": 46, "lgMargin": 339.01, "lgExitW": 545.9, "lgHCW": 331.5, "lgAdg": 1.397, "medSold": 94, "medMargin": 300.73, "medExitW": 543.7, "medHCW": 330.1, "medAdg": 1.356, "drugs": [[2, 2, 0, 124.0], [7, 7, 0, 545.4], [4, 4, 0, 155.4], [4, 3, 0, 236.0], [2, 2, 0, 109.2]]}, {"id": "LOT-2025-001", "pen": "PEN-39", "arr": "2025-01-02", "q": 4, "z": 1, "b": 2, "s": 1, "pt": 0, "reg": 2, "feederP": 5.38, "headIn": 164, "sold": 161, "mort": 3, "dof": 179.0, "adg": 1.447, "fcr": 6.72, "entryW": 306.0, "exitW": 564.8, "gain": 259.0, "dmi": 1738.9, "cog": 2.97, "fcog": 2.44, "pCost": 1646.03, "fCost": 632.64, "yCost": 107.4, "vCost": 27.62, "gRev": 2820.76, "margin": 407.9, "totMargin": 60277.75, "dressing": 0.612, "hotW": 345.5, "prime": 9, "aaa": 105, "aa": 43, "bGr": 4, "sickCount": 26, "healthyCount": 138, "brd": 18, "footRot": 5, "bloat": 3, "buller": 0, "healthyMargin": 421.7, "sickMargin": 329.12, "scaleH": [306.4, 347.5, 394.5, 451.3, 566.2], "scaleS": [303.6, 335.7, 382.1, 439.4, 556.8], "lgSold": 124, "lgMargin": 406.04, "lgExitW": 564.5, "lgHCW": 345.1, "lgAdg": 1.446, "medSold": 37, "medMargin": 414.13, "medExitW": 565.9, "medHCW": 346.8, "medAdg": 1.451, "drugs": [[10, 10, 0, 669.6], [5, 3, 1, 347.1], [6, 6, 0, 273.5], [4, 3, 1, 323.3], [2, 2, 0, 79.6]]}, {"id": "LOT-2025-002", "pen": "PEN-23", "arr": "2025-01-17", "q": 4, "z": 0, "b": 2, "s": 0, "pt": 2, "reg": 2, "feederP": 5.62, "headIn": 155, "sold": 152, "mort": 3, "dof": 187.0, "adg": 1.697, "fcr": 6.67, "entryW": 350.1, "exitW": 667.7, "gain": 317.4, "dmi": 2116.3, "cog": 2.85, "fcog": 2.41, "pCost": 1967.74, "fCost": 762.7, "yCost": 112.2, "vCost": 27.16, "gRev": 3323.81, "margin": 452.93, "totMargin": 62624.86, "dressing": 0.612, "hotW": 409.0, "prime": 11, "aaa": 92, "aa": 46, "bGr": 3, "sickCount": 24, "healthyCount": 131, "brd": 17, "footRot": 3, "bloat": 4, "buller": 0, "healthyMargin": 469.43, "sickMargin": 360.37, "scaleH": [349.4, 396.4, 454.6, 521.2, 667.8], "scaleS": [354.0, 393.1, 450.4, 517.1, 667.3], "lgSold": 106, "lgMargin": 465.51, "lgExitW": 668.0, "lgHCW": 409.5, "lgAdg": 1.705, "medSold": 46, "medMargin": 423.95, "medExitW": 667.2, "medHCW": 407.8, "medAdg": 1.68, "drugs": [[6, 6, 0, 421.5], [4, 3, 1, 224.3], [8, 7, 0, 443.5], [4, 4, 0, 263.6], [3, 3, 0, 143.0]]}, {"id": "LOT-2025-003", "pen": "PEN-35", "arr": "2025-01-31", "q": 4, "z": 2, "b": 1, "s": 0, "pt": 0, "reg": 3, "feederP": 5.59, "headIn": 214, "sold": 212, "mort": 2, "dof": 176.0, "adg": 1.712, "fcr": 6.48, "entryW": 350.4, "exitW": 651.7, "gain": 301.3, "dmi": 1949.7, "cog": 2.76, "fcog": 2.31, "pCost": 1958.87, "fCost": 696.52, "yCost": 105.6, "vCost": 28.61, "gRev": 3264.51, "margin": 475.32, "totMargin": 96446.25, "dressing": 0.617, "hotW": 402.0, "prime": 8, "aaa": 143, "aa": 53, "bGr": 8, "sickCount": 36, "healthyCount": 178, "brd": 21, "footRot": 3, "bloat": 12, "buller": 0, "healthyMargin": 487.79, "sickMargin": 412.25, "scaleH": [351.3, 398.6, 460.9, 527.3, 653.9], "scaleS": [346.0, 383.3, 445.2, 512.1, 640.6], "lgSold": 137, "lgMargin": 485.81, "lgExitW": 654.3, "lgHCW": 403.4, "lgAdg": 1.725, "medSold": 75, "medMargin": 456.16, "medExitW": 646.9, "medHCW": 399.5, "medAdg": 1.689, "drugs": [[10, 7, 0, 743.5], [4, 4, 0, 299.1], [9, 9, 0, 475.4], [7, 7, 0, 475.1], [9, 8, 1, 394.8]]}, {"id": "LOT-2025-004", "pen": "PEN-28", "arr": "2025-02-27", "q": 4, "z": 1, "b": 1, "s": 0, "pt": 2, "reg": 3, "feederP": 5.83, "headIn": 201, "sold": 200, "mort": 1, "dof": 194.0, "adg": 1.757, "fcr": 6.51, "entryW": 351.3, "exitW": 692.2, "gain": 340.9, "dmi": 2218.4, "cog": 2.72, "fcog": 2.3, "pCost": 2048.03, "fCost": 784.46, "yCost": 116.4, "vCost": 26.12, "gRev": 3440.26, "margin": 465.29, "totMargin": 90884.16, "dressing": 0.618, "hotW": 427.5, "prime": 4, "aaa": 129, "aa": 56, "bGr": 11, "sickCount": 25, "healthyCount": 176, "brd": 14, "footRot": 3, "bloat": 6, "buller": 2, "healthyMargin": 475.75, "sickMargin": 388.56, "scaleH": [351.0, 402.6, 467.5, 533.7, 692.6], "scaleS": [353.0, 396.8, 460.7, 528.0, 689.6], "lgSold": 128, "lgMargin": 469.49, "lgExitW": 694.4, "lgHCW": 428.7, "lgAdg": 1.766, "medSold": 72, "medMargin": 457.82, "medExitW": 688.4, "medHCW": 425.4, "medAdg": 1.742, "drugs": [[4, 3, 1, 271.8], [6, 6, 0, 430.2], [5, 5, 0, 274.0], [6, 6, 0, 455.4], [5, 4, 0, 247.6]]}, {"id": "LOT-2025-005", "pen": "PEN-08", "arr": "2025-02-28", "q": 4, "z": 2, "b": 1, "s": 0, "pt": 1, "reg": 1, "feederP": 5.91, "headIn": 154, "sold": 149, "mort": 5, "dof": 176.0, "adg": 1.777, "fcr": 6.3, "entryW": 350.5, "exitW": 663.4, "gain": 312.7, "dmi": 1968.8, "cog": 2.66, "fcog": 2.22, "pCost": 2071.19, "fCost": 693.51, "yCost": 105.6, "vCost": 31.07, "gRev": 3315.2, "margin": 412.34, "totMargin": 49780.52, "dressing": 0.618, "hotW": 410.1, "prime": 12, "aaa": 92, "aa": 38, "bGr": 7, "sickCount": 33, "healthyCount": 121, "brd": 25, "footRot": 2, "bloat": 5, "buller": 1, "healthyMargin": 429.28, "sickMargin": 342.28, "scaleH": [351.1, 405.7, 471.0, 537.8, 666.0], "scaleS": [348.2, 394.1, 458.3, 526.1, 652.7], "lgSold": 114, "lgMargin": 416.4, "lgExitW": 664.5, "lgHCW": 410.8, "lgAdg": 1.783, "medSold": 35, "medMargin": 399.13, "medExitW": 659.8, "medHCW": 407.7, "medAdg": 1.757, "drugs": [[17, 14, 2, 1236.0], [3, 2, 0, 228.4], [7, 7, 0, 357.6], [4, 3, 1, 290.6], [4, 3, 1, 218.1]]}, {"id": "LOT-2025-006", "pen": "PEN-37", "arr": "2025-03-01", "q": 4, "z": 0, "b": 0, "s": 1, "pt": 2, "reg": 2, "feederP": 5.74, "headIn": 190, "sold": 189, "mort": 1, "dof": 172.0, "adg": 1.457, "fcr": 6.65, "entryW": 308.9, "exitW": 559.8, "gain": 250.6, "dmi": 1665.8, "cog": 2.87, "fcog": 2.34, "pCost": 1773.18, "fCost": 585.61, "yCost": 103.2, "vCost": 27.81, "gRev": 2767.76, "margin": 276.31, "totMargin": 50564.67, "dressing": 0.608, "hotW": 340.4, "prime": 23, "aaa": 141, "aa": 20, "bGr": 5, "sickCount": 27, "healthyCount": 163, "brd": 18, "footRot": 2, "bloat": 7, "buller": 0, "healthyMargin": 291.26, "sickMargin": 182.61, "scaleH": [309.8, 353.4, 407.5, 462.7, 562.1], "scaleS": [303.7, 339.6, 392.5, 446.9, 545.1], "lgSold": 88, "lgMargin": 275.55, "lgExitW": 560.4, "lgHCW": 340.4, "lgAdg": 1.457, "medSold": 101, "medMargin": 276.98, "medExitW": 559.3, "medHCW": 340.3, "medAdg": 1.457, "drugs": [[7, 6, 0, 511.0], [6, 6, 0, 441.1], [4, 4, 0, 221.3], [7, 7, 0, 488.9], [5, 3, 1, 259.3]]}, {"id": "LOT-2025-007", "pen": "PEN-36", "arr": "2025-03-03", "q": 4, "z": 2, "b": 3, "s": 0, "pt": 0, "reg": 3, "feederP": 5.8, "headIn": 189, "sold": 186, "mort": 3, "dof": 185.0, "adg": 1.639, "fcr": 6.77, "entryW": 346.2, "exitW": 649.0, "gain": 303.3, "dmi": 2052.5, "cog": 2.84, "fcog": 2.39, "pCost": 2007.79, "fCost": 723.03, "yCost": 111.0, "vCost": 25.3, "gRev": 3131.84, "margin": 267.58, "totMargin": 42899.89, "dressing": 0.6, "hotW": 389.2, "prime": 4, "aaa": 115, "aa": 58, "bGr": 9, "sickCount": 21, "healthyCount": 168, "brd": 15, "footRot": 2, "bloat": 3, "buller": 1, "healthyMargin": 277.97, "sickMargin": 176.29, "scaleH": [345.4, 394.5, 454.6, 516.0, 648.6], "scaleS": [352.5, 393.4, 452.1, 514.8, 651.8], "lgSold": 69, "lgMargin": 267.03, "lgExitW": 648.7, "lgHCW": 389.3, "lgAdg": 1.636, "medSold": 117, "medMargin": 267.91, "medExitW": 649.1, "medHCW": 389.1, "medAdg": 1.642, "drugs": [[8, 8, 0, 566.3], [5, 5, 0, 330.7], [3, 1, 1, 128.8], [4, 2, 1, 292.7], [3, 3, 0, 167.3]]}, {"id": "LOT-2025-008", "pen": "PEN-34", "arr": "2025-03-18", "q": 4, "z": 2, "b": 2, "s": 0, "pt": 0, "reg": 2, "feederP": 5.92, "headIn": 175, "sold": 172, "mort": 3, "dof": 192.0, "adg": 1.774, "fcr": 6.47, "entryW": 353.8, "exitW": 694.3, "gain": 340.6, "dmi": 2200.9, "cog": 2.69, "fcog": 2.27, "pCost": 2094.51, "fCost": 773.04, "yCost": 115.2, "vCost": 26.44, "gRev": 3422.11, "margin": 413.36, "totMargin": 64300.2, "dressing": 0.611, "hotW": 424.4, "prime": 9, "aaa": 114, "aa": 42, "bGr": 7, "sickCount": 25, "healthyCount": 150, "brd": 14, "footRot": 6, "bloat": 3, "buller": 2, "healthyMargin": 428.88, "sickMargin": 312.86, "scaleH": [353.9, 410.3, 475.5, 541.8, 696.7], "scaleS": [352.9, 400.3, 461.8, 525.3, 678.8], "lgSold": 100, "lgMargin": 403.94, "lgExitW": 692.5, "lgHCW": 424.0, "lgAdg": 1.765, "medSold": 72, "medMargin": 426.44, "medExitW": 696.9, "medHCW": 424.9, "medAdg": 1.787, "drugs": [[7, 6, 0, 492.4], [5, 5, 0, 336.1], [7, 6, 1, 367.8], [5, 4, 1, 212.7], [2, 2, 0, 115.3]]}, {"id": "LOT-2025-009", "pen": "PEN-26", "arr": "2025-03-19", "q": 4, "z": 2, "b": 3, "s": 1, "pt": 1, "reg": 0, "feederP": 5.87, "headIn": 151, "sold": 150, "mort": 1, "dof": 179.0, "adg": 1.45, "fcr": 6.7, "entryW": 306.9, "exitW": 566.3, "gain": 259.5, "dmi": 1737.1, "cog": 2.87, "fcog": 2.34, "pCost": 1801.79, "fCost": 607.8, "yCost": 107.4, "vCost": 29.44, "gRev": 2734.32, "margin": 188.64, "totMargin": 26300.55, "dressing": 0.599, "hotW": 339.3, "prime": 4, "aaa": 97, "aa": 44, "bGr": 5, "sickCount": 26, "healthyCount": 125, "brd": 15, "footRot": 3, "bloat": 4, "buller": 4, "healthyMargin": 204.24, "sickMargin": 114.27, "scaleH": [306.7, 352.8, 405.5, 459.5, 567.3], "scaleS": [308.0, 346.2, 398.1, 452.9, 561.8], "lgSold": 52, "lgMargin": 170.9, "lgExitW": 570.8, "lgHCW": 341.2, "lgAdg": 1.454, "medSold": 98, "medMargin": 198.06, "medExitW": 564.0, "medHCW": 338.3, "medAdg": 1.447, "drugs": [[8, 8, 0, 591.8], [3, 3, 0, 219.7], [5, 5, 0, 288.6], [6, 6, 0, 363.1], [5, 4, 0, 253.1]]}, {"id": "LOT-2025-010", "pen": "PEN-17", "arr": "2025-04-02", "q": 5, "z": 0, "b": 0, "s": 0, "pt": 0, "reg": 0, "feederP": 6.03, "headIn": 196, "sold": 194, "mort": 2, "dof": 176.0, "adg": 1.703, "fcr": 6.57, "entryW": 352.4, "exitW": 651.7, "gain": 299.7, "dmi": 1966.3, "cog": 2.73, "fcog": 2.29, "pCost": 2124.87, "fCost": 685.42, "yCost": 105.6, "vCost": 26.48, "gRev": 3208.41, "margin": 268.01, "totMargin": 46762.5, "dressing": 0.607, "hotW": 395.7, "prime": 26, "aaa": 139, "aa": 23, "bGr": 6, "sickCount": 23, "healthyCount": 173, "brd": 15, "footRot": 3, "bloat": 3, "buller": 2, "healthyMargin": 278.61, "sickMargin": 185.1, "scaleH": [352.4, 406.5, 468.9, 532.0, 652.7], "scaleS": [352.0, 396.2, 456.9, 521.0, 643.8], "lgSold": 85, "lgMargin": 266.77, "lgExitW": 652.0, "lgHCW": 395.9, "lgAdg": 1.702, "medSold": 109, "medMargin": 268.97, "medExitW": 651.5, "medHCW": 395.6, "medAdg": 1.703, "drugs": [[6, 5, 0, 440.8], [6, 5, 0, 439.7], [4, 4, 0, 228.9], [5, 3, 1, 319.8], [5, 5, 0, 258.3]]}, {"id": "LOT-2025-011", "pen": "PEN-22", "arr": "2025-04-06", "q": 5, "z": 0, "b": 2, "s": 0, "pt": 0, "reg": 0, "feederP": 5.91, "headIn": 144, "sold": 142, "mort": 2, "dof": 189.0, "adg": 1.791, "fcr": 6.34, "entryW": 348.6, "exitW": 687.1, "gain": 338.5, "dmi": 2144.7, "cog": 2.63, "fcog": 2.22, "pCost": 2060.37, "fCost": 750.58, "yCost": 113.4, "vCost": 25.9, "gRev": 3396.56, "margin": 446.23, "totMargin": 58707.63, "dressing": 0.612, "hotW": 420.6, "prime": 8, "aaa": 85, "aa": 46, "bGr": 3, "sickCount": 16, "healthyCount": 128, "brd": 12, "footRot": 3, "bloat": 0, "buller": 1, "healthyMargin": 452.64, "sickMargin": 391.94, "scaleH": [349.4, 406.2, 471.6, 538.0, 688.6], "scaleS": [342.1, 391.7, 455.4, 520.9, 674.3], "lgSold": 95, "lgMargin": 451.47, "lgExitW": 688.9, "lgHCW": 421.4, "lgAdg": 1.797, "medSold": 47, "medMargin": 435.62, "medExitW": 683.5, "medHCW": 418.9, "medAdg": 1.778, "drugs": [[5, 4, 1, 358.6], [3, 2, 0, 236.3], [3, 3, 0, 194.7], [5, 5, 0, 368.9], [1, 1, 0, 40.2]]}, {"id": "LOT-2025-012", "pen": "PEN-20", "arr": "2025-04-08", "q": 5, "z": 0, "b": 3, "s": 1, "pt": 0, "reg": 3, "feederP": 5.89, "headIn": 140, "sold": 138, "mort": 2, "dof": 188.0, "adg": 1.456, "fcr": 6.86, "entryW": 311.8, "exitW": 585.3, "gain": 273.7, "dmi": 1876.6, "cog": 2.91, "fcog": 2.4, "pCost": 1836.29, "fCost": 656.07, "yCost": 112.8, "vCost": 26.56, "gRev": 2832.65, "margin": 201.89, "totMargin": 23805.21, "dressing": 0.6, "hotW": 351.3, "prime": 10, "aaa": 82, "aa": 39, "bGr": 7, "sickCount": 21, "healthyCount": 119, "brd": 12, "footRot": 6, "bloat": 1, "buller": 2, "healthyMargin": 214.34, "sickMargin": 128.43, "scaleH": [312.8, 359.0, 412.1, 466.1, 588.1], "scaleS": [306.2, 344.2, 395.9, 449.1, 569.1], "lgSold": 58, "lgMargin": 212.35, "lgExitW": 582.5, "lgHCW": 350.3, "lgAdg": 1.453, "medSold": 80, "medMargin": 194.3, "medExitW": 587.3, "medHCW": 352.0, "medAdg": 1.458, "drugs": [[7, 6, 1, 469.3], [4, 4, 0, 284.2], [4, 4, 0, 241.1], [3, 3, 0, 112.2], [3, 3, 0, 140.1]]}, {"id": "LOT-2025-013", "pen": "PEN-05", "arr": "2025-04-10", "q": 5, "z": 0, "b": 0, "s": 1, "pt": 0, "reg": 1, "feederP": 5.86, "headIn": 140, "sold": 137, "mort": 3, "dof": 173.0, "adg": 1.465, "fcr": 6.63, "entryW": 309.2, "exitW": 562.7, "gain": 253.4, "dmi": 1678.7, "cog": 2.84, "fcog": 2.31, "pCost": 1812.13, "fCost": 584.34, "yCost": 103.8, "vCost": 31.21, "gRev": 2775.35, "margin": 243.24, "totMargin": 27458.66, "dressing": 0.608, "hotW": 341.9, "prime": 18, "aaa": 103, "aa": 12, "bGr": 4, "sickCount": 25, "healthyCount": 115, "brd": 20, "footRot": 2, "bloat": 1, "buller": 2, "healthyMargin": 257.21, "sickMargin": 170.2, "scaleH": [309.9, 356.5, 410.2, 465.0, 565.3], "scaleS": [306.2, 344.9, 396.6, 449.7, 549.1], "lgSold": 63, "lgMargin": 249.83, "lgExitW": 561.7, "lgHCW": 341.5, "lgAdg": 1.467, "medSold": 74, "medMargin": 237.63, "medExitW": 563.6, "medHCW": 342.2, "medAdg": 1.462, "drugs": [[10, 8, 0, 811.2], [8, 7, 0, 635.2], [2, 2, 0, 123.8], [6, 5, 1, 425.1], [2, 2, 0, 136.3]]}, {"id": "LOT-2025-014", "pen": "PEN-18", "arr": "2025-04-10", "q": 5, "z": 1, "b": 0, "s": 0, "pt": 0, "reg": 0, "feederP": 6.02, "headIn": 140, "sold": 138, "mort": 2, "dof": 175.0, "adg": 1.693, "fcr": 6.55, "entryW": 350.0, "exitW": 646.6, "gain": 296.3, "dmi": 1938.6, "cog": 2.73, "fcog": 2.28, "pCost": 2107.15, "fCost": 675.41, "yCost": 105.0, "vCost": 26.98, "gRev": 3195.76, "margin": 279.63, "totMargin": 34355.03, "dressing": 0.609, "hotW": 393.9, "prime": 19, "aaa": 100, "aa": 16, "bGr": 3, "sickCount": 20, "healthyCount": 120, "brd": 15, "footRot": 2, "bloat": 0, "buller": 3, "healthyMargin": 294.6, "sickMargin": 179.83, "scaleH": [350.8, 404.5, 466.5, 529.5, 648.7], "scaleS": [345.2, 389.0, 451.1, 514.2, 632.0], "lgSold": 56, "lgMargin": 274.79, "lgExitW": 646.6, "lgHCW": 394.0, "lgAdg": 1.691, "medSold": 82, "medMargin": 282.93, "medExitW": 646.5, "medHCW": 393.9, "medAdg": 1.694, "drugs": [[8, 8, 0, 582.6], [5, 3, 1, 348.9], [2, 2, 0, 106.5], [3, 3, 0, 174.8], [3, 2, 1, 137.0]]}, {"id": "LOT-2025-015", "pen": "PEN-02", "arr": "2025-04-13", "q": 5, "z": 2, "b": 2, "s": 0, "pt": 1, "reg": 1, "feederP": 6.0, "headIn": 151, "sold": 147, "mort": 4, "dof": 176.0, "adg": 1.789, "fcr": 6.24, "entryW": 351.1, "exitW": 665.5, "gain": 314.8, "dmi": 1962.7, "cog": 2.6, "fcog": 2.18, "pCost": 2106.41, "fCost": 684.23, "yCost": 105.6, "vCost": 26.82, "gRev": 3289.8, "margin": 368.99, "totMargin": 44925.8, "dressing": 0.611, "hotW": 406.8, "prime": 8, "aaa": 102, "aa": 33, "bGr": 4, "sickCount": 22, "healthyCount": 129, "brd": 13, "footRot": 4, "bloat": 5, "buller": 0, "healthyMargin": 385.98, "sickMargin": 254.6, "scaleH": [350.4, 407.1, 472.4, 539.3, 666.6], "scaleS": [354.9, 403.5, 467.3, 530.3, 658.2], "lgSold": 89, "lgMargin": 362.86, "lgExitW": 663.5, "lgHCW": 405.2, "lgAdg": 1.781, "medSold": 58, "medMargin": 378.41, "medExitW": 668.5, "medHCW": 409.2, "medAdg": 1.8, "drugs": [[3, 3, 0, 192.5], [4, 4, 0, 297.4], [4, 4, 0, 255.3], [8, 6, 2, 505.1], [4, 2, 1, 199.5]]}, {"id": "LOT-2025-016", "pen": "PEN-07", "arr": "2025-04-20", "q": 5, "z": 0, "b": 1, "s": 0, "pt": 0, "reg": 1, "feederP": 5.88, "headIn": 183, "sold": 181, "mort": 2, "dof": 195.0, "adg": 1.784, "fcr": 6.42, "entryW": 348.5, "exitW": 696.3, "gain": 347.8, "dmi": 2230.1, "cog": 2.67, "fcog": 2.25, "pCost": 2049.32, "fCost": 781.68, "yCost": 117.0, "vCost": 28.62, "gRev": 3489.03, "margin": 512.81, "totMargin": 88126.31, "dressing": 0.617, "hotW": 429.7, "prime": 12, "aaa": 125, "aa": 42, "bGr": 2, "sickCount": 27, "healthyCount": 156, "brd": 19, "footRot": 3, "bloat": 4, "buller": 1, "healthyMargin": 529.58, "sickMargin": 412.81, "scaleH": [348.6, 405.2, 470.3, 536.6, 697.4], "scaleS": [348.1, 396.4, 460.5, 527.5, 689.8], "lgSold": 124, "lgMargin": 515.39, "lgExitW": 696.7, "lgHCW": 430.1, "lgAdg": 1.785, "medSold": 57, "medMargin": 507.19, "medExitW": 695.4, "medHCW": 428.7, "medAdg": 1.781, "drugs": [[8, 6, 1, 559.1], [11, 10, 0, 862.3], [4, 3, 0, 187.2], [2, 2, 0, 122.2], [5, 5, 0, 262.2]]}, {"id": "LOT-2025-017", "pen": "PEN-30", "arr": "2025-04-20", "q": 5, "z": 0, "b": 2, "s": 0, "pt": 1, "reg": 0, "feederP": 5.99, "headIn": 216, "sold": 215, "mort": 1, "dof": 173.0, "adg": 1.788, "fcr": 6.15, "entryW": 348.9, "exitW": 658.2, "gain": 309.4, "dmi": 1902.1, "cog": 2.58, "fcog": 2.14, "pCost": 2089.9, "fCost": 662.75, "yCost": 103.8, "vCost": 29.84, "gRev": 3257.16, "margin": 371.14, "totMargin": 77561.06, "dressing": 0.613, "hotW": 403.6, "prime": 13, "aaa": 133, "aa": 60, "bGr": 9, "sickCount": 38, "healthyCount": 178, "brd": 21, "footRot": 9, "bloat": 6, "buller": 2, "healthyMargin": 392.96, "sickMargin": 266.16, "scaleH": [349.0, 405.8, 471.3, 538.1, 660.5], "scaleS": [348.5, 397.1, 460.5, 525.8, 647.4], "lgSold": 151, "lgMargin": 380.3, "lgExitW": 657.2, "lgHCW": 403.3, "lgAdg": 1.789, "medSold": 64, "medMargin": 349.53, "medExitW": 660.6, "medHCW": 404.5, "medAdg": 1.787, "drugs": [[11, 10, 0, 866.4], [8, 7, 0, 546.4], [9, 8, 1, 422.3], [7, 7, 0, 402.5], [6, 5, 0, 351.9]]}, {"id": "LOT-2025-018", "pen": "PEN-29", "arr": "2025-04-24", "q": 5, "z": 1, "b": 0, "s": 0, "pt": 0, "reg": 0, "feederP": 6.02, "headIn": 147, "sold": 144, "mort": 3, "dof": 177.0, "adg": 1.691, "fcr": 6.53, "entryW": 346.8, "exitW": 646.0, "gain": 299.3, "dmi": 1953.3, "cog": 2.72, "fcog": 2.28, "pCost": 2088.03, "fCost": 680.96, "yCost": 106.2, "vCost": 26.99, "gRev": 3188.42, "margin": 287.28, "totMargin": 34612.35, "dressing": 0.608, "hotW": 392.6, "prime": 26, "aaa": 98, "aa": 14, "bGr": 6, "sickCount": 20, "healthyCount": 127, "brd": 15, "footRot": 1, "bloat": 2, "buller": 2, "healthyMargin": 303.26, "sickMargin": 167.89, "scaleH": [347.0, 400.7, 462.5, 525.6, 647.6], "scaleS": [346.1, 390.8, 448.8, 510.8, 633.9], "lgSold": 62, "lgMargin": 284.92, "lgExitW": 640.3, "lgHCW": 389.3, "lgAdg": 1.682, "medSold": 82, "medMargin": 289.05, "medExitW": 650.3, "medHCW": 395.1, "medAdg": 1.698, "drugs": [[10, 10, 0, 728.0], [2, 2, 0, 165.7], [2, 0, 1, 164.0], [3, 2, 1, 221.8], [4, 3, 1, 191.7]]}, {"id": "LOT-2025-019", "pen": "PEN-40", "arr": "2025-04-26", "q": 5, "z": 1, "b": 2, "s": 0, "pt": 0, "reg": 1, "feederP": 5.94, "headIn": 140, "sold": 136, "mort": 4, "dof": 170.0, "adg": 1.795, "fcr": 6.17, "entryW": 352.2, "exitW": 657.5, "gain": 305.2, "dmi": 1881.8, "cog": 2.57, "fcog": 2.15, "pCost": 2092.13, "fCost": 654.75, "yCost": 102.0, "vCost": 25.6, "gRev": 3243.59, "margin": 368.42, "totMargin": 41135.3, "dressing": 0.611, "hotW": 401.9, "prime": 6, "aaa": 87, "aa": 38, "bGr": 5, "sickCount": 18, "healthyCount": 122, "brd": 12, "footRot": 3, "bloat": 3, "buller": 0, "healthyMargin": 384.33, "sickMargin": 249.1, "scaleH": [352.1, 409.3, 474.6, 541.3, 658.9], "scaleS": [352.9, 401.2, 462.6, 530.2, 647.2], "lgSold": 83, "lgMargin": 376.65, "lgExitW": 657.0, "lgHCW": 401.5, "lgAdg": 1.798, "medSold": 53, "medMargin": 355.54, "medExitW": 658.3, "medHCW": 402.4, "medAdg": 1.791, "drugs": [[5, 5, 0, 338.1], [5, 3, 1, 363.8], [3, 2, 0, 181.4], [4, 3, 1, 235.5], [3, 3, 0, 153.0]]}, {"id": "LOT-2025-020", "pen": "PEN-27", "arr": "2025-05-01", "q": 5, "z": 0, "b": 0, "s": 0, "pt": 0, "reg": 1, "feederP": 6.05, "headIn": 202, "sold": 200, "mort": 2, "dof": 187.0, "adg": 1.692, "fcr": 6.71, "entryW": 352.8, "exitW": 669.2, "gain": 316.4, "dmi": 2122.9, "cog": 2.79, "fcog": 2.35, "pCost": 2134.67, "fCost": 742.2, "yCost": 112.2, "vCost": 26.96, "gRev": 3309.77, "margin": 294.41, "totMargin": 54277.63, "dressing": 0.608, "hotW": 406.9, "prime": 23, "aaa": 141, "aa": 31, "bGr": 5, "sickCount": 26, "healthyCount": 176, "brd": 21, "footRot": 3, "bloat": 2, "buller": 0, "healthyMargin": 309.04, "sickMargin": 191.97, "scaleH": [352.9, 406.7, 468.4, 531.4, 670.5], "scaleS": [352.7, 395.7, 456.9, 519.8, 659.7], "lgSold": 79, "lgMargin": 297.66, "lgExitW": 673.7, "lgHCW": 410.2, "lgAdg": 1.704, "medSold": 121, "medMargin": 292.29, "medExitW": 666.2, "medHCW": 404.7, "medAdg": 1.685, "drugs": [[10, 9, 1, 701.6], [7, 7, 0, 486.9], [2, 1, 0, 168.0], [5, 5, 0, 301.5], [3, 3, 0, 192.1]]}, {"id": "LOT-2025-021", "pen": "PEN-15", "arr": "2025-05-02", "q": 5, "z": 0, "b": 0, "s": 0, "pt": 2, "reg": 2, "feederP": 5.95, "headIn": 169, "sold": 165, "mort": 4, "dof": 173.0, "adg": 1.702, "fcr": 6.54, "entryW": 352.7, "exitW": 647.0, "gain": 294.4, "dmi": 1925.2, "cog": 2.73, "fcog": 2.28, "pCost": 2098.33, "fCost": 670.33, "yCost": 103.8, "vCost": 28.09, "gRev": 3195.67, "margin": 295.6, "totMargin": 39667.83, "dressing": 0.608, "hotW": 393.2, "prime": 19, "aaa": 120, "aa": 23, "bGr": 3, "sickCount": 29, "healthyCount": 140, "brd": 20, "footRot": 3, "bloat": 1, "buller": 5, "healthyMargin": 307.19, "sickMargin": 233.6, "scaleH": [353.8, 408.0, 470.3, 533.7, 650.2], "scaleS": [347.0, 391.5, 451.8, 514.6, 630.1], "lgSold": 71, "lgMargin": 290.62, "lgExitW": 647.7, "lgHCW": 393.0, "lgAdg": 1.715, "medSold": 94, "medMargin": 299.36, "medExitW": 646.5, "medHCW": 393.4, "medAdg": 1.692, "drugs": [[12, 11, 1, 833.2], [6, 6, 0, 476.6], [4, 3, 1, 152.8], [3, 2, 1, 189.8], [4, 4, 0, 204.3]]}, {"id": "LOT-2025-022", "pen": "PEN-38", "arr": "2025-05-02", "q": 5, "z": 0, "b": 0, "s": 0, "pt": 0, "reg": 1, "feederP": 5.99, "headIn": 142, "sold": 140, "mort": 2, "dof": 167.0, "adg": 1.699, "fcr": 6.44, "entryW": 347.9, "exitW": 631.6, "gain": 283.8, "dmi": 1825.0, "cog": 2.69, "fcog": 2.24, "pCost": 2083.65, "fCost": 634.3, "yCost": 100.2, "vCost": 27.76, "gRev": 3115.74, "margin": 270.02, "totMargin": 32972.5, "dressing": 0.608, "hotW": 383.9, "prime": 15, "aaa": 102, "aa": 20, "bGr": 3, "sickCount": 20, "healthyCount": 122, "brd": 14, "footRot": 2, "bloat": 2, "buller": 2, "healthyMargin": 284.12, "sickMargin": 185.43, "scaleH": [347.3, 401.5, 463.7, 527.2, 632.7], "scaleS": [351.0, 397.1, 456.7, 519.5, 625.1], "lgSold": 54, "lgMargin": 262.43, "lgExitW": 635.9, "lgHCW": 386.7, "lgAdg": 1.693, "medSold": 86, "medMargin": 274.79, "medExitW": 628.9, "medHCW": 382.1, "medAdg": 1.703, "drugs": [[4, 4, 0, 296.4], [6, 6, 0, 453.0], [2, 2, 0, 130.6], [5, 5, 0, 321.7], [3, 3, 0, 165.2]]}, {"id": "LOT-2025-023", "pen": "PEN-10", "arr": "2025-05-07", "q": 5, "z": 1, "b": 2, "s": 0, "pt": 0, "reg": 2, "feederP": 6.1, "headIn": 183, "sold": 182, "mort": 1, "dof": 170.0, "adg": 1.789, "fcr": 6.12, "entryW": 347.9, "exitW": 652.1, "gain": 304.1, "dmi": 1859.3, "cog": 2.56, "fcog": 2.13, "pCost": 2122.33, "fCost": 647.16, "yCost": 102.0, "vCost": 28.11, "gRev": 3226.22, "margin": 326.51, "totMargin": 57167.24, "dressing": 0.612, "hotW": 399.0, "prime": 10, "aaa": 109, "aa": 58, "bGr": 5, "sickCount": 28, "healthyCount": 155, "brd": 15, "footRot": 2, "bloat": 7, "buller": 4, "healthyMargin": 340.87, "sickMargin": 247.53, "scaleH": [348.6, 405.7, 471.2, 537.9, 654.5], "scaleS": [344.0, 390.8, 454.1, 521.3, 638.8], "lgSold": 115, "lgMargin": 340.89, "lgExitW": 655.6, "lgHCW": 401.8, "lgAdg": 1.802, "medSold": 67, "medMargin": 301.82, "medExitW": 645.9, "medHCW": 394.1, "medAdg": 1.766, "drugs": [[4, 4, 0, 267.9], [9, 9, 0, 687.3], [5, 5, 0, 284.6], [3, 3, 0, 161.7], [8, 7, 0, 439.4]]}, {"id": "LOT-2025-024", "pen": "PEN-16", "arr": "2025-05-08", "q": 5, "z": 0, "b": 2, "s": 0, "pt": 1, "reg": 1, "feederP": 5.99, "headIn": 202, "sold": 200, "mort": 2, "dof": 167.0, "adg": 1.784, "fcr": 6.13, "entryW": 351.4, "exitW": 649.3, "gain": 297.9, "dmi": 1824.9, "cog": 2.55, "fcog": 2.13, "pCost": 2104.76, "fCost": 634.46, "yCost": 100.2, "vCost": 25.14, "gRev": 3214.65, "margin": 350.23, "totMargin": 65668.07, "dressing": 0.613, "hotW": 397.8, "prime": 10, "aaa": 137, "aa": 44, "bGr": 9, "sickCount": 23, "healthyCount": 179, "brd": 14, "footRot": 5, "bloat": 1, "buller": 3, "healthyMargin": 361.57, "sickMargin": 258.47, "scaleH": [351.1, 407.6, 472.8, 539.1, 650.3], "scaleS": [353.9, 401.5, 464.8, 530.0, 641.2], "lgSold": 132, "lgMargin": 353.35, "lgExitW": 648.4, "lgHCW": 397.4, "lgAdg": 1.783, "medSold": 68, "medMargin": 344.19, "medExitW": 651.1, "medHCW": 398.5, "medAdg": 1.787, "drugs": [[6, 6, 0, 472.0], [4, 4, 0, 310.0], [4, 4, 0, 252.1], [6, 6, 0, 324.9], [3, 2, 1, 124.9]]}, {"id": "LOT-2025-025", "pen": "PEN-19", "arr": "2025-05-10", "q": 5, "z": 1, "b": 1, "s": 0, "pt": 0, "reg": 1, "feederP": 6.07, "headIn": 140, "sold": 139, "mort": 1, "dof": 172.0, "adg": 1.776, "fcr": 6.21, "entryW": 350.0, "exitW": 655.3, "gain": 305.4, "dmi": 1893.9, "cog": 2.59, "fcog": 2.16, "pCost": 2124.47, "fCost": 659.6, "yCost": 103.2, "vCost": 27.51, "gRev": 3275.4, "margin": 361.55, "totMargin": 47473.13, "dressing": 0.617, "hotW": 404.4, "prime": 4, "aaa": 96, "aa": 37, "bGr": 2, "sickCount": 21, "healthyCount": 119, "brd": 16, "footRot": 1, "bloat": 2, "buller": 2, "healthyMargin": 378.96, "sickMargin": 263.69, "scaleH": [350.7, 407.2, 472.3, 538.9, 658.6], "scaleS": [346.1, 391.8, 455.4, 519.9, 636.7], "lgSold": 100, "lgMargin": 361.06, "lgExitW": 658.3, "lgHCW": 406.4, "lgAdg": 1.785, "medSold": 39, "medMargin": 362.79, "medExitW": 647.4, "medHCW": 399.3, "medAdg": 1.753, "drugs": [[7, 7, 0, 467.2], [7, 7, 0, 475.5], [3, 3, 0, 126.1], [3, 3, 0, 185.1], [1, 1, 0, 67.6]]}, {"id": "LOT-2025-026", "pen": "PEN-14", "arr": "2025-05-18", "q": 5, "z": 0, "b": 0, "s": 0, "pt": 2, "reg": 2, "feederP": 5.95, "headIn": 164, "sold": 159, "mort": 5, "dof": 189.0, "adg": 1.7, "fcr": 6.67, "entryW": 346.4, "exitW": 667.6, "gain": 321.3, "dmi": 2140.2, "cog": 2.77, "fcog": 2.33, "pCost": 2061.17, "fCost": 748.79, "yCost": 113.4, "vCost": 25.81, "gRev": 3323.9, "margin": 375.1, "totMargin": 48357.42, "dressing": 0.609, "hotW": 406.8, "prime": 17, "aaa": 116, "aa": 23, "bGr": 3, "sickCount": 23, "healthyCount": 141, "brd": 16, "footRot": 3, "bloat": 2, "buller": 2, "healthyMargin": 391.58, "sickMargin": 253.66, "scaleH": [346.1, 400.4, 463.0, 526.8, 669.0], "scaleS": [348.3, 394.7, 454.8, 517.0, 657.7], "lgSold": 61, "lgMargin": 387.97, "lgExitW": 667.0, "lgHCW": 407.6, "lgAdg": 1.702, "medSold": 98, "medMargin": 367.08, "medExitW": 668.1, "medHCW": 406.3, "medAdg": 1.699, "drugs": [[9, 8, 1, 606.5], [2, 1, 1, 171.4], [4, 3, 1, 209.2], [5, 4, 1, 388.1], [3, 3, 0, 143.5]]}, {"id": "LOT-2025-027", "pen": "PEN-24", "arr": "2025-05-20", "q": 5, "z": 0, "b": 3, "s": 1, "pt": 0, "reg": 0, "feederP": 6.04, "headIn": 217, "sold": 210, "mort": 7, "dof": 172.0, "adg": 1.446, "fcr": 6.69, "entryW": 309.5, "exitW": 558.5, "gain": 248.8, "dmi": 1663.0, "cog": 2.86, "fcog": 2.33, "pCost": 1869.17, "fCost": 578.65, "yCost": 103.2, "vCost": 27.94, "gRev": 2724.15, "margin": 143.46, "totMargin": 16386.5, "dressing": 0.6, "hotW": 334.9, "prime": 9, "aaa": 152, "aa": 48, "bGr": 1, "sickCount": 31, "healthyCount": 186, "brd": 20, "footRot": 7, "bloat": 2, "buller": 2, "healthyMargin": 155.88, "sickMargin": 59.29, "scaleH": [309.3, 355.3, 408.4, 462.3, 559.3], "scaleS": [310.6, 351.5, 403.6, 456.0, 553.3], "lgSold": 78, "lgMargin": 150.96, "lgExitW": 558.6, "lgHCW": 335.3, "lgAdg": 1.442, "medSold": 132, "medMargin": 139.02, "medExitW": 558.5, "medHCW": 334.6, "medAdg": 1.449, "drugs": [[8, 7, 1, 636.1], [10, 7, 0, 762.8], [9, 7, 2, 526.9], [3, 3, 0, 174.8], [4, 3, 1, 230.5]]}, {"id": "LOT-2025-028", "pen": "PEN-06", "arr": "2025-05-25", "q": 5, "z": 0, "b": 0, "s": 0, "pt": 2, "reg": 0, "feederP": 6.03, "headIn": 140, "sold": 138, "mort": 2, "dof": 194.0, "adg": 1.67, "fcr": 6.86, "entryW": 348.3, "exitW": 672.3, "gain": 324.0, "dmi": 2220.6, "cog": 2.86, "fcog": 2.4, "pCost": 2100.05, "fCost": 777.91, "yCost": 116.4, "vCost": 29.7, "gRev": 3343.66, "margin": 319.29, "totMargin": 39678.11, "dressing": 0.607, "hotW": 407.8, "prime": 20, "aaa": 95, "aa": 20, "bGr": 3, "sickCount": 25, "healthyCount": 115, "brd": 18, "footRot": 3, "bloat": 2, "buller": 2, "healthyMargin": 340.25, "sickMargin": 224.54, "scaleH": [346.6, 400.1, 462.4, 525.9, 671.9], "scaleS": [355.7, 400.4, 461.8, 525.3, 674.3], "lgSold": 54, "lgMargin": 331.42, "lgExitW": 672.7, "lgHCW": 408.0, "lgAdg": 1.672, "medSold": 84, "medMargin": 311.49, "medExitW": 672.1, "medHCW": 407.7, "medAdg": 1.669, "drugs": [[8, 7, 0, 601.9], [3, 3, 0, 224.4], [6, 6, 0, 295.6], [7, 7, 0, 404.1], [2, 2, 0, 89.3]]}, {"id": "LOT-2025-029", "pen": "PEN-12", "arr": "2025-05-26", "q": 5, "z": 2, "b": 2, "s": 1, "pt": 0, "reg": 0, "feederP": 5.94, "headIn": 140, "sold": 138, "mort": 2, "dof": 167.0, "adg": 1.548, "fcr": 6.21, "entryW": 308.7, "exitW": 567.3, "gain": 258.5, "dmi": 1603.3, "cog": 2.64, "fcog": 2.16, "pCost": 1833.84, "fCost": 557.36, "yCost": 100.2, "vCost": 22.87, "gRev": 2819.16, "margin": 304.68, "totMargin": 38042.93, "dressing": 0.613, "hotW": 347.5, "prime": 8, "aaa": 97, "aa": 27, "bGr": 6, "sickCount": 11, "healthyCount": 129, "brd": 9, "footRot": 0, "bloat": 1, "buller": 1, "healthyMargin": 314.26, "sickMargin": 182.01, "scaleH": [309.0, 358.1, 414.5, 472.2, 568.4], "scaleS": [305.5, 345.9, 401.3, 457.0, 552.9], "lgSold": 96, "lgMargin": 304.78, "lgExitW": 566.6, "lgHCW": 347.2, "lgAdg": 1.55, "medSold": 42, "medMargin": 304.46, "medExitW": 569.0, "medHCW": 348.2, "medAdg": 1.544, "drugs": [[1, 1, 0, 57.6], [5, 4, 0, 343.3], [2, 2, 0, 131.1], [4, 3, 1, 259.0], [0, 0, 0, 0.0]]}, {"id": "LOT-2025-030", "pen": "PEN-09", "arr": "2025-05-31", "q": 5, "z": 1, "b": 1, "s": 1, "pt": 2, "reg": 2, "feederP": 5.94, "headIn": 163, "sold": 159, "mort": 4, "dof": 187.0, "adg": 1.527, "fcr": 6.53, "entryW": 308.8, "exitW": 594.3, "gain": 285.5, "dmi": 1863.1, "cog": 2.78, "fcog": 2.28, "pCost": 1834.51, "fCost": 651.63, "yCost": 112.2, "vCost": 28.15, "gRev": 2990.31, "margin": 363.83, "totMargin": 49765.97, "dressing": 0.617, "hotW": 366.9, "prime": 5, "aaa": 104, "aa": 45, "bGr": 5, "sickCount": 28, "healthyCount": 135, "brd": 17, "footRot": 4, "bloat": 5, "buller": 2, "healthyMargin": 380.86, "sickMargin": 272.58, "scaleH": [308.6, 358.0, 414.9, 473.0, 596.1], "scaleS": [310.1, 352.1, 406.3, 462.5, 584.6], "lgSold": 110, "lgMargin": 364.25, "lgExitW": 594.5, "lgHCW": 367.1, "lgAdg": 1.528, "medSold": 49, "medMargin": 362.9, "medExitW": 593.8, "medHCW": 366.5, "medAdg": 1.524, "drugs": [[6, 6, 0, 475.8], [5, 4, 1, 317.1], [9, 8, 1, 515.8], [3, 3, 0, 201.2], [5, 5, 0, 296.2]]}, {"id": "LOT-2025-031", "pen": "PEN-21", "arr": "2025-06-02", "q": 5, "z": 1, "b": 0, "s": 0, "pt": 0, "reg": 1, "feederP": 6.07, "headIn": 194, "sold": 189, "mort": 5, "dof": 179.0, "adg": 1.675, "fcr": 6.71, "entryW": 352.2, "exitW": 652.1, "gain": 299.9, "dmi": 2011.6, "cog": 2.79, "fcog": 2.34, "pCost": 2137.73, "fCost": 701.6, "yCost": 107.4, "vCost": 25.94, "gRev": 3251.65, "margin": 278.66, "totMargin": 41177.8, "dressing": 0.609, "hotW": 396.9, "prime": 21, "aaa": 146, "aa": 19, "bGr": 3, "sickCount": 25, "healthyCount": 169, "brd": 13, "footRot": 2, "bloat": 8, "buller": 2, "healthyMargin": 294.42, "sickMargin": 152.59, "scaleH": [352.2, 406.1, 468.3, 531.5, 654.0], "scaleS": [352.1, 395.5, 454.3, 515.5, 637.1], "lgSold": 80, "lgMargin": 276.79, "lgExitW": 653.5, "lgHCW": 398.0, "lgAdg": 1.678, "medSold": 109, "medMargin": 280.04, "medExitW": 651.1, "medHCW": 396.1, "medAdg": 1.673, "drugs": [[4, 2, 2, 340.0], [5, 3, 1, 416.1], [3, 3, 0, 155.0], [7, 5, 1, 508.0], [8, 8, 0, 383.2]]}, {"id": "LOT-2025-032", "pen": "PEN-04", "arr": "2025-06-05", "q": 5, "z": 1, "b": 1, "s": 0, "pt": 2, "reg": 1, "feederP": 5.96, "headIn": 185, "sold": 181, "mort": 4, "dof": 169.0, "adg": 1.776, "fcr": 6.2, "entryW": 351.4, "exitW": 651.7, "gain": 300.1, "dmi": 1859.1, "cog": 2.58, "fcog": 2.16, "pCost": 2094.05, "fCost": 646.74, "yCost": 101.4, "vCost": 26.35, "gRev": 3269.46, "margin": 399.41, "totMargin": 63558.3, "dressing": 0.617, "hotW": 402.2, "prime": 14, "aaa": 112, "aa": 48, "bGr": 7, "sickCount": 28, "healthyCount": 157, "brd": 18, "footRot": 6, "bloat": 1, "buller": 3, "healthyMargin": 411.31, "sickMargin": 325.15, "scaleH": [350.4, 407.3, 472.5, 538.9, 652.1], "scaleS": [356.5, 405.7, 469.4, 535.6, 648.9], "lgSold": 117, "lgMargin": 411.83, "lgExitW": 652.9, "lgHCW": 403.5, "lgAdg": 1.784, "medSold": 64, "medMargin": 376.72, "medExitW": 649.5, "medHCW": 400.0, "medAdg": 1.76, "drugs": [[10, 9, 1, 758.0], [5, 5, 0, 353.6], [5, 5, 0, 208.7], [6, 4, 1, 320.8], [3, 3, 0, 103.1]]}], "MONTHS": ["2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12"], "DMI_HEAD_DAY": [8.42, 8.7, 9.28, 9.71, 10.29, 10.76, 10.84, 11.26, 11.0, 11.25, 11.7, 11.54, 10.69, 11.12, 9.89, 9.59, 9.77, 10.27, 10.89, 11.83, 12.69, 13.27, 13.92, 14.76], "COST_HEAD_DAY": [2.37, 2.68, 3.08, 3.33, 3.58, 3.75, 3.81, 4.02, 3.84, 4.43, 4.65, 4.57, 4.09, 4.33, 3.74, 3.24, 3.29, 3.55, 3.88, 4.28, 4.61, 4.82, 5.05, 5.36]};
+const { ZONES, BREEDS, SEXES, PEN_TYPES, REGIONS, DRUGS, QUARTERS, LOTS, MONTHS, DMI_HEAD_DAY, COST_HEAD_DAY } = D;
+
+const S = {
+  tab: 0,
+  z: -1,
+  b: -1,
+  s: -1,
+  pt: -1,
+  lotSort: 'margin_desc',
+  lotLimit: 10,
+  lg: 'id',
+  th: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+};
+
+try {
+  const saved = localStorage.getItem('hws_feedlot');
+  if (saved) {
+    const o = JSON.parse(saved);
+    if (o.lg) S.lg = o.lg;
+    if (o.th) S.th = o.th;
+  }
+} catch (e) {}
+
+const x = (idText, enText) => S.lg === 'id' ? idText : enText;
+const n = (val, dec = 1) => (+val).toLocaleString(S.lg === 'id' ? 'id-ID' : 'en-US', {
+  minimumFractionDigits: dec,
+  maximumFractionDigits: dec
+});
+const cur = (val, dec = 2) => '$' + n(val, dec);
+
+const TABS = () => x(
+  ['Ringkasan', 'Pakan dan dingin', 'Pertumbuhan dan tarikan sakit', 'Karkas dan grade'],
+  ['Overview', 'Feed and winter', 'Growth and pulls', 'Carcass and grade']
+);
+
+const IC = {
+  u: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2|M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z|M22 21v-2a4 4 0 0 0-3-3.87|M16 3.13a4 4 0 0 1 0 7.75',
+  d: 'M12 1v22|M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6',
+  s: 'M6 3v18|M18 3v18|M3 6h6|M15 6h6|M3 18h6|M15 18h6',
+  t: 'M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z',
+  p: 'M10.5 20.5l10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7z|M8.5 8.5l7 7'
+};
+
+const renderIcon = str => {
+  const parts = str.split('|');
+  return `<span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${parts.map(p=>`<path d="${p}"/>`).join('')}</svg></span>`;
+};
+
+const card = (iconKey, label, badgeHtml, val, subHtml, tipText) => `
+  <div class="c q" ${tipText ? `data-tip="${tipText}"` : ''}>
+    <div class="hd">${renderIcon(IC[iconKey])}${label}${badgeHtml || ''}</div>
+    <div class="v">${val}</div>
+    <div class="in">${subHtml}</div>
+  </div>
+`;
+
+function getFilteredLots() {
+  return LOTS.filter(l => {
+    if (S.z >= 0 && l.z !== S.z) return false;
+    if (S.b >= 0 && l.b !== S.b) return false;
+    if (S.s >= 0 && l.s !== S.s) return false;
+    if (S.pt >= 0 && l.pt !== S.pt) return false;
+    return true;
+  });
+}
+
+// DETERMINISTIC DYNAMIC METRIC ENGINE
+function computeMetrics(FL) {
+  const headIn = FL.reduce((s, l) => s + l.headIn, 0);
+  const sold = FL.reduce((s, l) => s + l.sold, 0);
+  const mort = FL.reduce((s, l) => s + l.mort, 0);
+  const mortRate = headIn ? (mort / headIn * 100) : 0;
+  
+  const wAvg = key => sold ? (FL.reduce((s, l) => s + l[key] * l.sold, 0) / sold) : 0;
+  const wAvgIn = key => headIn ? (FL.reduce((s, l) => s + l[key] * l.headIn, 0) / headIn) : 0;
+  
+  const adg = wAvg('adg');
+  const fcr = wAvg('fcr');
+  const dof = wAvg('dof');
+  const margin = wAvg('margin');
+  const totMargin = FL.reduce((s, l) => s + l.totMargin, 0);
+  const cog = wAvg('cog');
+  const fcog = wAvg('fcog');
+  const pCost = wAvgIn('pCost');
+  const fCost = wAvg('fCost');
+  const yCost = wAvg('yCost');
+  const vCost = wAvg('vCost');
+  const gRev = wAvg('gRev');
+  const dressing = wAvg('dressing');
+  const hotW = wAvg('hotW');
+  const totCost = pCost + fCost + yCost + vCost;
+  
+  // Health & morbidity
+  const sick = FL.reduce((s, l) => s + l.sickCount, 0);
+  const healthy = FL.reduce((s, l) => s + l.healthyCount, 0);
+  const morbRate = headIn ? (sick / headIn * 100) : 0;
+  const brd = FL.reduce((s, l) => s + l.brd, 0);
+  const footRot = FL.reduce((s, l) => s + l.footRot, 0);
+  const bloat = FL.reduce((s, l) => s + l.bloat, 0);
+  const buller = FL.reduce((s, l) => s + l.buller, 0);
+  
+  // Accurate morbidity drag calculated from lot-level healthy vs sick margins
+  const hMargin = sold ? (FL.reduce((s, l) => s + l.healthyMargin * Math.max(0, l.sold - Math.max(0, l.sickCount - l.mort)), 0) / Math.max(1, sold - Math.max(0, sick - mort))) : 0;
+  const sMargin = sold ? (FL.reduce((s, l) => s + l.sickMargin * Math.max(0, l.sickCount - l.mort), 0) / Math.max(1, Math.max(0, sick - mort))) : 0;
+  const morbDrag = Math.max(0, hMargin - sMargin);
+  
+  // Carcass grades
+  const prime = FL.reduce((s, l) => s + l.prime, 0);
+  const aaa = FL.reduce((s, l) => s + l.aaa, 0);
+  const aa = FL.reduce((s, l) => s + l.aa, 0);
+  const bGr = FL.reduce((s, l) => s + l.bGr, 0);
+  const primeAaaPct = sold ? ((prime + aaa) / sold * 100) : 0;
+  
+  // Scale trajectory averages
+  const scaleH = [0, 1, 2, 3, 4].map(idx => {
+    return sold ? (FL.reduce((s, l) => s + (l.scaleH[idx] || 0) * l.sold, 0) / sold) : 0;
+  });
+  const scaleS = [0, 1, 2, 3, 4].map(idx => {
+    return sold ? (FL.reduce((s, l) => s + (l.scaleS[idx] || 0) * l.sold, 0) / sold) : 0;
+  });
+  const sickDeficitKg = Math.max(0, (scaleH[4] || 0) - (scaleS[4] || 0));
+  
+  // Daily DMI
+  const dmiHeadDay = dof ? (wAvg('dmi') / dof) : 10.4;
+
+  // Frame score metrics
+  const lgSoldTot = FL.reduce((s, l) => s + l.lgSold, 0);
+  const medSoldTot = FL.reduce((s, l) => s + l.medSold, 0);
+  const lgMargin = lgSoldTot ? (FL.reduce((s, l) => s + l.lgMargin * l.lgSold, 0) / lgSoldTot) : 0;
+  const medMargin = medSoldTot ? (FL.reduce((s, l) => s + l.medMargin * l.medSold, 0) / medSoldTot) : 0;
+  const lgHCW = lgSoldTot ? (FL.reduce((s, l) => s + l.lgHCW * l.lgSold, 0) / lgSoldTot) : 0;
+  const medHCW = medSoldTot ? (FL.reduce((s, l) => s + l.medHCW * l.medSold, 0) / medSoldTot) : 0;
+  const lgAdg = lgSoldTot ? (FL.reduce((s, l) => s + l.lgAdg * l.lgSold, 0) / lgSoldTot) : 0;
+  const medAdg = medSoldTot ? (FL.reduce((s, l) => s + l.medAdg * l.medSold, 0) / medSoldTot) : 0;
+  const frameDeltaMargin = lgMargin - medMargin;
+  const frameDeltaHCW = lgHCW - medHCW;
+
+  // Charolais vs Angus carcass weight gap
+  const charLots = FL.filter(l => l.b === 1);
+  const angusLots = FL.filter(l => l.b === 0);
+  const charSold = charLots.reduce((s, l) => s + l.sold, 0);
+  const angusSold = angusLots.reduce((s, l) => s + l.sold, 0);
+  const charHCW = charSold ? (charLots.reduce((s, l) => s + l.hotW * l.sold, 0) / charSold) : 391.8;
+  const angusHCW = angusSold ? (angusLots.reduce((s, l) => s + l.hotW * l.sold, 0) / angusSold) : 380.0;
+  const charAngusGapHCW = Math.max(0, charHCW - angusHCW);
+
+  // Winter placement lots (Q3 & Q4 arrivals on cold season closeout)
+  const winterLots = FL.filter(l => l.q === 2 || l.q === 3);
+  const winterSold = winterLots.reduce((s, l) => s + l.sold, 0);
+  const winterFCR = winterSold ? (winterLots.reduce((s, l) => s + l.fcr * l.sold, 0) / winterSold) : 7.05;
+
+  // Origin region tokens
+  const mbLots = FL.filter(l => l.reg === 3);
+  const mbSold = mbLots.reduce((s, l) => s + l.sold, 0);
+  const mbMargin = mbSold ? (mbLots.reduce((s, l) => s + l.margin * l.sold, 0) / mbSold) : 296.64;
+  const saLots = FL.filter(l => l.reg === 0);
+  const saHeadIn = saLots.reduce((s, l) => s + l.headIn, 0);
+  const saMorb = saHeadIn ? (saLots.reduce((s, l) => s + l.sickCount, 0) / saHeadIn * 100) : 13.4;
+
+  // Quarterly tokens: finding best and worst placement quarters in active cohort
+  const quarterStats = QUARTERS.map((qName, qIdx) => {
+    const qLots = FL.filter(l => l.q === qIdx);
+    const qSold = qLots.reduce((s, l) => s + l.sold, 0);
+    const qHead = qLots.reduce((s, l) => s + l.headIn, 0);
+    return {
+      name: qName,
+      sold: qSold,
+      head: qHead,
+      feederP: qHead ? (qLots.reduce((s, l) => s + l.feederP * l.headIn, 0) / qHead) : 0,
+      fcog: qSold ? (qLots.reduce((s, l) => s + l.fcog * l.sold, 0) / qSold) : 0,
+      margin: qSold ? (qLots.reduce((s, l) => s + l.margin * l.sold, 0) / qSold) : 0
+    };
+  }).filter(q => q.sold > 0);
+
+  const sortedQ = [...quarterStats].sort((a, b) => a.margin - b.margin);
+  const worstQ = sortedQ.length ? sortedQ[0] : { name: '2024Q2', feederP: 5.83, fcog: 2.35, margin: 258.32 };
+  const bestQ = sortedQ.length ? sortedQ[sortedQ.length - 1] : { name: '2025Q1', feederP: 5.74, fcog: 2.30, margin: 341.54 };
+
+  // Drug protocols dynamically aggregated from active lots
+  const drugStats = DRUGS.map((dName, dIdx) => {
+    const cases = FL.reduce((s, l) => s + l.drugs[dIdx][0], 0);
+    const recov = FL.reduce((s, l) => s + l.drugs[dIdx][1], 0);
+    const mortD = FL.reduce((s, l) => s + l.drugs[dIdx][2], 0);
+    const costTot = FL.reduce((s, l) => s + l.drugs[dIdx][3], 0);
+    return {
+      name: dName,
+      cases,
+      recovPct: cases ? (recov / cases * 100) : 0,
+      mortPct: cases ? (mortD / cases * 100) : 0,
+      avgCost: cases ? (costTot / cases) : 0
+    };
+  });
+
+  return {
+    headIn, sold, mort, mortRate, adg, fcr, dof, margin, totMargin,
+    cog, fcog, pCost, fCost, yCost, vCost, gRev, totCost, dressing, hotW,
+    sick, healthy, morbRate, brd, footRot, bloat, buller,
+    hMargin, sMargin, morbDrag, sickDeficitKg,
+    prime, aaa, aa, bGr, primeAaaPct,
+    scaleH, scaleS, dmiHeadDay,
+    lgSoldTot, medSoldTot, lgMargin, medMargin, lgHCW, medHCW, lgAdg, medAdg,
+    frameDeltaMargin, frameDeltaHCW, charAngusGapHCW, winterFCR,
+    mbMargin, saMorb, worstQ, bestQ,
+    drugStats
+  };
+}
+
+// TAB 0: OVERVIEW & LOT INSPECTOR
+function p0(M, FL) {
+  if (FL.length === 0) {
+    return `<div class="c s12"><p class="cs">${x('Tidak ada data yang sesuai filter.', 'No data matching selected filters.')}</p></div>`;
+  }
+
+  const sortedLots = [...FL].sort((a, b) => {
+    if (S.lotSort === 'margin_desc') return b.margin - a.margin;
+    if (S.lotSort === 'margin_asc') return a.margin - b.margin;
+    if (S.lotSort === 'fcr_asc') return a.fcr - b.fcr;
+    if (S.lotSort === 'adg_desc') return b.adg - a.adg;
+    return b.margin - a.margin;
+  });
+
+  const topLot = sortedLots[0];
+  const lowLot = sortedLots[sortedLots.length - 1];
+  const displayedLots = S.lotLimit > 0 ? sortedLots.slice(0, S.lotLimit) : sortedLots;
+
+  return `
+    <h1>${x('Charolais menang di kilo, Angus menang di grade', 'Charolais wins on kilos, Angus wins on grade')}</h1>
+    <p class="sub">${x('15.000 ekor, 90 lot, 2024–2025. Margin rata-rata $331,58 per ekor terjual. Ras dan naungan bikin margin antar lot berselisih ratusan dolar.', '15,000 head, 90 lots, 2024–2025. Average margin $331.58 per head sold. Breed and shelter swing lot margins by hundreds of dollars.')}</p>
+
+    <div class="g">
+      ${card('u', x('Sapi terjual', 'Head sold'), `<span class="bg ok">${n(M.sold, 0)} ${x('ekor', 'hd')}</span>`, `${n(M.sold ? (M.sold/M.headIn*100) : 0, 1)}%`, x(`Mati <b>${n(M.mort, 0)} ekor</b> (${n(M.mortRate, 2)}%)`, `Death loss <b>${n(M.mort, 0)} head</b> (${n(M.mortRate, 2)}%)`), x('Persentase sapi menyelesaikan periode pakan', 'Share of placed cattle finishing closeout'))}
+      
+      ${card('d', x('Margin per ekor', 'Margin per head'), `<span class="bg ${M.margin>=0?'ok':'bad'}">${cur(M.margin, 2)}</span>`, cur(M.margin, 2), x(`Total <b>$${n(M.totMargin/1e6, 2)} juta CAD</b>`, `Total <b>$${n(M.totMargin/1e6, 2)}M CAD</b>`), x('Margin bersih per ekor sapi terjual', 'Net margin per finished animal sold'))}
+      
+      ${card('s', x('Tambah bobot harian (ADG)', 'Average daily gain (ADG)'), `<span class="bg ok">${n(M.adg, 3)} kg/d</span>`, `${n(M.adg, 3)}`, x('kg/hari, rata-rata selama di feedlot', 'kg/day over the feeding period'), x('Rata-rata pertambahan bobot harian', 'Average Daily Gain'))}
+      
+      ${card('t', x('Konversi pakan (FCR)', 'Feed conversion (FCR)'), `<span class="bg ${M.fcr<=6.7?'ok':'wn'}">${n(M.fcr, 2)}</span>`, `${n(M.fcr, 2)}`, x('kg pakan bahan kering per kg tambah bobot', 'kg DM feed per kg of gain'), x('Rasio pakan: makin kecil makin efisien', 'Feed conversion ratio'))}
+
+      <!-- 3 Story Bridges -->
+      <button class="c s4 go" data-go="1">
+        <div class="v">${n(M.winterFCR, 2)}</div>
+        <h2>${x(`FCR naik ke ${n(M.winterFCR, 2)} saat dingin`, `FCR climbs to ${n(M.winterFCR, 2)} in the cold`)}</h2>
+        <div class="in">${x('Confinement Barn memangkas beban dingin. Margin lot di barn: $372/ekor.', 'Confinement Barns cut the cold drag. Barn lots earn $372/head.')} &rarr;</div>
+      </button>
+
+      <button class="c s4 go" data-go="2">
+        <div class="v">${n(M.morbRate, 1)}%</div>
+        <h2>${x('78% tarikan sakit terjadi di 30 hari pertama', '78% of pulls happen in the first 30 days')}</h2>
+        <div class="in">${x(`BRD bikin sapi kerdil permanen. Margin turun ${cur(M.morbDrag, 0)}/ekor dibanding sapi sehat.`, `BRD leaves cattle permanently lighter. Margin drops ${cur(M.morbDrag, 0)}/head vs healthy cattle.`)} &rarr;</div>
+      </button>
+
+      <button class="c s4 go" data-go="3">
+        <div class="v">${n(M.primeAaaPct, 1)}%</div>
+        <h2>${x('87% karkas Angus masuk Prime & AAA', '87% of Angus carcasses make Prime & AAA')}</h2>
+        <div class="in">${x('Tapi Charolais tetap juara margin: rendemen 61,8%, $412/ekor.', 'Charolais still wins on margin: 61.8% dressing, $412/head.')} &rarr;</div>
+      </button>
+
+      <!-- Waterfall -->
+      <div class="c s12">
+        <h2>${x('Ke mana uang per ekor pergi, dari bibit sampai karkas', 'Where the money goes per head, feeder to carcass')}</h2>
+        <p class="cs">${x('Rata-rata tertimbang per ekor terjual (CAD). Margin = nilai karkas dikurangi total biaya.', 'Weighted average per head sold (CAD). Margin = carcass revenue minus total cost.')}</p>
+        
+        <div class="wf-grid">
+          <div class="wf-box">
+            <div class="wf-lbl">${x('1. Beli bibit', '1. Feeder purchase')}</div>
+            <div class="wf-val">${cur(M.pCost, 0)}</div>
+            <div class="wf-sub">${n(M.totCost ? (M.pCost / M.totCost * 100) : 0, 1)}% ${x('dari total', 'of total')}</div>
+          </div>
+          <div class="wf-box">
+            <div class="wf-lbl">${x('2. Pakan', '2. Feed')}</div>
+            <div class="wf-val">${cur(M.fCost, 0)}</div>
+            <div class="wf-sub">${n(M.totCost ? (M.fCost / M.totCost * 100) : 0, 1)}% ${x('dari total', 'of total')}</div>
+          </div>
+          <div class="wf-box">
+            <div class="wf-lbl">${x('3. Yardage & obat', '3. Yardage & vet')}</div>
+            <div class="wf-val">${cur(M.yCost + M.vCost, 0)}</div>
+            <div class="wf-sub">${cur(M.yCost, 0)} yard + ${cur(M.vCost, 0)} vet</div>
+          </div>
+          <div class="wf-box" style="border:1px solid var(--brand);background:var(--soft)">
+            <div class="wf-lbl" style="color:var(--brand)">${x('4. Total biaya per ekor', '4. Total cost per head')}</div>
+            <div class="wf-val" style="color:var(--brand)">${cur(M.totCost, 0)}</div>
+            <div class="wf-sub">${x('COG', 'COG')}: ${cur(M.cog, 2)}/kg</div>
+          </div>
+          <div class="wf-box" style="border:1px solid var(--ok);background:var(--okbg)">
+            <div class="wf-lbl" style="color:var(--ok)">${x('5. Hasil karkas & margin', '5. Carcass revenue & margin')}</div>
+            <div class="wf-val" style="color:var(--ok)">${cur(M.gRev, 0)}</div>
+            <div class="wf-sub">${x('Margin', 'Margin')}: <b>${cur(M.margin, 2)}</b></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Breed Comparison -->
+      <div class="c s6">
+        <h2>${x('Margin per ekor menurut ras', 'Margin per head by breed')}</h2>
+        <p class="cs">${x('Margin rata-rata per ekor sapi terjual (CAD)', 'Average net margin per finished head (CAD)')}</p>
+        
+        ${BREEDS.map((bName, bIdx) => {
+          const bLots = FL.filter(l => l.b === bIdx);
+          const bSold = bLots.reduce((s, l) => s + l.sold, 0);
+          const bMargin = bSold ? (bLots.reduce((s, l) => s + l.margin * l.sold, 0) / bSold) : 0;
+          const bAdg = bSold ? (bLots.reduce((s, l) => s + l.adg * l.sold, 0) / bSold) : 0;
+          const fillWidth = Math.max(8, Math.min(100, (bMargin / 450) * 100));
+          return `
+            <div class="bar" data-tip="${bName}: ${cur(bMargin, 2)} net margin, ADG ${n(bAdg, 3)} kg/d (${n(bSold, 0)} ${x('ekor', 'hd')})">
+              <div class="bar-hd">
+                <span>${bName} ${bSold ? '' : `<small style="color:var(--t3)">(${x('0 ekor', '0 hd')})</small>`}</span>
+                <span><b>${bSold ? cur(bMargin, 2) : '-'}</b> <small style="color:var(--t3);font-weight:400">| ADG ${bSold ? n(bAdg, 2) : '-'}</small></span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill ${bIdx===1?'ok':bIdx===3?'warn':''}" style="width:${bSold ? fillWidth : 0}%"></div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      <!-- Yard Zone -->
+      <div class="c s6">
+        <h2>${x('Margin per ekor menurut zona kandang', 'Margin per head by yard zone')}</h2>
+        <p class="cs">${x('Pengaruh kontur dan perlindungan angin terhadap laba', 'Impact of pen location and shelter on closeout economics')}</p>
+        
+        ${ZONES.map((zName, zIdx) => {
+          const zLots = FL.filter(l => l.z === zIdx);
+          const zSold = zLots.reduce((s, l) => s + l.sold, 0);
+          const zMargin = zSold ? (zLots.reduce((s, l) => s + l.margin * l.sold, 0) / zSold) : 0;
+          const zFcr = zSold ? (zLots.reduce((s, l) => s + l.fcr * l.sold, 0) / zSold) : 0;
+          const fillWidth = Math.max(8, Math.min(100, (zMargin / 400) * 100));
+          return `
+            <div class="bar" data-tip="${zName}: ${cur(zMargin, 2)} net margin, FCR ${n(zFcr, 2)} (${n(zSold, 0)} ${x('ekor', 'hd')})">
+              <div class="bar-hd">
+                <span>${zName} ${zSold ? '' : `<small style="color:var(--t3)">(${x('0 ekor', '0 hd')})</small>`}</span>
+                <span><b>${zSold ? cur(zMargin, 2) : '-'}</b> <small style="color:var(--t3);font-weight:400">| FCR ${zSold ? n(zFcr, 2) : '-'}</small></span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill ${zIdx===2?'ok':''}" style="width:${zSold ? fillWidth : 0}%"></div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+
+        <div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--bd);font-size:12px;color:var(--t2)">
+          ${x('<b>East Sheltered</b> mayoritas Confinement Barn. Margin rata-rata $364/ekor karena sapi terlindung dari angin dingin.', '<b>East Sheltered</b> is mostly Confinement Barns. Average margin $364/head because cattle stay out of the wind chill.')}
+        </div>
+      </div>
+
+      <!-- Lot Inspector -->
+      <div class="c s12">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:8px">
+          <div>
+            <h2>${x('Rapor per lot', 'Lot report card')}</h2>
+            <p class="cs" style="margin-bottom:0">${x(`${n(FL.length, 0)} lot sesuai filter`, `${n(FL.length, 0)} lots match the current filters`)}</p>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <span style="font-size:11.5px;color:var(--t3);font-weight:600">${x('Urutkan:', 'Sort by:')}</span>
+            <div class="sg">
+              <button data-k="lotSort" data-v="margin_desc" aria-pressed="${S.lotSort==='margin_desc'}">${x('Margin tertinggi', 'Top margin')}</button>
+              <button data-k="lotSort" data-v="margin_asc" aria-pressed="${S.lotSort==='margin_asc'}">${x('Margin terendah', 'Lowest margin')}</button>
+              <button data-k="lotSort" data-v="fcr_asc" aria-pressed="${S.lotSort==='fcr_asc'}">${x('FCR terbaik', 'Best FCR')}</button>
+              <button data-k="lotSort" data-v="adg_desc" aria-pressed="${S.lotSort==='adg_desc'}">${x('ADG tertinggi', 'Top ADG')}</button>
+            </div>
+          </div>
+        </div>
+
+        ${topLot && lowLot ? `
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin:10px 0 14px">
+            <div style="background:var(--okbg);border:1px solid var(--ok);border-radius:12px;padding:10px 14px">
+              <div style="font-size:11.5px;font-weight:700;color:var(--ok)">${x('LOT TERBAIK', 'BEST LOT')}: ${topLot.id} (${BREEDS[topLot.b]})</div>
+              <div style="font-size:12.5px;color:var(--t1);margin-top:2px">
+                <b>${cur(topLot.margin, 2)}</b>/ekor &bull; FCR <b>${n(topLot.fcr, 2)}</b> &bull; ADG <b>${n(topLot.adg, 2)} kg/d</b> &bull; Kandang ${topLot.pen} (${PEN_TYPES[topLot.pt]})
+              </div>
+            </div>
+            <div style="background:var(--badbg);border:1px solid var(--bad);border-radius:12px;padding:10px 14px">
+              <div style="font-size:11.5px;font-weight:700;color:var(--bad)">${x('LOT TERLEMAH', 'WEAKEST LOT')}: ${lowLot.id} (${BREEDS[lowLot.b]})</div>
+              <div style="font-size:12.5px;color:var(--t1);margin-top:2px">
+                <b>${cur(lowLot.margin, 2)}</b>/ekor &bull; FCR <b>${n(lowLot.fcr, 2)}</b> &bull; ADG <b>${n(lowLot.adg, 2)} kg/d</b> &bull; Kandang ${lowLot.pen} (${PEN_TYPES[lowLot.pt]})
+              </div>
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>${x('Lot ID & Kandang', 'Lot ID & Pen')}</th>
+                <th>${x('Ras & Kelamin', 'Breed & Sex')}</th>
+                <th>${x('Asal & Tgl Masuk', 'Origin & In-Date')}</th>
+                <th class="num">${x('Terjual/Masuk', 'Sold / In')}</th>
+                <th class="num">${x('Mortalitas', 'Mortality')}</th>
+                <th class="num">ADG</th>
+                <th class="num">FCR</th>
+                <th class="num">${x('Biaya COG', 'COG $/kg')}</th>
+                <th class="num">${x('Margin/Ekor', 'Margin / Head')}</th>
+                <th class="num">${x('Total Margin Lot', 'Total Net Cash')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${displayedLots.map(l => {
+                const mortPct = (l.mort / l.headIn * 100);
+                const marginBadgeClass = l.margin >= 330 ? 'ok' : l.margin >= 270 ? 'wn' : 'bad';
+                return `
+                  <tr>
+                    <td><b>${l.id}</b> <span style="font-size:11px;color:var(--t3)">(${l.pen})</span></td>
+                    <td>${BREEDS[l.b]} &bull; <small style="color:var(--t3)">${SEXES[l.s]}</small></td>
+                    <td>${REGIONS[l.reg]} <span style="font-size:11px;color:var(--t3)">(${l.arr})</span></td>
+                    <td class="num">${n(l.sold, 0)} / ${n(l.headIn, 0)}</td>
+                    <td class="num"><span class="bg ${mortPct<=1.5?'ok':'wn'}">${n(mortPct, 1)}%</span></td>
+                    <td class="num">${n(l.adg, 3)}</td>
+                    <td class="num">${n(l.fcr, 2)}</td>
+                    <td class="num">${cur(l.cog, 2)}</td>
+                    <td class="num"><span class="bg ${marginBadgeClass}">${cur(l.margin, 2)}</span></td>
+                    <td class="num" style="font-weight:700">${cur(l.totMargin, 0)}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:8px">
+          <span style="font-size:11.5px;color:var(--t3)">
+            ${x(`Menampilkan ${displayedLots.length} dari ${FL.length} lot aktif`, `Showing ${displayedLots.length} of ${FL.length} active lots`)}
+          </span>
+          ${FL.length > 10 ? `
+            <button data-k="lotLimit" data-v="${S.lotLimit === 10 ? 0 : 10}" class="fl-reset">
+              ${S.lotLimit === 10 ? x('Lihat Semua ' + FL.length + ' Lot &darr;', 'Show All ' + FL.length + ' Lots &darr;') : x('Tampilkan 10 Lot Teratas &uarr;', 'Show Top 10 Only &uarr;')}
+            </button>
+          ` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// TAB 1: PAKAN DAN DINGIN (FEED AND WINTER)
+function p1(M, FL) {
+  if (FL.length === 0) {
+    return `<div class="c s12"><p class="cs">${x('Tidak ada data yang sesuai filter.', 'No data matching selected filters.')}</p></div>`;
+  }
+
+  const barnLots = FL.filter(l => l.pt === 1);
+  const openLots = FL.filter(l => l.pt !== 1);
+  const barnSold = barnLots.reduce((s, l) => s + l.sold, 0);
+  const openSold = openLots.reduce((s, l) => s + l.sold, 0);
+  const barnMargin = barnSold ? (barnLots.reduce((s, l) => s + l.margin * l.sold, 0) / barnSold) : 0;
+  const openMargin = openSold ? (openLots.reduce((s, l) => s + l.margin * l.sold, 0) / openSold) : 0;
+  const barnEdge = (barnSold && openSold) ? (barnMargin - openMargin) : (barnSold ? barnMargin : 0);
+
+  const chartW = 700;
+  const chartH = 190;
+  const padL = 40;
+  const padR = 25;
+  const padT = 24;
+  const padB = 26;
+  const usableW = chartW - padL - padR;
+  const usableH = chartH - padT - padB;
+
+  const minDmi = 8;
+  const maxDmi = 16;
+  const getDmiY = v => padT + (1 - (v - minDmi) / (maxDmi - minDmi)) * usableH;
+  const getDmiX = i => padL + (i / (MONTHS.length - 1)) * usableW;
+
+  const points = DMI_HEAD_DAY.map((val, i) => `${getDmiX(i).toFixed(1)},${getDmiY(val).toFixed(1)}`).join(' ');
+  const areaPoints = `${padL},${padT + usableH} ${points} ${chartW - padR},${padT + usableH}`;
+
+  const dmiTicks = [8, 10, 12, 14, 16];
+
+  const winterBands = [
+    { start: 0, end: 2.5, lbl: x('Dingin 2024', 'Winter 2024') },
+    { start: 9.5, end: 14.5, lbl: x('Dingin 2024/25 (barley mahal)', 'Winter 2024/25 (pricey barley)') },
+    { start: 21.5, end: 23, lbl: x('Dingin 2025', 'Winter 2025') }
+  ];
+
+  return `
+    <h1>${x('Dingin bikin sapi makan lebih banyak tapi tumbuh lebih lambat', 'Cold pushes intake up and gain down')}</h1>
+    <p class="sub">${x('Sebagian pakan habis jadi panas badan, bukan daging. Confinement Barn menyelamatkan $49,82 per ekor dibanding open dirt.', 'Part of the ration burns off as body heat instead of beef. Confinement Barns recover $49.82 per head over open dirt.')}</p>
+
+    <div class="g">
+      ${card('t', x('Asupan pakan (DMI)', 'Dry matter intake (DMI)'), '<span class="bg wn">2.28% BW</span>', `${n(M.dmiHeadDay, 1)} kg`, x('Bahan kering pakan per ekor per hari', 'Dry matter intake per head/day'), x('Rata-rata asupan harian bahan kering pakan', 'Daily DMI average'))}
+      ${card('s', x('Konversi pakan (FCR)', 'Feed conversion (FCR)'), `<span class="bg ${M.fcr<=6.7?'ok':'wn'}">${n(M.fcr, 2)}</span>`, `${n(M.fcr, 2)}`, x('kg pakan bahan kering per kg tambah bobot', 'kg DM feed per kg of gain'), x('Rasio pakan FCR', 'Feed conversion ratio'))}
+      ${card('d', x('Biaya pakan per kg tambah bobot (FCOG)', 'Feed cost of gain (FCOG)'), `<span class="bg ok">${cur(M.fcog, 2)}/kg</span>`, cur(M.fcog, 2), x('Biaya pakan per kg kenaikan bobot', 'Feed expense per kg of live gain'), x('Feed Cost of Gain', 'Feed Cost of Gain'))}
+      ${card('u', x('Selisih margin barn vs open dirt', 'Barn vs open dirt margin gap'), `<span class="bg ok">${barnEdge>=0?'+':''}${cur(barnEdge, 2)}</span>`, `${barnEdge>=0?'+':''}${cur(barnEdge, 2)}`, x('Keunggulan kandang tertutup atas kandang terbuka', 'Confinement barn margin edge over open dirt'), x('Selisih margin kandang tertutup atas terbuka', 'Confinement barn margin edge'))}
+
+      <!-- Intake Chart -->
+      <div class="c s8">
+        <h2>${x('Asupan pakan per ekor per hari', 'Daily feed intake per head')}</h2>
+        <p class="cs">${x('Naik di musim dingin dan ikut naik seiring bobot sapi. Barley mahal di akhir 2024 mendorong biaya pakan harian.', 'Rises in winter and with cattle weight. Pricey barley in late 2024 pushed daily feed cost up.')}</p>
+        
+        <svg viewBox="0 0 ${chartW} ${chartH}" style="width:100%;height:auto;overflow:visible">
+          <defs>
+            <linearGradient id="dmiGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="var(--brand)" stop-opacity="0.18"/>
+              <stop offset="100%" stop-color="var(--brand)" stop-opacity="0.0"/>
+            </linearGradient>
+          </defs>
+
+          ${winterBands.map(wb => {
+            const x1 = padL + (wb.start / (MONTHS.length - 1)) * usableW;
+            const x2 = padL + (wb.end / (MONTHS.length - 1)) * usableW;
+            const w = x2 - x1;
+            return `
+              <rect x="${x1}" y="${padT}" width="${w}" height="${usableH}" fill="var(--soft)" rx="4" opacity="0.8"/>
+              <text x="${x1 + w/2}" y="${padT + 12}" font-size="9.5" font-weight="700" fill="var(--brand)" text-anchor="middle">${wb.lbl}</text>
+            `;
+          }).join('')}
+
+          ${dmiTicks.map(t => `
+            <line x1="${padL}" y1="${getDmiY(t)}" x2="${chartW - padR}" y2="${getDmiY(t)}" stroke="${t === minDmi ? 'var(--bd)' : 'var(--line)'}" stroke-width="1" ${t !== minDmi ? 'stroke-dasharray="4"' : ''}/>
+            <text x="${padL - 6}" y="${getDmiY(t) + 3.5}" font-size="10" fill="var(--t3)" text-anchor="end">${t} kg</text>
+          `).join('')}
+
+          <polygon fill="url(#dmiGrad)" points="${areaPoints}"/>
+          <polyline fill="none" stroke="var(--brand)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="${points}"/>
+
+          ${DMI_HEAD_DAY.map((val, i) => `
+            <circle cx="${getDmiX(i)}" cy="${getDmiY(val)}" r="3.2" fill="var(--card)" stroke="var(--brand)" stroke-width="2"
+              data-tip="${MONTHS[i]}: ${val} kg DMI/hari, ${cur(COST_HEAD_DAY[i], 2)} CAD/ekor/hari"/>
+          `).join('')}
+
+          <text x="${padL}" y="${chartH - 6}" font-size="9.5" fill="var(--t3)">Jan 2024</text>
+          <text x="${padL + usableW/2}" y="${chartH - 6}" font-size="9.5" fill="var(--t3)" text-anchor="middle">Jan 2025</text>
+          <text x="${chartW - padR}" y="${chartH - 6}" font-size="9.5" fill="var(--t3)" text-anchor="end">Des 2025</text>
+        </svg>
+      </div>
+
+      <!-- Shelter Comparison -->
+      <div class="c s4">
+        <h2>${x('Tiga tipe naungan, tiga hasil', 'Three shelter types, three outcomes')}</h2>
+        <p class="cs">${x('Pertumbuhan dan margin berdasarkan tipe kandang', 'Growth and margin metrics by shelter type')}</p>
+        
+        ${PEN_TYPES.map((ptName, ptIdx) => {
+          const ptLots = FL.filter(l => l.pt === ptIdx);
+          const ptSold = ptLots.reduce((s, l) => s + l.sold, 0);
+          const ptMargin = ptSold ? (ptLots.reduce((s, l) => s + l.margin * l.sold, 0) / ptSold) : 0;
+          const ptAdg = ptSold ? (ptLots.reduce((s, l) => s + l.adg * l.sold, 0) / ptSold) : 0;
+          const ptFcr = ptSold ? (ptLots.reduce((s, l) => s + l.fcr * l.sold, 0) / ptSold) : 0;
+          return `
+            <div style="background:var(--line);border-radius:10px;padding:9px 12px;margin-bottom:8px" data-tip="${ptName}: Margin ${cur(ptMargin, 2)}, FCR ${n(ptFcr, 2)}, ADG ${n(ptAdg, 3)}">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+                <b style="font-size:12.5px">${ptName}</b>
+                <span class="bg ${ptSold?(ptIdx===1?'ok':'wn'):''}">${ptSold ? cur(ptMargin, 2) : '-'}</span>
+              </div>
+              <div style="font-size:11.5px;color:var(--t2)">
+                FCR: <b>${ptSold ? n(ptFcr, 2) : '-'}</b> &bull; ADG: <b>${ptSold ? n(ptAdg, 2) + ' kg/d' : '-'}</b> &bull; ${n(ptSold, 0)} hd
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      <!-- Origin Region Table -->
+      <div class="c s6">
+        <h2>${x('Asal bibit: harga beli vs margin', 'Feeder origin: purchase price vs margin')}</h2>
+        <p class="cs">${x('Komparasi harga beli, morbiditas, dan laba akhir berdasarkan asal ternak', 'Comparing purchase basis, morbidity rate, and margin by origin')}</p>
+        
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>${x('Wilayah Asal', 'Origin Region')}</th>
+                <th class="num">${x('Beli $/kg', 'Feeder $/kg')}</th>
+                <th class="num">${x('Sakit %', 'Morb %')}</th>
+                <th class="num">FCR</th>
+                <th class="num">${x('Margin/Ekor', 'Margin / Head')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${REGIONS.map((rName, rIdx) => {
+                const rLots = FL.filter(l => l.reg === rIdx);
+                const rSold = rLots.reduce((s, l) => s + l.sold, 0);
+                const rHeadIn = rLots.reduce((s, l) => s + l.headIn, 0);
+                if (rHeadIn === 0) return '';
+                const rFeederP = rLots.reduce((s, l) => s + l.feederP * l.headIn, 0) / rHeadIn;
+                const rMorb = rHeadIn ? (rLots.reduce((s, l) => s + l.sickCount, 0) / rHeadIn * 100) : 0;
+                const rFcr = rSold ? (rLots.reduce((s, l) => s + l.fcr * l.sold, 0) / rSold) : 0;
+                const rMargin = rSold ? (rLots.reduce((s, l) => s + l.margin * l.sold, 0) / rSold) : 0;
+                return `
+                  <tr>
+                    <td><b>${rName}</b></td>
+                    <td class="num">${cur(rFeederP, 2)}</td>
+                    <td class="num"><span class="bg ${rMorb<=13.5?'ok':'wn'}">${n(rMorb, 1)}%</span></td>
+                    <td class="num">${n(rFcr, 2)}</td>
+                    <td class="num" style="font-weight:700;color:var(--ink)">${cur(rMargin, 2)}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:10px;font-size:11.5px;color:var(--t2);line-height:1.5">
+          ${x(`Manitoba Foothills bibit paling murah ($5,63/kg), margin tertinggi (${cur(M.mbMargin, 2)}/ekor). Southern Alberta paling jarang sakit (${n(M.saMorb, 1)}%) karena jarak angkut pendek.`, `Manitoba Foothills has the cheapest feeders ($5.63/kg) and the top margin (${cur(M.mbMargin, 2)}/head). Southern Alberta pulls the fewest sick cattle (${n(M.saMorb, 1)}%) thanks to the short haul.`)}
+        </div>
+      </div>
+
+      <!-- Placement Quarter Table -->
+      <div class="c s6">
+        <h2>${x('Selisih beli-jual per kuartal masuk', 'Placement-quarter price spread')}</h2>
+        <p class="cs">${x('Dampak gelombang harga bibit & lonjakan barley terhadap margin kuartalan', 'Feeder purchase price waves and barley price spike impacts')}</p>
+        
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>${x('Kuartal Masuk', 'Placement Qtr')}</th>
+                <th class="num">${x('Beli $/kg', 'Feeder $/kg')}</th>
+                <th class="num">${x('Feed COG', 'Feed COG')}</th>
+                <th class="num">${x('Total COG', 'Total COG')}</th>
+                <th class="num">${x('Margin/Ekor', 'Margin / Head')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${QUARTERS.map((qName, qIdx) => {
+                const qLots = FL.filter(l => l.q === qIdx);
+                const qSold = qLots.reduce((s, l) => s + l.sold, 0);
+                const qHeadIn = qLots.reduce((s, l) => s + l.headIn, 0);
+                if (qHeadIn === 0) return '';
+                const qFeederP = qLots.reduce((s, l) => s + l.feederP * l.headIn, 0) / qHeadIn;
+                const qFcog = qSold ? (qLots.reduce((s, l) => s + l.fcog * l.sold, 0) / qSold) : 0;
+                const qCog = qSold ? (qLots.reduce((s, l) => s + l.cog * l.sold, 0) / qSold) : 0;
+                const qMargin = qSold ? (qLots.reduce((s, l) => s + l.margin * l.sold, 0) / qSold) : 0;
+                return `
+                  <tr>
+                    <td><b>${qName}</b> <small style="color:var(--t3)">(${qLots.length} lot)</small></td>
+                    <td class="num">${cur(qFeederP, 2)}</td>
+                    <td class="num">${cur(qFcog, 2)}</td>
+                    <td class="num">${cur(qCog, 2)}</td>
+                    <td class="num"><span class="bg ${qMargin>=300?'ok':qMargin>=270?'wn':'bad'}">${cur(qMargin, 2)}</span></td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:10px;font-size:11.5px;color:var(--t2);line-height:1.5">
+          ${x(`Bibit mahal plus pakan mahal = margin tipis. ${M.worstQ.name}: bibit ${cur(M.worstQ.feederP, 2)}/kg, COG pakan ${cur(M.worstQ.fcog, 2)}/kg, margin ${cur(M.worstQ.margin, 2)}/ekor. Bandingkan ${M.bestQ.name}: ${cur(M.bestQ.margin, 2)}/ekor.`, `Pricey feeders plus pricey feed means thin margin. ${M.worstQ.name}: feeders ${cur(M.worstQ.feederP, 2)}/kg, feed COG ${cur(M.worstQ.fcog, 2)}/kg, margin ${cur(M.worstQ.margin, 2)}/head. Compare ${M.bestQ.name}: ${cur(M.bestQ.margin, 2)}/head.`)}
+        </div>
+      </div>
+
+      <!-- Ration Phases Table -->
+      <div class="c s12">
+        <h2>${x('Ransum 4 fase: Starter, Transition, Grower, Finisher', '4-phase ration: Starter, Transition, Grower, Finisher')}</h2>
+        <p class="cs">${x('Silase dikurangi, barley dinaikkan bertahap supaya sapi cepat naik bobot tanpa kembung dan asidosis.', 'Silage steps down and barley steps up so cattle gain fast without bloat or acidosis.')}</p>
+        
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>${x('Fase ransum', 'Ration phase')}</th>
+                <th>${x('Hari pakan', 'Days on feed')}</th>
+                <th class="num">${x('% Bahan kering', 'Dry matter %')}</th>
+                <th class="num">${x('% Silase hijauan', '% Barley silage')}</th>
+                <th class="num">${x('% Biji barley', '% Barley grain')}</th>
+                <th class="num">${x('% Suplemen', '% Premix/supp.')}</th>
+                <th>${x('Tujuan fisiologis', 'Operational goal')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>Starter</b></td>
+                <td>Hari 1–14</td>
+                <td class="num">58%</td>
+                <td class="num">55%</td>
+                <td class="num">39%</td>
+                <td class="num">6%</td>
+                <td>${x('pulihkan rumen setelah stres angkut', 'rumen recovery after transit')}</td>
+              </tr>
+              <tr>
+                <td><b>Transition</b></td>
+                <td>Hari 15–28</td>
+                <td class="num">65%</td>
+                <td class="num">38%</td>
+                <td class="num">56%</td>
+                <td class="num">6%</td>
+                <td>${x('naikkan energi pelan-pelan', 'step energy up gradually')}</td>
+              </tr>
+              <tr>
+                <td><b>Grower</b></td>
+                <td>Hari 29–70</td>
+                <td class="num">71%</td>
+                <td class="num">24%</td>
+                <td class="num">70%</td>
+                <td class="num">6%</td>
+                <td>${x('bangun rangka dan otot', 'build frame and muscle')}</td>
+              </tr>
+              <tr>
+                <td><b>Finisher</b></td>
+                <td>Hari 71–Closeout</td>
+                <td class="num">77%</td>
+                <td class="num">12%</td>
+                <td class="num">82%</td>
+                <td class="num">6%</td>
+                <td>${x('finishing lemak dan marbling', 'fat cover and marbling')}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// TAB 2: GROWTH, PULLS, DRUG COSTS
+function p2(M, FL) {
+  if (FL.length === 0) {
+    return `<div class="c s12"><p class="cs">${x('Tidak ada data yang sesuai filter.', 'No data matching selected filters.')}</p></div>`;
+  }
+
+  const chartW = 700;
+  const chartH = 200;
+  const padL = 40;
+  const padR = 25;
+  const padT = 18;
+  const padB = 26;
+  const usableW = chartW - padL - padR;
+  const usableH = chartH - padT - padB;
+
+  const allW = [...M.scaleH, ...M.scaleS].filter(v => v > 0);
+  const minW = allW.length ? Math.floor(Math.min(...allW) / 50) * 50 - 20 : 280;
+  const maxW = allW.length ? Math.ceil(Math.max(...allW) / 50) * 50 + 20 : 680;
+  
+  const getY = val => padT + (1 - (val - minW) / (maxW - minW)) * usableH;
+  const getX = idx => padL + (idx / 4) * usableW;
+
+  const ptsHealthy = M.scaleH.map((v, i) => `${getX(i).toFixed(1)},${getY(v).toFixed(1)}`).join(' ');
+  const ptsTreated = M.scaleS.map((v, i) => `${getX(i).toFixed(1)},${getY(v).toFixed(1)}`).join(' ');
+
+  const STAGES = x(['Masuk', 'Hari 35', 'Hari 70', 'Hari 105', 'Closeout'], ['Arrival', 'Day 35', 'Day 70', 'Day 105', 'Closeout']);
+
+  const drugIndications = {
+    'Tulathromycin': x('BRD akut, lini pertama', 'acute BRD, first line'),
+    'Florfenicol': x('BRD dengan demam tinggi', 'BRD with high fever'),
+    'Oxytetracycline': x('busuk kuku', 'foot rot'),
+    'Ceftiofur': x('BRD yang gagal terapi pertama', 'BRD after first treatment fails'),
+    'Supportive Therapy': x('kembung dan asidosis', 'bloat and acidosis')
+  };
+
+  return `
+    <h1>${x('30 hari pertama menentukan sapi hidup atau mati, dan berat akhirnya', 'The first 30 days decide survival and closeout weight')}</h1>
+    <p class="sub">${x(`Dari 2.100 tarikan sakit (14%), 66% kena BRD. Sapi yang pernah sakit keluar ${n(M.sickDeficitKg, 1)} kg lebih ringan.`, `Of 2,100 pulls (14%), 66% were BRD. Cattle that got sick finish ${n(M.sickDeficitKg, 1)} kg lighter.`)}</p>
+
+    <div class="g">
+      ${card('p', x('Tarikan sakit', 'Sick pulls'), `<span class="bg bad">${n(M.morbRate, 1)}%</span>`, `${n(M.sick, 0)} hd`, x(`${n(M.morbRate, 1)}% populasi sempat ditarik sakit`, `${n(M.morbRate, 1)}% of cohort required treatment`), x('Tingkat kejadian sakit kumulatif', 'Cumulative morbidity rate'))}
+      ${card('s', x('Kasus BRD', 'BRD cases'), `<span class="bg bad">${n(M.sick ? (M.brd/M.sick*100) : 0, 1)}%</span>`, `${n(M.brd, 0)} hd`, x('Bovine Respiratory / batuk sapi', 'Bovine Respiratory Disease'), x('Penyakit pernapasan akut BRD', 'Acute respiratory infection'))}
+      ${card('u', x('Sembuh di terapi pertama', 'Cured on first treatment'), '<span class="bg ok">89.0%</span>', '89.0%', x('Sembuh pada suntikan obat pertama', 'Resolved on first drug regimen'), x('Persentase kesembuhan awal', 'Primary treatment resolution rate'))}
+      ${card('d', x('Margin hilang per sapi sakit', 'Margin lost per sick head'), `<span class="bg bad">-${cur(M.morbDrag, 2)}</span>`, `-${cur(M.morbDrag, 2)}`, x('Selisih margin: Sapi Sehat vs Sakit', 'Margin spread: Healthy vs Treated'), x('Kerugian margin per ekor sapi sakit', 'Margin penalty per sick animal'))}
+
+      <!-- Scale Trajectory Chart -->
+      <div class="c s7">
+        <h2>${x('Timbangan: sapi sehat vs pernah sakit', 'Scale weights: healthy vs sick cohort')}</h2>
+        <p class="cs">${x('Penimbangan berkala membuktikan sapi yang pernah sakit tertinggal permanen hingga hari closeout.', 'Periodic scale events reveal permanent body weight deficit in treated cattle.')}</p>
+        
+        <svg viewBox="0 0 ${chartW} ${chartH}" style="width:100%;height:auto;overflow:visible">
+          <line x1="${padL}" y1="${getY(minW)}" x2="${chartW - padR}" y2="${getY(minW)}" stroke="var(--bd)" stroke-width="1"/>
+          <line x1="${padL}" y1="${getY((minW+maxW)/2)}" x2="${chartW - padR}" y2="${getY((minW+maxW)/2)}" stroke="var(--line)" stroke-width="1" stroke-dasharray="4"/>
+          <line x1="${padL}" y1="${getY(maxW)}" x2="${chartW - padR}" y2="${getY(maxW)}" stroke="var(--line)" stroke-width="1" stroke-dasharray="4"/>
+
+          <text x="${padL - 6}" y="${getY(minW) + 4}" font-size="10" fill="var(--t3)" text-anchor="end">${minW} kg</text>
+          <text x="${padL - 6}" y="${getY((minW+maxW)/2) + 4}" font-size="10" fill="var(--t3)" text-anchor="end">${Math.round((minW+maxW)/2)} kg</text>
+          <text x="${padL - 6}" y="${getY(maxW) + 4}" font-size="10" fill="var(--t3)" text-anchor="end">${maxW} kg</text>
+
+          <polyline fill="none" stroke="var(--ok)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="${ptsHealthy}"/>
+          <polyline fill="none" stroke="var(--bad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="5,4" points="${ptsTreated}"/>
+
+          ${M.scaleH.map((val, i) => `
+            <circle cx="${getX(i)}" cy="${getY(val)}" r="3.5" fill="var(--card)" stroke="var(--ok)" stroke-width="2"
+              data-tip="${STAGES[i]} (${x('Sehat', 'Healthy')}): ${n(val, 1)} kg"/>
+            <text x="${getX(i)}" y="${getY(val) - 7}" font-size="9.5" font-weight="700" fill="var(--ok)" text-anchor="middle">${n(val, 0)}</text>
+          `).join('')}
+
+          ${M.scaleS.map((val, i) => `
+            <circle cx="${getX(i)}" cy="${getY(val)}" r="3.5" fill="var(--card)" stroke="var(--bad)" stroke-width="2"
+              data-tip="${STAGES[i]} (${x('Pernah Sakit', 'Treated')}): ${n(val, 1)} kg"/>
+            <text x="${getX(i)}" y="${getY(val) + 15}" font-size="9.5" font-weight="700" fill="var(--bad)" text-anchor="middle">${n(val, 0)}</text>
+          `).join('')}
+
+          ${STAGES.map((sName, i) => `
+            <text x="${getX(i)}" y="${chartH - 6}" font-size="10" font-weight="600" fill="var(--t2)" text-anchor="middle">${sName}</text>
+          `).join('')}
+        </svg>
+
+        <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11.5px;font-weight:600">
+          <span style="color:var(--ok)">&mdash; ${x(`Sapi Sehat (Akhir: ${n(M.scaleH[4], 0)} kg)`, `Healthy Cattle (Closeout: ${n(M.scaleH[4], 0)} kg)`)}</span>
+          <span style="color:var(--bad)">--- ${x(`Sapi Sakit (Akhir: ${n(M.scaleS[4], 0)} kg)`, `Sick Cohort (Closeout: ${n(M.scaleS[4], 0)} kg)`)}</span>
+        </div>
+      </div>
+
+      <!-- Diagnosis Box -->
+      <div class="c s5">
+        <h2>${x('Diagnosis tarikan sakit', 'Diagnoses behind the pulls')}</h2>
+        <p class="cs">${x(`Rincian ${n(M.sick, 0)} ekor sapi ditarik sakit pada filter aktif`, `Breakdown of ${n(M.sick, 0)} morbidity pulls in active filter`)}</p>
+        
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>${x('Diagnosis', 'Diagnosis')}</th>
+                <th class="num">${x('Kasus', 'Cases')}</th>
+                <th class="num">${x('Porsi', 'Share')}</th>
+                <th class="num">${x('Sembuh', 'Recov%')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>BRD - Bovine Respiratory</b></td>
+                <td class="num">${n(M.brd, 0)}</td>
+                <td class="num">${n(M.sick ? (M.brd / M.sick * 100) : 0, 1)}%</td>
+                <td class="num" style="color:var(--ok)">88.8%</td>
+              </tr>
+              <tr>
+                <td><b>Foot Rot</b></td>
+                <td class="num">${n(M.footRot, 0)}</td>
+                <td class="num">${n(M.sick ? (M.footRot / M.sick * 100) : 0, 1)}%</td>
+                <td class="num" style="color:var(--ok)">91.2%</td>
+              </tr>
+              <tr>
+                <td><b>Bloat / Acidosis</b></td>
+                <td class="num">${n(M.bloat, 0)}</td>
+                <td class="num">${n(M.sick ? (M.bloat / M.sick * 100) : 0, 1)}%</td>
+                <td class="num" style="color:var(--ok)">87.5%</td>
+              </tr>
+              <tr>
+                <td><b>Buller / Injury</b></td>
+                <td class="num">${n(M.buller, 0)}</td>
+                <td class="num">${n(M.sick ? (M.buller / M.sick * 100) : 0, 1)}%</td>
+                <td class="num" style="color:var(--ok)">88.1%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--bd);font-size:11.5px;color:var(--t2)">
+          ${x('<b>Catatan afkir:</b> Sapi yang ditarik berulang menyumbang 18% kematian. Afkir sebelum hari ke-45.', '<b>Alert:</b> Repeat pulls account for 18% of deaths. Cull before Day 45.')}
+        </div>
+      </div>
+
+      <!-- Drug Matrix -->
+      <div class="c s12">
+        <h2>${x('Biaya vs hasil tiap protokol obat', 'Cost vs outcome by drug protocol')}</h2>
+        <p class="cs">${x('Catatan: Jangan baca mentah-mentah. Ceftiofur dipakai setelah terapi pertama gagal, jadi kasusnya sudah lebih berat.', "Note: Don't read these raw. Ceftiofur is used after first treatment fails, so its cases start out sicker.")}</p>
+        
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>${x('Protokol Obat', 'Drug Protocol')}</th>
+                <th>${x('Indikasi Klinis', 'Primary Indication')}</th>
+                <th class="num">${x('Kasus Terapi', 'Treatment Pulls')}</th>
+                <th class="num">${x('Biaya Rata-rata', 'Avg Cost CAD')}</th>
+                <th class="num">${x('Tingkat Kesembuhan', 'Cure Rate %')}</th>
+                <th class="num">${x('Mortalitas', 'Mortality %')}</th>
+                <th>${x('Evaluasi Klinis', 'Clinical Assessment')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${M.drugStats.map(d => {
+                const evalText = d.name === 'Tulathromycin' 
+                  ? x('pilihan utama BRD, sembuh 89,4% di $73', 'main BRD pick, 89.4% cured at $73')
+                  : d.name === 'Oxytetracycline'
+                  ? x('murah, sembuh 90,7% untuk busuk kuku', 'cheap, 90.7% cured on foot rot')
+                  : d.name === 'Florfenicol'
+                  ? x('cadangan BRD saat demam tinggi', 'BRD backup when fever runs high')
+                  : d.name === 'Ceftiofur'
+                  ? x('kasus berat, mati 9,87%', 'hard cases, 9.87% died')
+                  : x('penyangga rumen dan antiradang', 'rumen buffer and anti-inflammatory');
+                
+                return `
+                  <tr>
+                    <td><b>${d.name}</b></td>
+                    <td>${drugIndications[d.name] || '-'}</td>
+                    <td class="num">${n(d.cases, 0)}</td>
+                    <td class="num">${cur(d.avgCost, 2)}</td>
+                    <td class="num" style="color:var(--ok);font-weight:700">${n(d.recovPct, 1)}%</td>
+                    <td class="num"><span class="bg ${d.mortPct<=5.5?'ok':'wn'}">${n(d.mortPct, 1)}%</span></td>
+                    <td style="font-size:11.5px;color:var(--t2)">${evalText}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// TAB 3: CARCASS QUALITY & TACTICAL RECOMMENDATIONS
+function p3(M, FL) {
+  if (FL.length === 0) {
+    return `<div class="c s12"><p class="cs">${x('Tidak ada data yang sesuai filter.', 'No data matching selected filters.')}</p></div>`;
+  }
+
+  return `
+    <h1>${x('Angus menang di grade, Charolais menang di timbangan', 'Angus wins the grid, Charolais wins the scale')}</h1>
+    <p class="sub">${x(`Angus bawa bonus grade Prime dan AAA. Charolais bawa karkas ${n(M.charAngusGapHCW, 1)} kg lebih berat dengan rendemen 61,8%.`, `Angus brings the Prime and AAA bonuses. Charolais brings a carcass ${n(M.charAngusGapHCW, 1)} kg heavier at 61.8% dressing.`)}</p>
+
+    <div class="g">
+      ${card('d', x('Prime + AAA', 'Prime + AAA'), `<span class="bg ok">${n(M.primeAaaPct, 1)}%</span>`, `${n(M.primeAaaPct, 1)}%`, x('Raih bonus grid CBGA karkas', 'Captures carcass grid bonus'), x('Karkas berkualitas marbling tinggi', 'High-marbling carcasses'))}
+      ${card('s', x('Rendemen karkas', 'Dressing yield'), `<span class="bg ok">${n(M.dressing * 100, 1)}%</span>`, `${n(M.dressing * 100, 1)}%`, x('Rendemen karkas bersih dari bobot hidup', 'Dressing yield on live weight'), x('Persentase rendemen karkas bersih', 'Dressing percentage yield'))}
+      ${card('u', x('Bobot karkas panas (HCW)', 'Hot carcass weight (HCW)'), `<span class="bg ok">${n(M.hotW, 1)} kg</span>`, `${n(M.hotW, 1)} kg`, x('Rata-rata bobot karkas di packer', 'Average hot carcass weight at plant'), x('Rata-rata bobot karkas panas', 'Hot Carcass Weight average'))}
+      ${card('d', x('Margin per ekor', 'Margin per head'), `<span class="bg ${M.margin>=0?'ok':'bad'}">${cur(M.margin, 2)}</span>`, cur(M.margin, 2), x('Margin bersih per ekor sapi terjual', 'Realized net margin per head sold'), x('Laba bersih per ekor sapi terjual', 'Net margin per sold head'))}
+
+      <!-- Breed Table -->
+      <div class="c s12">
+        <h2>${x('Hasil karkas per ras di grid packer', 'Carcass results by breed on the packer grid')}</h2>
+        <p class="cs">${x(`Data ${n(M.sold, 0)} ekor sapi terjual pada sistem Canadian Beef Grading Agency (CBGA)`, `Closeout data across ${n(M.sold, 0)} finished sales under CBGA grid specifications`)}</p>
+        
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>${x('Ras sapi', 'Cattle breed')}</th>
+                <th class="num">${x('Populasi terjual', 'Head sold')}</th>
+                <th class="num">${x('Rendemen (Dressing %)', 'Dressing %')}</th>
+                <th class="num">${x('Bobot karkas', 'Hot carcass wt')}</th>
+                <th class="num">${x('Canada Prime', 'Prime %')}</th>
+                <th class="num">${x('Canada AAA', 'AAA %')}</th>
+                <th class="num">${x('Canada AA', 'AA %')}</th>
+                <th class="num">${x('B-Grade / Diskon', 'B-Grade %')}</th>
+                <th class="num">${x('Margin per ekor', 'Net margin / head')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${BREEDS.map((bName, bIdx) => {
+                const bLots = FL.filter(l => l.b === bIdx);
+                const bSold = bLots.reduce((s, l) => s + l.sold, 0);
+                if (bSold === 0) return '';
+                const bDressing = bLots.reduce((s, l) => s + l.dressing * l.sold, 0) / bSold;
+                const bHotW = bLots.reduce((s, l) => s + l.hotW * l.sold, 0) / bSold;
+                const bPrime = bLots.reduce((s, l) => s + l.prime, 0) / bSold * 100;
+                const bAaa = bLots.reduce((s, l) => s + l.aaa, 0) / bSold * 100;
+                const bAa = bLots.reduce((s, l) => s + l.aa, 0) / bSold * 100;
+                const bGr = bLots.reduce((s, l) => s + l.bGr, 0) / bSold * 100;
+                const bMargin = bLots.reduce((s, l) => s + l.margin * l.sold, 0) / bSold;
+                return `
+                  <tr>
+                    <td><b>${bName}</b></td>
+                    <td class="num">${n(bSold, 0)}</td>
+                    <td class="num"><b>${n(bDressing * 100, 1)}%</b></td>
+                    <td class="num">${n(bHotW, 1)} kg</td>
+                    <td class="num" style="color:var(--brand);font-weight:700">${n(bPrime, 1)}%</td>
+                    <td class="num" style="color:var(--ok);font-weight:600">${n(bAaa, 1)}%</td>
+                    <td class="num" style="color:var(--t3)">${n(bAa, 1)}%</td>
+                    <td class="num" style="color:${bGr>3.5?'var(--bad)':'var(--t3)'}">${n(bGr, 1)}%</td>
+                    <td class="num" style="font-weight:800;color:var(--ink)">${cur(bMargin, 2)}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Frame Score -->
+      <div class="c s12">
+        <h2>${x('Large Frame vs Medium Frame: selisihnya di uang', 'Large Frame vs Medium Frame: the gap in dollars')}</h2>
+        <p class="cs">${x('Evaluasi pengaruh ukuran kerangka tubuh terhadap bobot karkas dan laba akhir', 'Quantifying carcass weight yield advantage and margin delta by skeletal frame size')}</p>
+        
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:6px">
+          <div style="background:var(--line);border-radius:14px;padding:14px">
+            <div style="font-size:12px;font-weight:700;color:var(--t3)">LARGE FRAME</div>
+            <div style="font-size:24px;font-weight:800;color:var(--t1);margin:2px 0">${cur(M.lgMargin, 2)} <span style="font-size:12px;font-weight:500;color:var(--t3)">/ekor</span></div>
+            <div style="font-size:12px;color:var(--t2)">
+              Bobot Karkas: <b>${n(M.lgHCW, 1)} kg</b> &bull; ADG: <b>${n(M.lgAdg, 3)} kg/d</b><br>
+              Populasi: <b>${n(M.lgSoldTot, 0)} ekor terjual</b>
+            </div>
+          </div>
+
+          <div style="background:var(--line);border-radius:14px;padding:14px">
+            <div style="font-size:12px;font-weight:700;color:var(--t3)">MEDIUM FRAME</div>
+            <div style="font-size:24px;font-weight:800;color:var(--t1);margin:2px 0">${cur(M.medMargin, 2)} <span style="font-size:12px;font-weight:500;color:var(--t3)">/ekor</span></div>
+            <div style="font-size:12px;color:var(--t2)">
+              Bobot Karkas: <b>${n(M.medHCW, 1)} kg</b> &bull; ADG: <b>${n(M.medAdg, 3)} kg/d</b><br>
+              Populasi: <b>${n(M.medSoldTot, 0)} ekor terjual</b>
+            </div>
+          </div>
+
+          <div style="background:var(--soft);border:1px solid var(--brand);border-radius:14px;padding:14px">
+            <div style="font-size:12px;font-weight:700;color:var(--brand)">KEUNGGULAN LARGE FRAME</div>
+            <div style="font-size:24px;font-weight:800;color:var(--brand);margin:2px 0">+${cur(M.frameDeltaMargin, 2)} <span style="font-size:12px;font-weight:500;color:var(--brand)">/ekor</span></div>
+            <div style="font-size:12px;color:var(--t2)">
+              Karkas Panas: <b>+${n(M.frameDeltaHCW, 1)} kg HCW</b><br>
+              ${x(`Large Frame unggul ${cur(M.frameDeltaMargin, 2)}/ekor dan +${n(M.frameDeltaHCW, 1)} kg HCW`, `Large Frame advantage: ${cur(M.frameDeltaMargin, 2)}/head and +${n(M.frameDeltaHCW, 1)} kg HCW`)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tactical Recommendations -->
+      <div class="c s12 rec">
+        <h2>${x('Rekomendasi taktis manajemen feedlot', 'Tactical recommendations for feedlot management')}</h2>
+        
+        <p><b>${x('Seimbangkan bibit.', 'Balance your feeder buys.')}</b> ${x('Charolais bawa margin tertinggi ($412/ekor), Simmental $344. Geser sekitar 60% pembelian ke keduanya, sisakan 40% Angus untuk bonus Prime dan AAA saat selisih AAA–AA melebar.', 'Charolais earns the top margin ($412/head), Simmental $344. Shift about 60% of purchases to the two, and keep 40% Angus for Prime and AAA bonuses when the AAA–AA spread widens.')}</p>
+        
+        <p><b>${x('Taruh bibit ringan di barn saat musim dingin.', 'Put light feeders in barns for winter.')}</b> ${x('Sapi di bawah 310 kg yang masuk Okt–Des sebaiknya ke Confinement Barn. Barn menghemat $49,82 per ekor dari beban dingin.', 'Calves under 310 kg placed Oct–Dec should go into Confinement Barns. Barns save $49.82 per head in cold drag.')}</p>
+        
+        <p><b>${x('Deteksi BRD lebih awal.', 'Catch BRD early.')}</b> ${x(`Bunk reading ketat di hari 5–25 setelah masuk. Sapi yang sempat sakit kehilangan ${cur(M.morbDrag, 0)}/ekor margin. Afkir sapi yang ditarik berulang sebelum hari ke-45, jangan terus diberi makan.`, `Read bunks closely on days 5–25 after arrival. Cattle that got sick lose ${cur(M.morbDrag, 0)}/head in margin. Cull repeat pulls before Day 45 instead of feeding them on.`)}</p>
+      </div>
+    </div>
+  `;
+}
+
+function render() {
+  const FL = getFilteredLots();
+  const M = computeMetrics(FL);
+  document.documentElement.setAttribute('data-theme', S.th);
+  document.documentElement.lang = S.lg;
+
+  // Header controls
+  document.getElementById('hc').innerHTML = `
+    <div class="sg" role="group" aria-label="Bahasa">
+      ${['id', 'en'].map(l => `<button data-k="lg" data-v="${l}" aria-pressed="${S.lg === l}">${l.toUpperCase()}</button>`).join('')}
+    </div>
+    <button class="th" data-k="th" data-v="${S.th === 'dark' ? 'light' : 'dark'}" 
+      aria-label="${x('Ganti tema', 'Toggle theme')}" data-tip="${S.th === 'dark' ? x('Mode terang', 'Light mode') : x('Mode gelap', 'Dark mode')}">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        ${S.th === 'dark'
+          ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'
+          : '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'}
+      </svg>
+    </button>
+  `;
+
+  // Nav tabs
+  document.getElementById('nav').innerHTML = TABS().map((t, i) => `
+    <button role="tab" data-k="tab" data-v="${i}" aria-selected="${S.tab === i}">${t}</button>
+  `).join('');
+
+  // Filters with concise clean labels
+  const fg = (label, key, arr) => `
+    <div class="fg" role="group" aria-label="${label}">
+      <label>${label}</label>
+      <div class="sg">
+        ${[x('Semua', 'All'), ...arr].map((val, i) => `
+          <button data-k="${key}" data-v="${i - 1}" aria-pressed="${S[key] === (i - 1)}">${val}</button>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  const breedShort = ['Angus', 'Charolais', 'Simmental', 'Hereford'];
+  const zoneShort = ['North Yard', 'South Yard', 'East Sheltered'];
+  const sexShort = ['Steer', 'Heifer'];
+  const penShort = ['Windbreak', 'Confinement Barn', 'Open Dirt'];
+
+  document.getElementById('fl').innerHTML = 
+    fg(x('Zona', 'Zone'), 'z', zoneShort) +
+    fg(x('Ras', 'Breed'), 'b', breedShort) +
+    fg(x('Kelamin', 'Sex'), 's', sexShort) +
+    fg(x('Naungan', 'Shelter'), 'pt', penShort);
+
+  // Dynamic lot counter badge & reset filter button
+  const isFiltered = S.z !== -1 || S.b !== -1 || S.s !== -1 || S.pt !== -1;
+  document.getElementById('fl-meta').innerHTML = `
+    <span class="fl-badge">${FL.length} ${x('dari', 'of')} ${LOTS.length} lot &bull; ${n(M.headIn, 0)} ${x('ekor', 'hd')}</span>
+    <button class="fl-reset" data-k="reset" data-v="1" ${isFiltered ? '' : 'disabled'} title="${x('Reset semua filter', 'Reset all filters')}">
+      ${x('Reset', 'Reset')}
+    </button>
+  `;
+
+  // Render active page with dynamic metrics
+  const pages = [p0, p1, p2, p3];
+  document.getElementById('app').innerHTML = pages[S.tab](M, FL);
+
+  // Clean, professional footnote
+  document.getElementById('ft').innerHTML = x(
+    'Data simulasi: Highwood Feeders Ltd., Alberta Selatan. 15.000 sapi, 90 lot, 40 pen, 2024–2025. Grade karkas mengikuti standar Canadian Beef Grading Agency (CBGA).',
+    'Simulated data: Highwood Feeders Ltd., Southern Alberta. 15,000 head, 90 lots, 40 pens, 2024–2025. Carcass grades follow Canadian Beef Grading Agency (CBGA) specs.'
+  );
+
+  document.getElementById('wm').innerHTML = `
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.4 20.5h-3.6v-5.6c0-1.3 0-3-1.8-3s-2.1 1.4-2.1 2.9v5.7H9.4V9h3.4v1.6c.5-.9 1.6-1.8 3.4-1.8 3.6 0 4.3 2.4 4.3 5.5v6.2zM5.3 7.4a2.1 2.1 0 1 1 0-4.2 2.1 2.1 0 0 1 0 4.2zM7.1 20.5H3.6V9h3.5v11.5z"/></svg>
+    <span>${x('Dibuat oleh', 'Created by')} <b>Rama Wijaya</b></span>
+  `;
+}
+
+// Event listeners
+const sv = () => {
+  try {
+    localStorage.setItem('hws_feedlot', JSON.stringify({ lg: S.lg, th: S.th }));
+  } catch (e) {}
+};
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-k]');
+  const g = e.target.closest('[data-go]');
+  
+  if (b) {
+    const k = b.dataset.k;
+    const v = b.dataset.v;
+    if (k === 'reset') {
+      S.z = -1;
+      S.b = -1;
+      S.s = -1;
+      S.pt = -1;
+      render();
+      return;
+    }
+    S[k] = isNaN(+v) ? v : +v;
+    if (k === 'tab') scrollTo(0, 0);
+    if (k === 'lg' || k === 'th') sv();
+    render();
+  } else if (g) {
+    S.tab = +g.dataset.go;
+    scrollTo(0, 0);
+    render();
+  }
+});
+
+const tip = document.getElementById('tip');
+const handleMove = e => {
+  const t = e.target.closest && e.target.closest('[data-tip]');
+  if (!t || !t.dataset.tip) {
+    tip.hidden = true;
+    return;
+  }
+  tip.textContent = t.dataset.tip;
+  tip.hidden = false;
+  tip.style.left = Math.max(8, Math.min(e.clientX, innerWidth - tip.offsetWidth / 2 - 12)) + 'px';
+  tip.style.top = (e.clientY - 8) + 'px';
+};
+
+document.addEventListener('pointermove', handleMove);
+document.addEventListener('pointerdown', handleMove);
+document.addEventListener('pointerleave', () => tip.hidden = true);
+
+render();
+window.__S = S;
+window.__R = render;
+</script>
+</body>
+</html>
