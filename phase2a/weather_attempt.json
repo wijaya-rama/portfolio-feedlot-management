@@ -1,0 +1,11 @@
+{
+  "status": "blocked",
+  "attempt_date": "2026-11-21",
+  "request_url": "https://archive-api.open-meteo.com/v1/archive?latitude=49.87672&longitude=-112.77983&models=era5&timezone=America%2FEdmonton&start_date=2024-01-01&end_date=2025-12-04&daily=temperature_2m_mean%2Ctemperature_2m_min%2Ctemperature_2m_max%2Capparent_temperature_mean%2Cwind_speed_10m_max%2Cwind_gusts_10m_max%2Cprecipitation_sum%2Csnowfall_sum%2Crelative_humidity_2m_mean&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm&timeformat=iso8601&cell_selection=land",
+  "detail": "HTTPS proxy rejected the CONNECT tunnel for archive-api.open-meteo.com with HTTP 403 Forbidden before the provider returned a response.",
+  "attempts": [
+    "Python urllib with the exact versioned request: Tunnel connection failed: 403 Forbidden.",
+    "curl against the archive API: CONNECT tunnel failed, response 403.",
+    "Web retrieval against the archive API: endpoint inaccessible via web tool."
+  ]
+}
