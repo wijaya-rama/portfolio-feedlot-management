@@ -294,7 +294,8 @@ def build(root: Path, *, weather_snapshot: Path | None = None) -> BuildResult:
         },
         "weather": provenance,
     }
+    source_manifest = {**sources.manifest, "weather": provenance}
     return BuildResult(
-        tables, sources.manifest, manifest,
+        tables, source_manifest, manifest,
         {"summary": _reconcile(tables, controls, provenance), "controls": controls.results},
     )

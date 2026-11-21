@@ -175,20 +175,26 @@ class WeatherTest(unittest.TestCase):
     @unittest.skipUnless(os.environ.get("FEEDLOT_WEATHER_SNAPSHOT"), "No verified live ERA5 snapshot supplied")
     def test_actual_archive_integration(self):
         from feedlot_analytics import build
-        from feedlot_analytics.weather import map_weather_date
 
         root = Path(__file__).resolve().parents[1]
         result = build(root, weather_snapshot=Path(os.environ["FEEDLOT_WEATHER_SNAPSHOT"]))
         weather = result.tables["weather_daily"]
         animals = result.tables["animal_closeout"]
-        manifest = result.transformation_manifest["weather"]
+        manifest = result.source_manifest["weather"]
+        self.assertEqual(manifest, result.transformation_manifest["weather"])
         self.assertEqual(manifest["status"], "verified")
-        self.assertEqual(len(weather), 704)
-        self.assertFalse(weather.date.duplicated().any())
+        self.assertTrue(pd.DatetimeIndex(weather.date).equals(EXPECTED_DATES))
         self.assertEqual(manifest["daily_units"], DAILY_UNITS)
+        self.assertEqual(manifest["missing_by_variable"], weather[list(DAILY_UNITS)].isna().sum().to_dict())
         result_map = map_weather_date(animals, weather, date_role="entry_date")
         assert_frame_equal(animals, result_map[animals.columns])
-        with_weather = result.tables["animal_weather_exposure"]
-        self.assertTrue(with_weather.weather_date_count.eq(with_weather.expected_exposure_days).all())
-        self.assertEqual(result.reconciliation["summary"]["modeled_ledger_cad"]["all_outcomes"]["all_outcome_margin_cad"],
-                         4381992.99)
+        for name in ("animal_weather_exposure", "lot_weather_exposure"):
+            with self.subTest(table=name):
+                exposure = result.tables[name]
+                self.assertTrue(exposure.weather_date_count.eq(exposure.expected_exposure_days).all())
+                for days, metric in (("temperature_days", "mean_temperature_c"),
+                                     ("wind_days", "maximum_wind_kmh"), ("snow_days", "snowfall_exposure_cm")):
+                    self.assertTrue(exposure[metric].notna().eq(exposure[days].eq(exposure.expected_exposure_days)).all())
+        baseline = json.loads((root / "phase2a/reconciliation.json").read_text(encoding="utf-8"))
+        for name in ("population", "modeled_ledger_cad", "mortality_loss_cad", "kpis", "feed_bridge"):
+            self.assertEqual(result.reconciliation["summary"][name], baseline[name], name)

@@ -16,7 +16,7 @@ from feedlot_analytics.metrics import aggregate_closeout, aggregate_pen_feed, se
 from feedlot_analytics.pipeline import TABLES
 from feedlot_analytics.relations import add_columns
 from feedlot_analytics.validation import Controls, ValidationError, validate_sources
-from feedlot_analytics.weather import fetch_snapshot
+from feedlot_analytics.weather import REQUEST_URL, fetch_snapshot
 
 from test_weather import as_json, example_response
 
@@ -245,16 +245,56 @@ class PipelineTest(unittest.TestCase):
         self.assertTrue(exposure.expected_exposure_days.eq(self.animals.financial_dof).all())
         self.assertFalse(set(columns[1:]) & set(exposure))
 
+    def test_blocked_weather_provenance_and_unavailable_features(self):
+        weather = self.result.source_manifest["weather"]
+        recovery = weather["recovery"]
+        self.assertEqual(weather, self.result.transformation_manifest["weather"])
+        self.assertEqual(weather["request_url"], REQUEST_URL)
+        self.assertEqual(weather["status"], "blocked")
+        self.assertEqual(weather["date_count"], 0)
+        self.assertEqual(weather["requested_date_count"], 704)
+        self.assertEqual(recovery["https_connect_status"], 403)
+        self.assertIsNone(recovery["provider_http_status"])
+        self.assertEqual(recovery["provider_response_bytes"], 0)
+        self.assertEqual(recovery["verified_date_count"], 0)
+        self.assertIsNone(weather["extracted_at_utc"])
+        self.assertTrue(self.tables["weather_daily"].empty)
+        for name in ("animal_weather_exposure", "lot_weather_exposure"):
+            with self.subTest(table=name):
+                exposure = self.tables[name]
+                self.assertTrue(exposure.expected_exposure_days.gt(0).all())
+                self.assertTrue(exposure[["weather_date_count", "temperature_days", "wind_days", "snow_days"]]
+                                .eq(0).all(axis=None))
+                self.assertTrue(exposure[["mean_temperature_c", "cold_days", "cold_day_proportion",
+                                          "cold_days_outside_confinement", "maximum_wind_kmh",
+                                          "snowfall_exposure_cm"]].isna().all(axis=None))
+
     def test_full_weather_enrichment_with_a_technical_fixture(self):
         raw = as_json(example_response())
         with TemporaryDirectory() as work:
+            directory = Path(work)
             with patch("feedlot_analytics.weather._download", return_value=raw):
-                snapshot = fetch_snapshot(Path(work))
-            with patch("feedlot_analytics.pipeline.load_sources", return_value=self.sources):
+                snapshot = fetch_snapshot(directory)
+            with (patch("feedlot_analytics.pipeline.load_sources", return_value=self.sources),
+                  patch("feedlot_analytics.weather.urlopen") as network):
                 enriched = build(ROOT, weather_snapshot=snapshot)
+                replayed = build(ROOT, weather_snapshot=snapshot)
+            network.assert_not_called()
+            left, right = directory / "enriched", directory / "replayed"
+            write_build(enriched, left)
+            write_build(replayed, right)
+            self.assertEqual(
+                {file.name: file.read_bytes() for file in left.iterdir()},
+                {file.name: file.read_bytes() for file in right.iterdir()},
+            )
+        self.assertEqual(enriched.source_manifest["weather"], enriched.transformation_manifest["weather"])
+        self.assertEqual(enriched.source_manifest["weather"]["status"], "verified")
+        self.assertEqual(enriched.source_manifest["files"], self.result.source_manifest["files"])
+        for name in ("population", "modeled_ledger_cad", "mortality_loss_cad", "kpis", "feed_bridge"):
+            self.assertEqual(enriched.reconciliation["summary"][name], self.summary[name], name)
         for name in ("animal_closeout", "animal_health_summary", "animal_scale_stage",
-                     "lot_closeout", "lot_feed_reconciliation", "pen_day_feed"):
-            assert_frame_equal(self.tables[name], enriched.tables[name])
+                     "lot_closeout", "lot_feed_reconciliation", "pen_day_feed", "kpi_catalog"):
+            assert_frame_equal(self.tables[name], enriched.tables[name], check_exact=True)
         for name in ("animal_weather_exposure", "lot_weather_exposure"):
             exposure = enriched.tables[name]
             self.assertTrue(exposure.weather_date_count.eq(exposure.expected_exposure_days).all())

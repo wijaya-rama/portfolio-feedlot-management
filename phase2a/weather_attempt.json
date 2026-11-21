@@ -7,5 +7,54 @@
     "Python urllib with the exact versioned request: Tunnel connection failed: 403 Forbidden.",
     "curl against the archive API: CONNECT tunnel failed, response 403.",
     "Web retrieval against the archive API: endpoint inaccessible via web tool."
-  ]
+  ],
+  "recovery": {
+    "attempt_date": "2026-11-21",
+    "status": "blocked",
+    "https_connect_status": 403,
+    "provider_http_status": null,
+    "provider_response_bytes": 0,
+    "verified_date_count": 0,
+    "requests": [
+      {
+        "source": "Open-Meteo Historical Weather API",
+        "model": "ERA5",
+        "kind": "Single retry of the exact top-level request_url"
+      },
+      {
+        "source": "NASA POWER",
+        "kind": "Daily point meteorology",
+        "url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M,T2M_MIN,T2M_MAX,RH2M,WS10M_MAX,PRECTOTCORR&community=AG&longitude=-112.77983&latitude=49.87672&start=20240101&end=20251204&format=JSON&time-standard=LST"
+      },
+      {
+        "source": "Environment and Climate Change Canada MSC GeoMet",
+        "kind": "Station inventory near Picture Butte",
+        "url": "https://api.weather.gc.ca/collections/climate-stations/items?bbox=-113.2,49.45,-112.4,50.2&limit=100&f=json"
+      },
+      {
+        "source": "Environment and Climate Change Canada",
+        "kind": "Historical climate portal",
+        "url": "https://climate.weather.gc.ca/"
+      },
+      {
+        "source": "Copernicus Climate Data Store",
+        "model": "ERA5",
+        "kind": "Hourly time-series catalogue",
+        "url": "https://cds.climate.copernicus.eu/api/catalogue/v1/collections/reanalysis-era5-single-levels-timeseries"
+      },
+      {
+        "source": "Destination Earth Data Hub",
+        "model": "ERA5",
+        "kind": "Zarr metadata probe using legacy store name",
+        "url": "https://data.earthdatahub.destine.eu/era5/reanalysis-era5-single-levels-v0.zarr/.zmetadata"
+      },
+      {
+        "source": "Google Research ARCO-ERA5",
+        "model": "ERA5",
+        "kind": "Public Zarr store metadata",
+        "url": "https://storage.googleapis.com/gcp-public-data-arco-era5/ar/full_37-1h-0p25deg-chunk-1.zarr-v3/.zmetadata"
+      }
+    ],
+    "report": "phase2b/00_WEATHER_ACQUISITION.md"
+  }
 }
