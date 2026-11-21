@@ -24,3 +24,7 @@ venv/
 # IDE & Editor Configs
 .vscode/
 .idea/
+
+# Local Phase 2A rebuilds and packaging metadata
+/work/
+*.egg-info/

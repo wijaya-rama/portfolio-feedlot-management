@@ -1,0 +1,93 @@
+{
+  "schema_version": "2a.1",
+  "checks_passed": 661,
+  "checks_failed": 0,
+  "table_rows": {
+    "animal_closeout": 15000,
+    "animal_health_summary": 15000,
+    "animal_scale_stage": 74268,
+    "lot_closeout": 90,
+    "lot_feed_reconciliation": 90,
+    "pen_day_feed": 16085,
+    "weather_daily": 0,
+    "kpi_catalog": 33,
+    "audit_exceptions": 164,
+    "animal_weather_exposure": 15000,
+    "lot_weather_exposure": 90
+  },
+  "population": {
+    "head_placed": 15000,
+    "head_sold": 14760,
+    "head_mortality": 240,
+    "head_treated": 2100,
+    "treatment_events": 2220,
+    "financial_head_days": 2650584,
+    "lots": 90,
+    "pens": 40,
+    "lots_with_multiple_breeds": 90,
+    "animals_different_from_lot_breed": 1447,
+    "head_graded": 14760,
+    "head_ungraded_sold": 0
+  },
+  "modeled_ledger_cad": {
+    "all_outcomes": {
+      "purchase_cost_cad": 29105106.59,
+      "allocated_feed_cost_cad": 10219543.49,
+      "yardage_cost_cad": 1590350.4,
+      "vet_cost_cad": 413194.84,
+      "production_cost_cad": 41328195.32,
+      "gross_revenue_cad": 45710188.31,
+      "all_outcome_margin_cad": 4381992.99
+    },
+    "sold": {
+      "purchase_cost_cad": 28637050.52,
+      "allocated_feed_cost_cad": 10199008.85,
+      "yardage_cost_cad": 1582643.4,
+      "vet_cost_cad": 397297.91,
+      "production_cost_cad": 40816000.68,
+      "gross_revenue_cad": 45710188.31,
+      "all_outcome_margin_cad": 4894187.63
+    },
+    "mortality": {
+      "purchase_cost_cad": 468056.07,
+      "allocated_feed_cost_cad": 20534.64,
+      "yardage_cost_cad": 7707.0,
+      "vet_cost_cad": 15896.93,
+      "production_cost_cad": 512194.64,
+      "gross_revenue_cad": 0.0,
+      "all_outcome_margin_cad": -512194.64
+    }
+  },
+  "mortality_loss_cad": 512194.64,
+  "kpis": {
+    "all_outcome_margin_per_head_placed": 292.132866,
+    "all_outcome_margin_per_head_sold": 296.8829939,
+    "sold_only_margin_per_head_sold": 331.58452778,
+    "sold_adg_kg_per_day": 1.61805611,
+    "mean_individual_sold_adg": 1.61782622,
+    "sold_fcr": 6.67357603,
+    "mean_individual_sold_fcr": 6.69524363,
+    "sold_feed_cog": 2.3896405,
+    "mean_individual_sold_feed_cog": 2.39962534,
+    "dressing_yield": 0.61005015,
+    "mean_individual_dressing": 0.6099077,
+    "recorded_morbidity_rate": 0.14,
+    "first_pull_by_day30_share": 0.77714286,
+    "prime_aaa_share": 0.76571816
+  },
+  "feed_bridge": {
+    "delivered_dm_kg": 28544013.42,
+    "allocated_dm_kg": 28544013.02,
+    "dm_delivered_less_allocated_kg": 0.4,
+    "delivered_feed_cost_cad": 10219542.92,
+    "allocated_feed_cost_cad": 10219543.49,
+    "cost_delivered_less_allocated_cad": -0.57,
+    "recorded_head_days": 2650584,
+    "lots_within_rounding_bound": 90
+  },
+  "weather": {
+    "status": "blocked",
+    "requested_date_count": 704,
+    "date_count": 0
+  }
+}

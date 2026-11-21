@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "feedlot-analytics"
+version = "0.2.0"
+description = "Phase 2A Pandas foundation for the Highwood Feeders simulated case study"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy==2.3.5",
+    "pandas==2.2.3",
+    "openpyxl==3.1.5",
+]
+
+[project.optional-dependencies]
+notebook = [
+    "matplotlib==3.10.8",
+    "nbconvert==7.16.6",
+    "ipykernel==7.1.0",
+]
+
+[project.scripts]
+feedlot-analytics = "feedlot_analytics.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

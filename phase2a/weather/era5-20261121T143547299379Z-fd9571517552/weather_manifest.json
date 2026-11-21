@@ -1,0 +1,107 @@
+{
+  "provider": "Open-Meteo Historical Weather API",
+  "label": "Representative Southern Alberta Feedlot Weather Reference",
+  "request_url": "https://archive-api.open-meteo.com/v1/archive?latitude=49.87672&longitude=-112.77983&models=era5&timezone=America%2FEdmonton&start_date=2024-01-01&end_date=2025-12-04&daily=temperature_2m_mean%2Ctemperature_2m_min%2Ctemperature_2m_max%2Capparent_temperature_mean%2Cwind_speed_10m_max%2Cwind_gusts_10m_max%2Cprecipitation_sum%2Csnowfall_sum%2Crelative_humidity_2m_mean&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm&timeformat=iso8601&cell_selection=land",
+  "request_parameters": {
+    "latitude": 49.87672,
+    "longitude": -112.77983,
+    "models": "era5",
+    "timezone": "America/Edmonton",
+    "start_date": "2024-01-01",
+    "end_date": "2025-12-04",
+    "daily": "temperature_2m_mean,temperature_2m_min,temperature_2m_max,apparent_temperature_mean,wind_speed_10m_max,wind_gusts_10m_max,precipitation_sum,snowfall_sum,relative_humidity_2m_mean",
+    "temperature_unit": "celsius",
+    "wind_speed_unit": "kmh",
+    "precipitation_unit": "mm",
+    "timeformat": "iso8601",
+    "cell_selection": "land"
+  },
+  "model": "era5",
+  "timezone": "America/Edmonton",
+  "geography": {
+    "place": "Picture Butte town centroid, Lethbridge County area, Alberta, Canada",
+    "latitude": 49.87672,
+    "longitude": -112.77983,
+    "source": "https://www.circularmaterials.ca/wp-content/uploads/2025/04/Appendix-M-Information_FA-03272025-addendum-5-tracked-changes-redlined.pdf#page=20",
+    "relationship": "The coordinate is the published Picture Butte town centroid."
+  },
+  "requested_date_count": 704,
+  "expected_daily_units": {
+    "temperature_2m_mean": "°C",
+    "temperature_2m_min": "°C",
+    "temperature_2m_max": "°C",
+    "apparent_temperature_mean": "°C",
+    "wind_speed_10m_max": "km/h",
+    "wind_gusts_10m_max": "km/h",
+    "precipitation_sum": "mm",
+    "snowfall_sum": "cm",
+    "relative_humidity_2m_mean": "%"
+  },
+  "day_boundary": "Open-Meteo fixed UTC offset for the response; DST transitions are not applied.",
+  "metadata_sources": {
+    "api": "https://open-meteo.com/en/docs/historical-weather-api",
+    "daily_variable_implementation": "https://github.com/open-meteo/open-meteo/blob/7cc41ffa9a79c2e4c7ad4e18f13b51ab8df610aa/Sources/App/Controllers/VariableDaily.swift",
+    "era5_variable_implementation": "https://github.com/open-meteo/open-meteo/blob/7cc41ffa9a79c2e4c7ad4e18f13b51ab8df610aa/Sources/App/Era5/Era5Variables.swift"
+  },
+  "license": "CC BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "terms_url": "https://open-meteo.com/en/terms",
+  "attribution": "Weather data by Open-Meteo, based on Copernicus Climate Change Service ERA5 reanalysis.",
+  "missing_policy": "Reject absent or duplicate dates. Retain null measurements and flag variable coverage. Whole-window features require complete data for their respective variable.",
+  "grid_latitude": 50,
+  "grid_longitude": -112.75,
+  "elevation_m": 906,
+  "utc_offset_seconds": -21600,
+  "first_date": "2024-01-01",
+  "last_date": "2025-12-04",
+  "date_count": 704,
+  "daily_units": {
+    "temperature_2m_mean": "°C",
+    "temperature_2m_min": "°C",
+    "temperature_2m_max": "°C",
+    "apparent_temperature_mean": "°C",
+    "wind_speed_10m_max": "km/h",
+    "wind_gusts_10m_max": "km/h",
+    "precipitation_sum": "mm",
+    "snowfall_sum": "cm",
+    "relative_humidity_2m_mean": "%"
+  },
+  "missing_by_variable": {
+    "temperature_2m_mean": 0,
+    "temperature_2m_min": 0,
+    "temperature_2m_max": 0,
+    "apparent_temperature_mean": 0,
+    "wind_speed_10m_max": 0,
+    "wind_gusts_10m_max": 0,
+    "precipitation_sum": 0,
+    "snowfall_sum": 0,
+    "relative_humidity_2m_mean": 0
+  },
+  "status": "verified",
+  "extracted_at_utc": null,
+  "archived_at_utc": "2026-11-21T14:35:47.299379+00:00",
+  "raw_sha256": "fd95715175528e25d5a3ff6fe9e57bb0b6bf916dbf4003e63b1c6f78cad6fb99",
+  "clean_sha256": "6f2c10fd5b56edcb7d60e95d9e5a88f148930b3d34873402f8ae0c8d0c30d313",
+  "acquisition": {
+    "method": "user_supplied_provider_json",
+    "original_filename": "picture_butte_era5.json",
+    "reported_download": "User reported downloading Open-Meteo historical weather JSON directly on an iPhone.",
+    "request_metadata_source": "Documented Phase 2A request. The payload does not echo the URL, requested coordinates or model.",
+    "response_model": null,
+    "timezone_abbreviation": "GMT-6",
+    "generationtime_ms": 3.869771957397461,
+    "original_http_status": null,
+    "independent_requery": {
+      "source": "Exact documented Phase 2A Open-Meteo ERA5 request",
+      "https_connect_status": 403,
+      "provider_http_status": null,
+      "provider_response_bytes": 0
+    },
+    "verification_scope": "Validated payload schema, dates, units, grid proximity and physical bounds. The upload and documented request supply the provider/model provenance. The embedded metadata does not independently identify the model or original request."
+  },
+  "grid_offset_from_request": {
+    "latitude_degrees": 0.12328,
+    "longitude_degrees": 0.02983,
+    "great_circle_distance_km_approx": 13.87
+  }
+}
