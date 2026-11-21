@@ -1,0 +1,103 @@
+[
+  {
+    "name": "Booked base",
+    "limitations": "Closed lots. Scope is four booked costs and gross revenue."
+  },
+  {
+    "name": "Higher feeder basis",
+    "prices": {"purchase_cad_per_live_kg": 0.25},
+    "limitations": "Same placements and entry kg. Commercial bid costs excluded."
+  },
+  {
+    "name": "Higher allocated feed",
+    "prices": {"feed_fraction": 0.1},
+    "limitations": "Fixed intake, days, gain, grade and survival."
+  },
+  {
+    "name": "Finisher feed repriced",
+    "prices": {"feed_phase_fractions": {"Finisher": 0.15}},
+    "limitations": "Lot–phase booked exposure is imputed from daily delivery shares."
+  },
+  {
+    "name": "Concentrate repriced",
+    "prices": {"feed_component_fractions": {"concentrate": 0.15}},
+    "limitations": "Recorded ingredient cost shares proxy the allocation. Ration formulas stay fixed."
+  },
+  {
+    "name": "Lower carcass CAD/kg",
+    "prices": {"carcass_cad_per_hcw_kg": -0.35},
+    "limitations": "Same sold HCW and grade mix. No individual grid components."
+  },
+  {
+    "name": "Lower carcass percentage",
+    "prices": {"carcass_fraction": -0.05},
+    "limitations": "Uniform percentage of eligible booked revenue, with the same HCW and grade mix."
+  },
+  {
+    "name": "Adverse prices",
+    "prices": {"purchase_cad_per_live_kg": 0.30, "feed_fraction": 0.15, "carcass_cad_per_hcw_kg": -0.40},
+    "limitations": "Concurrent illustrative accounting stress at observed volumes."
+  },
+  {
+    "name": "Favorable prices",
+    "prices": {"purchase_cad_per_live_kg": -0.15, "feed_fraction": -0.05, "carcass_cad_per_hcw_kg": 0.20},
+    "limitations": "Concurrent illustrative upside at observed volumes."
+  },
+  {
+    "name": "Lower mortality, conservative finish",
+    "mortality": {
+      "direction": "lower",
+      "head": 60,
+      "finish_financial_dof": 195,
+      "finish_live_kg": 570,
+      "dressing_fraction": 0.59,
+      "price_cad_per_hcw_kg": 7.40,
+      "feed_cad_per_extra_day": 5,
+      "yardage_cad_per_extra_day": 0.60,
+      "vet_cad_per_head": 85,
+      "other_cad_per_head": 50
+    },
+    "limitations": "Conditional finish terms for 60 hypothetical survivors. No treatment or success rate is inferred."
+  },
+  {
+    "name": "Lower mortality, favorable finish",
+    "mortality": {
+      "direction": "lower",
+      "head": 60,
+      "finish_financial_dof": 185,
+      "finish_live_kg": 650,
+      "dressing_fraction": 0.615,
+      "price_cad_per_hcw_kg": 8.20,
+      "feed_cad_per_extra_day": 4,
+      "yardage_cad_per_extra_day": 0.60,
+      "vet_cad_per_head": 30,
+      "other_cad_per_head": 25
+    },
+    "limitations": "Same 60 hypothetical survivors, with alternative finish terms. No probability is attached."
+  },
+  {
+    "name": "Higher mortality",
+    "mortality": {
+      "direction": "higher",
+      "head": 60,
+      "avoidable_feed_fraction": 0.20,
+      "avoidable_yardage_fraction": 0.20,
+      "vet_cad_per_head": 50,
+      "other_cad_per_head": 25
+    },
+    "limitations": "60 hypothetical additional deaths. Avoidable costs are assumed shares, with no inferred death date."
+  },
+  {
+    "name": "Adverse prices and higher mortality",
+    "prices": {"purchase_cad_per_live_kg": 0.30, "feed_fraction": 0.15, "carcass_cad_per_hcw_kg": -0.40},
+    "mortality": {
+      "direction": "higher",
+      "head": 60,
+      "avoidable_feed_fraction": 0.20,
+      "avoidable_yardage_fraction": 0.20,
+      "vet_cad_per_head": 50,
+      "other_cad_per_head": 25
+    },
+    "limitations": "Adverse repricing precedes lost sales and avoided costs. Identities are a reproducible allocation."
+  }
+]
