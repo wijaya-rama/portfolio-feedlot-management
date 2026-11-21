@@ -1,10 +1,63 @@
 # Akuisisi cuaca historis sebelum Phase 2B-2
 
-**Akuisisi terblokir per 21 November 2026.** Sebanyak **0 dari 704 hari** terverifikasi. Targetnya 1 Januari 2024 sampai 4 Desember 2025 di centroid Picture Butte, Alberta (WGS84 `49.87672, -112.77983`), dengan zona `America/Edmonton`. Tanggal, grid aktual, satuan respons, dan kelengkapan pengukuran belum dapat diperiksa. [Referensi lokasi dan kontrak Phase 2A](../phase2a/WEATHER_REFERENCE.md)
+**Snapshot terintegrasi dengan cakupan 704 dari 704 hari.** Arsip mencakup 1 Januari 2024 sampai 4 Desember 2025, termasuk 29 Februari 2024. Sembilan variabel tersedia pada setiap tanggal. [Kontrak cuaca Phase 2A](../phase2a/WEATHER_REFERENCE.md) · [Manifest snapshot](../phase2a/weather/era5-20261121T143547299379Z-fd9571517552/weather_manifest.json)
 
-## Permintaan dan hasil
+## Asal dan metadata respons
 
-Codex Cloud menolak semua percobaan di tahap HTTPS CONNECT dengan HTTP 403. Kode HTTP penyedia tidak tersedia dan jumlah byte respons penyedia adalah nol. Permintaan Open-Meteo diulang sekali dengan URL persis dari Phase 2A. URL lengkap dan hasilnya dicatat dalam manifest percobaan. [Manifest percobaan](../phase2a/weather_attempt.json)
+Pengguna memasok `picture_butte_era5.json` dan melaporkan unduhan langsung dari Open-Meteo di iPhone. Struktur dan satuan JSON sesuai dengan Historical Weather API. Permintaan Phase 2A menetapkan `models=era5`, `cell_selection=land`, dan centroid Picture Butte, Alberta (WGS84 `49.87672, -112.77983`). Respons memuat koordinat grid hasil pemilihan, tanpa URL, koordinat input, atau ID model. Atribusi ERA5 didasarkan pada asal unduhan yang dilaporkan dan permintaan terdokumentasi. Upaya pembandingan dengan URL persis yang tercantum di bawah mendapat HTTPS CONNECT 403 sebelum penyedia merespons, sehingga identitas model tidak dapat dikonfirmasi secara independen dari lampiran.
+
+| Metadata | Nilai |
+|---|---|
+| Grid respons | `50.0, -112.75`, elevasi respons 906 m |
+| Selisih dari koordinat permintaan | 0,12328° ke utara dan 0,02983° ke timur, sekitar 13,87 km |
+| Zona, offset, dan format tanggal | `America/Edmonton`, `GMT-6`, −21.600 detik (UTC−06:00 tetap), ISO 8601 |
+| Waktu unduhan asli | Tidak tersedia di JSON. Manifest menyimpan waktu pengarsipan UTC secara terpisah. |
+| Validasi cakupan | 704 tanggal unik, urut, tanpa selang dan tanpa duplikat |
+| Variabel hilang dan nilai kosong | 0 variabel hilang, 0 nilai kosong dari 6.336 pengukuran |
+
+Pergeseran grid berada dalam toleransi Phase 2A sebesar 0,35° per koordinat. Batas hari mengikuti offset tetap penyedia untuk seluruh respons. Offset mengikuti metadata respons tanpa konversi tambahan untuk perubahan waktu musim panas. [Referensi lokasi dan kontrak offset](../phase2a/WEATHER_REFERENCE.md)
+
+| Variabel | Satuan | Minimum | Maksimum |
+|---|---|---:|---:|
+| `temperature_2m_mean` | °C | −39,9 | 26,5 |
+| `temperature_2m_min` | °C | −44,9 | 18,5 |
+| `temperature_2m_max` | °C | −32,3 | 35,6 |
+| `apparent_temperature_mean` | °C | −45,1 | 25,6 |
+| `wind_speed_10m_max` | km/jam | 5,4 | 40,4 |
+| `wind_gusts_10m_max` | km/jam | 9,4 | 81,0 |
+| `precipitation_sum` | mm | 0 | 57,1 |
+| `snowfall_sum` | cm | 0 | 8,12 |
+| `relative_humidity_2m_mean` | % | 18 | 98 |
+
+Seluruh pengukuran lulus pemeriksaan batas fisik dan urutan suhu minimum, rerata, dan maksimum. Nilai minimum udara −44,9 °C dan suhu terasa harian terendah −45,1 °C sama-sama terjadi pada 13 Januari 2024. Gust harian tertinggi mencapai 81 km/jam pada 27 Oktober 2024. Nilai ekstrem dipertahankan sebagaimana tercatat dalam arsip.
+
+## Integrasi dan verifikasi
+
+| Tabel | Baris | Cakupan |
+|---|---:|---|
+| `weather_daily` | 704 | Seluruh tanggal dan sembilan variabel |
+| `animal_weather_exposure` | 15.000 | Semua jendela inklusif masuk–keluar lengkap untuk suhu, angin, dan salju |
+| `lot_weather_exposure` | 90 | Semua jendela inklusif hari pakan pertama–terakhir lengkap untuk suhu, angin, dan salju |
+
+Snapshot berisi JSON asli tanpa perubahan byte, CSV harian, dan manifest dengan SHA-256 kedua file. Kedua manifest build memuat provenance yang sama. Build dengan argumen snapshot menyelesaikan pengecualian `weather_source_unavailable` sehingga tersisa 163 entri di `audit_exceptions`. Build baseline tanpa argumen snapshot tersedia untuk membandingkan hasil sebelumnya.
+
+Seluruh 661 kontrol baseline lulus dengan hasil identik. Kedua file sumber dan ketujuh tabel kanonik noncuaca cocok byte demi byte dengan baseline `096dcbc`. Laporan audit Phase 1 juga identik. Seluruh 44 tes lulus, 0 gagal, dan 0 dilewati, termasuk tes integrasi arsip aktual. Dua build independen dari arsip yang sama menghasilkan 11 tabel CSV dan tiga laporan JSON identik byte demi byte.
+
+Jalankan dari root repositori setelah memasang paket dengan `python -m pip install -e .`.
+
+```sh
+snapshot=phase2a/weather/era5-20261121T143547299379Z-fd9571517552
+python -W error -m feedlot_analytics.cli build --weather-snapshot "$snapshot" --output work/era5-replay-one
+python -W error -m feedlot_analytics.cli build --weather-snapshot "$snapshot" --output work/era5-replay-two
+diff -qr work/era5-replay-one work/era5-replay-two
+python -W error -m unittest discover -s tests -v
+```
+
+Data cuaca adalah reanalisis historis untuk grid representatif. Data sapi, pakan, kesehatan, dan keuangan berasal dari studi kasus simulasi. Fitur eksposur bersifat deskriptif. Integrasi ini berhenti sebelum analisis Phase 2B-2.
+
+## Riwayat percobaan dan sumber alternatif
+
+Pada percobaan sebelumnya, Codex Cloud menolak semua koneksi di tahap HTTPS CONNECT dengan HTTP 403. Kode HTTP penyedia tidak tersedia dan jumlah byte respons penyedia adalah nol. Permintaan Open-Meteo diulang sekali dengan URL persis dari Phase 2A. URL lengkap dan hasilnya dicatat dalam manifest percobaan. [Manifest percobaan](../phase2a/weather_attempt.json)
 
 | Sumber | Permintaan |
 |---|---|
@@ -22,36 +75,3 @@ Codex Cloud menolak semua percobaan di tahap HTTPS CONNECT dengan HTTP 403. Kode
 - **NASA POWER menawarkan seri harian publik.** Grid meteorologi 0,5° × 0,625°. MERRA-2 mendasari seri historis dan NASA dapat menambahkan GEOS-IT untuk data terkini. Kandidat mencakup suhu rerata/minimum/maksimum (°C), kelembapan relatif (%), kecepatan angin maksimum (m/s), dan presipitasi terkoreksi (mm/hari). Batas hari `LST` berarti waktu matahari lokal. Permintaan ini belum menyediakan padanan untuk gust, suhu terasa, atau total salju yang turun per hari. NASA menyediakan data secara gratis dengan panduan atribusi. [Sumber meteorologi](https://power.larc.nasa.gov/docs/methodology/data/sources_meteorology/) · [API harian](https://power.larc.nasa.gov/docs/services/api/temporal/daily/) · [Atribusi](https://power.larc.nasa.gov/docs/referencing/)
 - **ECCC menawarkan observasi stasiun.** Arsip harian menyediakan suhu (°C), presipitasi (mm), salju (cm), dan gust maksimum (km/jam), bergantung pada stasiun dan instrumen. Resolusi spasial berupa titik stasiun. Pemilihan stasiun tunggal, jarak, kelengkapan tanggal, dan batas hari stasiun masih perlu diverifikasi. Layanan terbuka MSC menyertakan ECCC Data Server End-use Licence. [Arsip harian](https://api.weather.gc.ca/collections/climate-daily?f=html) · [Akses dan lisensi](https://api.weather.gc.ca/?f=html)
 - **Google Research dan Destination Earth menyediakan arsip Zarr ERA5 per jam.** Cakupan dan variabel untuk permintaan ini belum diperiksa dari metadata penyimpanan. Earth Data Hub mendokumentasikan penggunaan token akses untuk penyimpanan atmosfer. Keduanya memerlukan pengolahan per jam sebelum bisa memenuhi kontrak tanggal dan satuan harian. [Google Research ARCO-ERA5](https://github.com/google-research/arco-era5) · [Earth Data Hub](https://earthdatahub.destine.eu/collections/era5/datasets/era5-single-levels-atmosphere)
-
-## Integrasi dan verifikasi
-
-Build menggunakan jalur Phase 2A. Kedua manifest keluaran, `source_manifest.json` dan `transformation_manifest.json`, mencatat provenance cuaca yang sama. Tanpa snapshot, statusnya `blocked`. Tabel `weather_daily` berisi skema dengan nol baris. Jendela 15.000 sapi dan 90 lot tetap tercatat dengan cakupan observasi nol dan nilai fitur cuaca kosong.
-
-Seluruh 661 kontrol rekonsiliasi lulus. Ke-11 tabel, laporan rekonsiliasi, dan hasil audit Phase 1 identik byte demi byte dengan commit awal `bbc9bfc`. Suite otomatis mencatat 43 tes lulus, 0 gagal, dan 1 dilewati karena snapshot ERA5 aktual belum tersedia.
-
-Tes replay membangun dua keluaran identik byte demi byte dari satu snapshot fixture di direktori temporer tanpa akses jaringan. Tes ini juga membandingkan tabel dan metrik sapi, pakan, keuangan, dan biologi secara eksak dengan build tanpa cuaca. Replay data ERA5 aktual masih menunggu snapshot dari penyedia.
-
-## Pengambilan dengan bantuan pengguna
-
-1. Di komputer atau lingkungan yang diizinkan mengakses `archive-api.open-meteo.com`, buka checkout `analysis-rebuild`. Dari root repositori, jalankan berikut dengan Python 3.11 atau lebih baru.
-
-   ```sh
-   set -eu
-   python -m pip install -e .
-   snapshot=$(python -W error -m feedlot_analytics.cli fetch-weather --output work/weather)
-   printf '%s\n' "$snapshot"
-   tar -czf work/picture-butte-era5.tar.gz -C "$(dirname "$snapshot")" "$(basename "$snapshot")"
-   ```
-
-2. Unggah `work/picture-butte-era5.tar.gz` ke percakapan ini. Folder yang diarsipkan berisi `open_meteo_raw.json`, `weather_daily.csv`, dan `weather_manifest.json`. File manifest memuat waktu pengambilan UTC, koordinat grid, tanggal, satuan, null per variabel, dan SHA-256 untuk kedua file data.
-
-3. Dari checkout yang sama, ekstrak tar dan arahkan `snapshot` ke folder versi `era5-…` hasil ekstraksi. Jalankan build dua kali ke direktori baru dan uji snapshot dengan suite yang sama.
-
-   ```sh
-   python -W error -m feedlot_analytics.cli build --weather-snapshot "$snapshot" --output work/era5-replay-one
-   python -W error -m feedlot_analytics.cli build --weather-snapshot "$snapshot" --output work/era5-replay-two
-   diff -qr work/era5-replay-one work/era5-replay-two
-   FEEDLOT_WEATHER_SNAPSHOT="$snapshot" python -W error -m unittest discover -s tests -v
-   ```
-
-Jika permintaan gagal, simpan pesan galat untuk investigasi dan pertahankan status cuaca terblokir. Akuisisi ini berhenti sebelum analisis Phase 2B-2.

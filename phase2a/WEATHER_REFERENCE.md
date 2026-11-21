@@ -15,17 +15,17 @@ The public Open-Meteo Historical Weather API request uses `models=era5` for the 
 
 The provider's daily parameter implementation confirms the exact field names. Its ERA5 implementation includes wind gust source fields. Actual deployment coverage and unit checks are performed on the archived response. For ISO dates Open-Meteo documents a fixed UTC offset for the response, including across daylight saving changes. The ingestion records the actual offset. [Daily field definitions](https://github.com/open-meteo/open-meteo/blob/7cc41ffa9a79c2e4c7ad4e18f13b51ab8df610aa/Sources/App/Controllers/VariableDaily.swift) · [ERA5 variables](https://github.com/open-meteo/open-meteo/blob/7cc41ffa9a79c2e4c7ad4e18f13b51ab8df610aa/Sources/App/Era5/Era5Variables.swift)
 
-Acquisition on 21 November 2026 was blocked at the HTTPS proxy CONNECT step with HTTP 403. No response bytes from Open-Meteo were received. The verified location, requested model, 704 expected dates and exact URL remain available in the build manifest. Actual grid coordinates, elevation, observations and extraction time are pending. [Attempt record](weather_attempt.json)
+The versioned archive contains the user-supplied Open-Meteo JSON, all 704 dates and all nine variables. It returned grid coordinates `50.0, -112.75` and elevation 906 m. The response uses `America/Edmonton` at fixed UTC−06:00 (`GMT-6`). The archived JSON contains the returned grid but does not identify the original request URL, requested coordinates or model. The manifest records the documented request with `models=era5`, the reported iPhone download, and the response fields separately. The independent repeat request received proxy CONNECT 403 before any provider response. [Weather acquisition report](../phase2b/00_WEATHER_ACQUISITION.md) · [Snapshot manifest](weather/era5-20261121T143547299379Z-fd9571517552/weather_manifest.json) · [Historical attempt record](weather_attempt.json)
 
-Run from the repository root with network access to the archive API. The first command creates a versioned folder and prints its path. Pass that folder to the second command for deterministic replay.
+With the package installed, run from the repository root to replay the tracked snapshot offline.
 
 ```sh
-snapshot=$(python -m feedlot_analytics.cli fetch-weather --output work/weather) &&
-python -m feedlot_analytics.cli build --output work/phase2a-with-weather --weather-snapshot "$snapshot"
-FEEDLOT_WEATHER_SNAPSHOT="$snapshot" python -W error -m unittest discover -s tests -v
+snapshot=phase2a/weather/era5-20261121T143547299379Z-fd9571517552
+python -W error -m feedlot_analytics.cli build --output work/phase2a-with-weather --weather-snapshot "$snapshot"
+python -W error -m unittest discover -s tests -v
 ```
 
-The fetch requires an HTTP 200 JSON response from the specified URL, uses a 20-second timeout and retries transient errors up to three attempts. It checks requested model provenance, proximity of the output grid, date uniqueness and coverage, units and physical bounds. Missing daily labels fail ingestion. Null observations remain null and are counted by variable. Verified snapshots contain the raw response, cleaned daily CSV and manifest with UTC extraction time, grid metadata and SHA-256 checksums. Replay reads the archived bytes with no network access. Fixtures in the weather tests contain artificial values for software verification and are never exported as historical observations.
+For a new acquisition, `python -m feedlot_analytics.cli fetch-weather --output work/weather` requests the exact URL and requires an HTTP 200 JSON response. It uses a 20-second timeout and retries transient errors up to three attempts. Validation checks grid proximity, ordered unique dates, units and physical bounds. Missing daily labels fail ingestion. Null measurements are retained and counted by variable. Each snapshot contains the raw response, cleaned daily CSV and manifest with grid metadata and SHA-256 checksums. The manifest records extraction time for a direct fetch. The upload's original extraction time is unknown, so its manifest records the UTC archive time separately. Replay validates the archived bytes offline. The suite exercises the tracked archive by default and accepts a `FEEDLOT_WEATHER_SNAPSHOT` override. Fixtures supply artificial values for separate software tests.
 
 ## Date mappings and features
 

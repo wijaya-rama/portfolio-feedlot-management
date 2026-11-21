@@ -11,13 +11,14 @@ Jalankan dari root repositori dengan Python 3.11 atau lebih baru. Versi paket an
 ```sh
 python -m pip install -e .
 python -W error analysis_audit/audit_sources.py > /tmp/feedlot-phase1.json
-python -W error -m feedlot_analytics.cli build --output work/phase2a
+snapshot=phase2a/weather/era5-20261121T143547299379Z-fd9571517552
+python -W error -m feedlot_analytics.cli build --output work/phase2a-with-weather --weather-snapshot "$snapshot"
 python -W error -m unittest discover -s tests -v
 ```
 
 Build menulis tabel CSV, `source_manifest.json`, `transformation_manifest.json` dan `reconciliation.json`. Manifest mencatat SHA-256, tipe data, null, grain, kunci, lineage, eligibilitas, kontrol dan batas pelaporan. Dengan sumber dan versi perangkat lunak yang sama, kedua hasil rebuild dapat dibandingkan byte per byte. Direktori output yang sudah berisi versi berbeda dipertahankan. Gunakan nama direktori baru untuk build dengan input berbeda. [Ringkasan rekonsiliasi yang dilacak Git](phase2a/reconciliation.json)
 
-Audit Phase 1 menghasilkan JSON yang identik pada dua eksekusi. Build Phase 2A melewati 661 kontrol. Untuk suite baru, 30 tes lulus, 0 gagal, dan 1 dilewati karena snapshot ERA5 aktual belum tersedia. Pengayaan end-to-end dengan fixture pengujian menjaga data sapi dan ledger tetap identik.
+Audit Phase 1 menghasilkan JSON yang identik dengan commit `096dcbc`. Build dengan snapshot melewati 661 kontrol baseline. Suite lengkap mencatat 44 tes lulus, 0 gagal, dan 0 dilewati. Dua build independen dari snapshot menghasilkan 11 tabel dan tiga laporan JSON yang identik byte demi byte. Tujuh tabel kanonik noncuaca dan kedua file sumber cocok byte demi byte dengan baseline. Ringkasan rekonsiliasi yang dilacak Git tetap membandingkan build baseline tanpa argumen snapshot.
 
 ## Tabel yang dihasilkan
 
@@ -29,11 +30,11 @@ Audit Phase 1 menghasilkan JSON yang identik pada dua eksekusi. Build Phase 2A m
 | `lot_closeout` | Satu lot tuntas per `lot_id` | 90 |
 | `lot_feed_reconciliation` | Satu jembatan pakan terkirim–teralokasi per `lot_id` | 90 |
 | `pen_day_feed` | Satu hari pengiriman tercatat per `pen_id, feed_date` | 16.085 |
-| `weather_daily` | Satu hari per `date` di lokasi referensi | 0, akses terblokir |
+| `weather_daily` | Satu hari per `date` di lokasi referensi | 704 |
 | `kpi_catalog` | Satu definisi per `metric_id, version` | 33 |
-| `audit_exceptions` | Satu temuan per `rule, source_table, source_key` | 164 |
-| `animal_weather_exposure` | Satu jendela masuk–keluar per `animal_id` | 15.000 |
-| `lot_weather_exposure` | Satu jendela hari pakan pertama–terakhir per `lot_id` | 90 |
+| `audit_exceptions` | Satu temuan per `rule, source_table, source_key` | 163 |
+| `animal_weather_exposure` | Satu jendela masuk–keluar per `animal_id` | 15.000, cakupan penuh |
+| `lot_weather_exposure` | Satu jendela hari pakan pertama–terakhir per `lot_id` | 90, cakupan penuh |
 
 ## Kontrol dan KPI
 
@@ -58,13 +59,13 @@ Rasio agregat dan rata-rata rasio individu memiliki kolom terpisah. Untuk ADG an
 
 ## Referensi cuaca dan batas bukti
 
-Referensi menggunakan centroid kota Picture Butte pada 49,87672° N dan 112,77983° W, zona `America/Edmonton`. Permintaan ERA5 mencakup 704 hari dari 1 Januari 2024 sampai 4 Desember 2025. Percobaan 21 November 2026 mendapat penolakan HTTPS CONNECT 403 dari proxy, sebelum ada respons penyedia. `weather_daily` hanya berisi skema. Kedua tabel eksposur mempertahankan jendela dan expected days dengan fitur cuaca kosong. [Sumber lokasi dan prosedur akuisisi](phase2a/WEATHER_REFERENCE.md) · [Catatan percobaan](phase2a/weather_attempt.json)
+Referensi memakai centroid Picture Butte (49,87672° LU, 112,77983° BB). Snapshot dari JSON Open-Meteo yang disediakan pengguna mencakup seluruh 704 hari dari 1 Januari 2024 sampai 4 Desember 2025 dengan sembilan variabel lengkap. Grid respons berada sekitar 13,87 km dari centroid (50,0° LU, 112,75° BB dengan elevasi 906 m). Batas hari mengikuti `America/Edmonton` dengan offset respons tetap UTC−06:00. Identitas ERA5 mengacu pada riwayat unduhan dan permintaan yang terdokumentasi. JSON tidak menyertakan ID model dan pengambilan pembanding terblokir di proxy. [Sumber lokasi dan prosedur akuisisi](phase2a/WEATHER_REFERENCE.md) · [Laporan akuisisi](phase2b/00_WEATHER_ACQUISITION.md)
 
 Kode dan seed simulator belum tersedia. Data memperlihatkan variasi waktu pada pengiriman pakan, dengan Desember 2025 hanya mencakup empat hari. Label `winterFCR` pada HTML memakai kohor masuk Q3/Q4 2024. Bukti ini belum mengidentifikasi aturan musim di simulator atau efek biologis cuaca. Data perpindahan, sensus independen kandang, metode alokasi pakan dan perincian settlement juga belum tersedia. [Audit rekonsiliasi Phase 1](analysis_audit/02_DATA_QUALITY_AND_RECONCILIATION.md)
 
 ## Handoff Phase 2B
 
-Mulai dari `analysis-rebuild` dan gunakan `feedlot_analytics.build` sebagai titik masuk. Cocokkan hash dan hasil rekonsiliasi dengan checkpoint ini. Untuk cuaca, ambil snapshot ERA5 yang terdokumentasi dari lingkungan dengan akses dan jalankan ulang integrasi pada snapshot tersebut. Tetapkan peran tanggal dan unit kohor sebelum membuat perbandingan.
+Mulai dari `analysis-rebuild` dan gunakan `feedlot_analytics.build` sebagai titik masuk. Berikan folder arsip pada argumen `weather_snapshot` untuk membangun ketiga tabel cuaca. Cocokkan hash dan hasil rekonsiliasi dengan checkpoint ini. Tetapkan peran tanggal dan unit kohor sebelum membuat perbandingan.
 
 | Urutan | Notebook | Fokus |
 |---|---|---|

@@ -16,6 +16,8 @@ from feedlot_analytics.weather import (
     reference_metadata, validate_response,
 )
 
+ARCHIVED_SNAPSHOT = "phase2a/weather/era5-20261121T143547299379Z-fd9571517552"
+
 
 def example_response():
     """Synthetic technical fixture. The tests never publish it as historical data."""
@@ -172,12 +174,13 @@ class WeatherTest(unittest.TestCase):
         self.assertTrue(unavailable.cold_days.isna().all())
         self.assertTrue(unavailable.weather_date_count.eq(0).all())
 
-    @unittest.skipUnless(os.environ.get("FEEDLOT_WEATHER_SNAPSHOT"), "No verified live ERA5 snapshot supplied")
     def test_actual_archive_integration(self):
         from feedlot_analytics import build
 
         root = Path(__file__).resolve().parents[1]
-        result = build(root, weather_snapshot=Path(os.environ["FEEDLOT_WEATHER_SNAPSHOT"]))
+        archived = root / ARCHIVED_SNAPSHOT
+        snapshot = Path(os.environ.get("FEEDLOT_WEATHER_SNAPSHOT") or archived)
+        result = build(root, weather_snapshot=snapshot)
         weather = result.tables["weather_daily"]
         animals = result.tables["animal_closeout"]
         manifest = result.source_manifest["weather"]
@@ -186,6 +189,11 @@ class WeatherTest(unittest.TestCase):
         self.assertTrue(pd.DatetimeIndex(weather.date).equals(EXPECTED_DATES))
         self.assertEqual(manifest["daily_units"], DAILY_UNITS)
         self.assertEqual(manifest["missing_by_variable"], weather[list(DAILY_UNITS)].isna().sum().to_dict())
+        if snapshot == archived:
+            self.assertEqual(manifest["missing_by_variable"], dict.fromkeys(DAILY_UNITS, 0))
+            self.assertEqual((manifest["grid_latitude"], manifest["grid_longitude"]), (50, -112.75))
+            self.assertEqual((manifest["elevation_m"], manifest["utc_offset_seconds"]), (906, -21600))
+            self.assertEqual(manifest["raw_sha256"], "fd95715175528e25d5a3ff6fe9e57bb0b6bf916dbf4003e63b1c6f78cad6fb99")
         result_map = map_weather_date(animals, weather, date_role="entry_date")
         assert_frame_equal(animals, result_map[animals.columns])
         for name in ("animal_weather_exposure", "lot_weather_exposure"):
@@ -196,5 +204,6 @@ class WeatherTest(unittest.TestCase):
                                      ("wind_days", "maximum_wind_kmh"), ("snow_days", "snowfall_exposure_cm")):
                     self.assertTrue(exposure[metric].notna().eq(exposure[days].eq(exposure.expected_exposure_days)).all())
         baseline = json.loads((root / "phase2a/reconciliation.json").read_text(encoding="utf-8"))
-        for name in ("population", "modeled_ledger_cad", "mortality_loss_cad", "kpis", "feed_bridge"):
+        for name in ("checks_passed", "checks_failed", "population", "modeled_ledger_cad",
+                     "mortality_loss_cad", "kpis", "feed_bridge"):
             self.assertEqual(result.reconciliation["summary"][name], baseline[name], name)
