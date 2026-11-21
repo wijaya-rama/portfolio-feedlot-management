@@ -226,7 +226,7 @@ def _sum_components(dimensions, components, by):
 ANIMAL_GROUPS = frozenset({
     "animal_id", "breed", "sex", "frame_score", "lot_id", "pen_id", "origin_region", "pen_type", "site_zone",
     "entry_date", "exit_date", "lot_closeout_date", "placement_quarter", "exit_month", "exit_type",
-    "entry_weight_kg", "quality_grade", "treated", "repeat_treated", "first_diagnosis",
+    "entry_weight_kg", "quality_grade", "treated", "repeat_treated", "first_diagnosis", "first_drug_protocol",
 })
 
 
@@ -235,7 +235,7 @@ def aggregate_closeout(animals, health_summary, *, by=()):
     by = tuple(by)
     if set(by) - ANIMAL_GROUPS:
         raise ValueError(f"Unsupported animal grouping: {sorted(set(by) - ANIMAL_GROUPS)}")
-    health_groups = [col for col in by if col in {"treated", "repeat_treated", "first_diagnosis"}]
+    health_groups = [col for col in by if col in {"treated", "repeat_treated", "first_diagnosis", "first_drug_protocol"}]
     dimensions = animals[list(set(by) - set(health_groups))]
     if health_groups:
         dimension_columns = ["animal_id", *[col for col in dimensions if col != "animal_id"]]
