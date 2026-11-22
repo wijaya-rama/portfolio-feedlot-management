@@ -1,4 +1,10 @@
-# Simulator V2 · Stage 6A
+# Simulator V2 · Stage 6
+
+## Stage 6B
+
+[Preflight 24 bulan](STAGE6B.md) memuat pengukuran, konfigurasi skala, ekuivalensi dan rekonsiliasi. [Keputusan kesiapan pilot](PILOT_READINESS.md) menjelaskan gerbang untuk skala 1.500 placement. Baseline Stage 6A berada di [commit 8dfbaa3](https://github.com/wijaya-rama/portfolio-feedlot-management/commit/8dfbaa3160dc88a9b673cd0772a2d7813866e5ee).
+
+## Stage 6A
 
 Stage 6A menjalankan operasi feedlot sintetis maju dalam waktu dengan konfigurasi lot, kapasitas, kalender, pembukaan, kesehatan, pakan, pembiayaan, dan seed. Dataset diagnostik meliputi 100 placement dan delapan sapi carry-in. Besaran biologis, treatment, grading, harga, dan nilai portofolio berasal dari skenario sintetis.
 

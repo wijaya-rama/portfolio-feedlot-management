@@ -108,6 +108,7 @@ class Yard:
         self.backlog = []
         self.opening = []
         lots, animals = [], []
+        self.minimum_dof_by_lot = {}
 
         def roster(lot_id, due, head, number):
             lots.append(Lot(lot_id, f"SYN-CATTLE-SUPPLIER-{1 + number % 4:02d}", "finisher-mixed",
@@ -121,6 +122,7 @@ class Yard:
 
         for number, cohort in enumerate(config["carry_in"], 1):
             lot = f"SYN-OPEN-{number:04d}"
+            self.minimum_dof_by_lot[lot] = cohort.get("minimum_dof", config["shipment"]["minimum_dof"])
             for animal, _ in roster(lot, opened, cohort["head"], number):
                 self.opening.append(Opening(
                     animal.animal_id, lot, cohort["status"], cohort["location"], cohort["weight_kg"],
@@ -129,6 +131,7 @@ class Yard:
         for number, row in enumerate(rows, 1):
             due = date.fromisoformat(row["date"])
             lot = f"SYN-LOT-{number:04d}"
+            self.minimum_dof_by_lot[lot] = row.get("minimum_dof", config["shipment"]["minimum_dof"])
             self.future.extend(Placement(lot, due, animal.animal_id, position, float(row["mean_kg"]))
                                 for animal, position in roster(lot, at(due, 6, 30), row["head"], number))
         self.ledger = Ledger(RunConfig(config["version"], config["seed"], first, last),

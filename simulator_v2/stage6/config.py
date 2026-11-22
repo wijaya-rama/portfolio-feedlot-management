@@ -64,6 +64,9 @@ def validate(config):
             or sale["grid_cents_per_kg"] <= 62
             or not 0 <= config["regroup_weekday"] <= 6):
         raise ValueError("invalid operations policy")
+    if any(type(row["minimum_dof"]) is not int or row["minimum_dof"] < 0
+           for row in config["placements"] + config["carry_in"] if "minimum_dof" in row):
+        raise ValueError("lot minimum DOF requires a nonnegative integer")
     health = config["health"]
     for field in ("severity_weights", "detection_daily", "untreated_death_daily",
                   "detected_death_daily", "recovery_daily"):

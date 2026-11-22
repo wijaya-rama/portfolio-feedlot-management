@@ -1,0 +1,180 @@
+{
+  "anchors": [
+    {
+      "measured_resources": {
+        "accounting_and_close_seconds": 76.986,
+        "accounting_and_validation_seconds": 133.712,
+        "close_journal_fingerprint_seconds": 6.8091,
+        "cross_domain_validation_seconds": 56.726,
+        "file_hash_seconds": 0.4566,
+        "fingerprint_and_file_hash_seconds": 7.2657,
+        "operations_seconds": 58.106,
+        "parquet_bytes": 180034933,
+        "peak_rss_kib": 436164,
+        "wall_seconds": 200.037
+      },
+      "placements": 100,
+      "workload": {
+        "animal_days": 17127,
+        "feeding_windows": 1462,
+        "journal_lines": 388510,
+        "journals": 388510,
+        "month_ends": 24,
+        "movements": 412,
+        "posting_allocations": 34134,
+        "published_audit_fact_rows": 1935454,
+        "release_allocations": 170752,
+        "source_events": 333546
+      }
+    },
+    {
+      "measured_resources": {
+        "accounting_and_close_seconds": 145.673,
+        "accounting_and_validation_seconds": 266.09000000000003,
+        "close_journal_fingerprint_seconds": 13.4681,
+        "cross_domain_validation_seconds": 120.417,
+        "file_hash_seconds": 0.8649,
+        "fingerprint_and_file_hash_seconds": 14.333,
+        "operations_seconds": 121.542,
+        "parquet_bytes": 383213277,
+        "peak_rss_kib": 521412,
+        "wall_seconds": 399.4745
+      },
+      "placements": 250,
+      "workload": {
+        "animal_days": 43346,
+        "feeding_windows": 1462,
+        "journal_lines": 786248,
+        "journals": 786248,
+        "month_ends": 24,
+        "movements": 1087,
+        "posting_allocations": 86379,
+        "published_audit_fact_rows": 4299779,
+        "release_allocations": 432120,
+        "source_events": 639486
+      }
+    }
+  ],
+  "cases": [
+    {
+      "projected_resources": {
+        "accounting_and_close_seconds": 670.418,
+        "accounting_and_validation_seconds": 1277.412,
+        "close_journal_fingerprint_seconds": 64.341,
+        "cross_domain_validation_seconds": 606.994,
+        "file_hash_seconds": 4.368,
+        "fingerprint_and_file_hash_seconds": 68.709,
+        "operations_seconds": 606.171,
+        "parquet_bytes": 1935424842.824,
+        "peak_rss_kib": 1172676.938,
+        "wall_seconds": 1923.107
+      },
+      "projected_workload": {
+        "animal_days": 243650,
+        "feeding_windows": 1462,
+        "journal_lines": 3824827,
+        "journals": 3824827,
+        "month_ends": 24,
+        "movements": 6244,
+        "posting_allocations": 485513,
+        "published_audit_fact_rows": 22362396,
+        "release_allocations": 2428880,
+        "source_events": 2976761
+      },
+      "stay_days_stage5_capacity_scenario": 155
+    },
+    {
+      "projected_resources": {
+        "accounting_and_close_seconds": 732.702,
+        "accounting_and_validation_seconds": 1397.45,
+        "close_journal_fingerprint_seconds": 70.379,
+        "cross_domain_validation_seconds": 664.748,
+        "file_hash_seconds": 4.784,
+        "fingerprint_and_file_hash_seconds": 75.163,
+        "operations_seconds": 663.694,
+        "parquet_bytes": 2119663965.171,
+        "peak_rss_kib": 1249978.565,
+        "wall_seconds": 2103.954
+      },
+      "projected_workload": {
+        "animal_days": 267425,
+        "feeding_windows": 1462,
+        "journal_lines": 4185490,
+        "journals": 4185490,
+        "month_ends": 24,
+        "movements": 6856,
+        "posting_allocations": 532888,
+        "published_audit_fact_rows": 24506331,
+        "release_allocations": 2665885,
+        "source_events": 3254183
+      },
+      "stay_days_stage5_capacity_scenario": 175
+    },
+    {
+      "projected_resources": {
+        "accounting_and_close_seconds": 792.825,
+        "accounting_and_validation_seconds": 1513.323,
+        "close_journal_fingerprint_seconds": 76.208,
+        "cross_domain_validation_seconds": 720.498,
+        "file_hash_seconds": 5.185,
+        "fingerprint_and_file_hash_seconds": 81.393,
+        "operations_seconds": 719.22,
+        "parquet_bytes": 2297509864.894,
+        "peak_rss_kib": 1324597.774,
+        "wall_seconds": 2278.526
+      },
+      "projected_workload": {
+        "animal_days": 290375,
+        "feeding_windows": 1462,
+        "journal_lines": 4533638,
+        "journals": 4533638,
+        "month_ends": 24,
+        "movements": 7447,
+        "posting_allocations": 578619,
+        "published_audit_fact_rows": 26575870,
+        "release_allocations": 2894665,
+        "source_events": 3521978
+      },
+      "stay_days_stage5_capacity_scenario": 195
+    }
+  ],
+  "drivers": {
+    "accounting_and_close_seconds": "source_events",
+    "close_journal_fingerprint_seconds": "journals",
+    "cross_domain_validation_seconds": "published_audit_fact_rows",
+    "operations_seconds": "animal_days",
+    "parquet_bytes": "published_audit_fact_rows",
+    "peak_rss_kib": "published_audit_fact_rows",
+    "wall_seconds": "animal_days"
+  },
+  "method": "Same 24 months. Extend measured deltas at observed workload rates to Stage 5 animal-days.",
+  "pilot_budgets": {
+    "cold_lot_month_seconds": 10,
+    "machine_ram_gib": 16,
+    "machine_vcpu": 4,
+    "manifest_seconds": 45,
+    "parquet_gib": 2,
+    "peak_rss_gib": 6,
+    "reconciliation_seconds": 120,
+    "wall_seconds": 600,
+    "warm_lot_month_seconds": 3
+  },
+  "preflight_500": {
+    "decision_basis": "The 250-placement validation alone exceeded the proposed reconciliation budget.",
+    "placements": 500,
+    "projected_animal_days": [
+      81217,
+      89142,
+      96792
+    ],
+    "projected_wall_seconds": [
+      687.542,
+      747.824,
+      806.014
+    ],
+    "status": "skipped"
+  },
+  "release_target_placements": 15000,
+  "status": "projection_only",
+  "target_placements": 1500
+}

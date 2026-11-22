@@ -1,0 +1,191 @@
+{
+  "version": "stage6b-preflight-25.1",
+  "seed": 42,
+  "start": "2024-01-01",
+  "end": "2025-12-31",
+  "placements": [
+    {"date": "2024-01-13", "head": 1, "mean_kg": 363, "minimum_dof": 175},
+    {"date": "2024-02-06", "head": 1, "mean_kg": 352, "minimum_dof": 155},
+    {"date": "2024-03-01", "head": 1, "mean_kg": 374, "minimum_dof": 195},
+    {"date": "2024-04-06", "head": 1, "mean_kg": 374, "minimum_dof": 195},
+    {"date": "2024-04-30", "head": 1, "mean_kg": 363, "minimum_dof": 175},
+    {"date": "2024-06-05", "head": 1, "mean_kg": 363, "minimum_dof": 175},
+    {"date": "2024-06-29", "head": 1, "mean_kg": 352, "minimum_dof": 155},
+    {"date": "2024-07-23", "head": 1, "mean_kg": 374, "minimum_dof": 195},
+    {"date": "2024-08-28", "head": 1, "mean_kg": 374, "minimum_dof": 195},
+    {"date": "2024-09-21", "head": 1, "mean_kg": 363, "minimum_dof": 175},
+    {"date": "2024-10-27", "head": 1, "mean_kg": 363, "minimum_dof": 175},
+    {"date": "2024-11-20", "head": 1, "mean_kg": 352, "minimum_dof": 155},
+    {"date": "2024-12-14", "head": 1, "mean_kg": 374, "minimum_dof": 195},
+    {"date": "2025-01-19", "head": 1, "mean_kg": 374, "minimum_dof": 195},
+    {"date": "2025-02-12", "head": 1, "mean_kg": 363, "minimum_dof": 175},
+    {"date": "2025-03-20", "head": 1, "mean_kg": 363, "minimum_dof": 175},
+    {"date": "2025-04-13", "head": 1, "mean_kg": 352, "minimum_dof": 155},
+    {"date": "2025-05-07", "head": 1, "mean_kg": 374, "minimum_dof": 195},
+    {"date": "2025-06-12", "head": 1, "mean_kg": 374, "minimum_dof": 195},
+    {"date": "2025-07-06", "head": 1, "mean_kg": 363, "minimum_dof": 175},
+    {"date": "2025-08-11", "head": 1, "mean_kg": 363, "minimum_dof": 175},
+    {"date": "2025-09-04", "head": 1, "mean_kg": 352, "minimum_dof": 155},
+    {"date": "2025-09-28", "head": 1, "mean_kg": 374, "minimum_dof": 195},
+    {"date": "2025-11-03", "head": 1, "mean_kg": 374, "minimum_dof": 195},
+    {"date": "2025-11-27", "head": 1, "mean_kg": 363, "minimum_dof": 175}
+  ],
+  "carry_in": [
+    {"head": 1, "location": "SYN-P01", "weight_kg": 513.7, "entry_age_days": 467, "days_on_feed": 157, "minimum_dof": 175, "wip_cents": 222370, "status": "active", "source": "SYN-PREFLIGHT-OPEN-2024-02"},
+    {"head": 1, "location": "SYN-P02", "weight_kg": 471.5, "entry_age_days": 423, "days_on_feed": 113, "minimum_dof": 155, "wip_cents": 204330, "status": "active", "source": "SYN-PREFLIGHT-OPEN-2024-04"},
+    {"head": 1, "location": "SYN-P03", "weight_kg": 486.8, "entry_age_days": 439, "days_on_feed": 129, "minimum_dof": 195, "wip_cents": 210890, "status": "active", "source": "SYN-PREFLIGHT-OPEN-2024-06"},
+    {"head": 1, "location": "SYN-P04", "weight_kg": 452.3, "entry_age_days": 403, "days_on_feed": 93, "minimum_dof": 195, "wip_cents": 196130, "status": "active", "source": "SYN-PREFLIGHT-OPEN-2024-09"},
+    {"head": 1, "location": "SYN-P05", "weight_kg": 410.0, "entry_age_days": 359, "days_on_feed": 49, "minimum_dof": 175, "wip_cents": 178090, "status": "active", "source": "SYN-PREFLIGHT-OPEN-2024-11"},
+    {"head": 1, "location": "SYN-P06", "weight_kg": 367.8, "entry_age_days": 315, "days_on_feed": 5, "minimum_dof": 155, "wip_cents": 160050, "status": "active", "source": "SYN-PREFLIGHT-OPEN-2024-13"}
+  ],
+  "capacities": {
+    "receiving": [
+      1,
+      1
+    ],
+    "production": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "hospital": [
+      1,
+      1
+    ]
+  },
+  "receiving_days": [
+    2,
+    4
+  ],
+  "regroup_weekday": 3,
+  "follow_up_days": 18,
+  "release_minutes": 30,
+  "health": {
+    "onset_daily": 0.007,
+    "receiving_multiplier": 3.0,
+    "post_recovery_multiplier": 2.2,
+    "severity_weights": [
+      0.5,
+      0.32,
+      0.18
+    ],
+    "detection_daily": [
+      0.36,
+      0.65,
+      0.85
+    ],
+    "untreated_death_daily": [
+      0.0005,
+      0.004,
+      0.085
+    ],
+    "detected_death_daily": [
+      0.0005,
+      0.004,
+      0.085
+    ],
+    "background_death_daily": 0.00013,
+    "recovery_daily": [
+      0.42,
+      0.25,
+      0.12
+    ],
+    "treatment_probability": 0.85,
+    "repeat_probability": 0.4,
+    "chronic_probability": 0.38,
+    "reassess_days": 2,
+    "chronic_after_days": 9
+  },
+  "shipment": {
+    "weekday": 1,
+    "minimum_dof": 175,
+    "threshold_kg": 490,
+    "lot_fraction": 0.65,
+    "maximum_head": 2,
+    "grade_missing_probability": 0.14,
+    "settlement_lag_days": [
+      2,
+      6
+    ],
+    "grid_cents_per_kg": 800,
+    "freight_cents": 4250
+  },
+  "warehouse": {
+    "order_cycle_days": 7,
+    "lead_days": 5,
+    "split_receipt_delay_days": 2,
+    "opening_grams_per_design_head": 58000,
+    "ordered_grams_per_design_head": 64000,
+    "bin_grams_per_design_head": 105000,
+    "equipment_g_af": 5000000,
+    "opening_spoilage_g_af": 17500,
+    "ingredients": [
+      {
+        "code": "SILAGE",
+        "dm_bps": 4500,
+        "kj_per_kg_dm": 9500,
+        "cp_bps": 1370,
+        "cents_per_tonne": 24500
+      },
+      {
+        "code": "BARLEY",
+        "dm_bps": 8800,
+        "kj_per_kg_dm": 12700,
+        "cp_bps": 1220,
+        "cents_per_tonne": 39500
+      },
+      {
+        "code": "OATS",
+        "dm_bps": 8900,
+        "kj_per_kg_dm": 11100,
+        "cp_bps": 1400,
+        "cents_per_tonne": 44000
+      }
+    ],
+    "recipes": {
+      "receiving": [
+        6350,
+        2000,
+        1650
+      ],
+      "adaptation": [
+        4950,
+        3700,
+        1350
+      ],
+      "finishing": [
+        3100,
+        5900,
+        1000
+      ],
+      "hospital": [
+        7000,
+        1500,
+        1500
+      ]
+    },
+    "max_mix_loss_bps": 135,
+    "max_distribution_loss_bps": 75,
+    "refusal_bps": [
+      160,
+      680
+    ],
+    "max_bunk_loss_bps": 15
+  },
+  "finance": {
+    "purchase_cents_per_kg": 435,
+    "yardage_cents": 125,
+    "vet_cents": 5600,
+    "repeat_vet_cents": 3900,
+    "late_yardage_delta_cents": 25
+  },
+  "weather": {
+    "retrospective": true,
+    "forecasts": []
+  },
+  "biology_overrides": {},
+  "calibration_overrides": {}
+}

@@ -4,6 +4,7 @@ from collections import defaultdict
 from dataclasses import fields, is_dataclass
 from datetime import date, datetime
 from enum import StrEnum
+from functools import cache
 from hashlib import file_digest
 from typing import get_args, get_origin, get_type_hints
 
@@ -15,6 +16,7 @@ from ..stage1.model import business_date
 from .config import SCHEMA
 
 BATCH_ROWS = 8192
+MAX_BUFFERED_ROWS = 65536
 
 
 def arrow_field(name, annotation):
@@ -40,9 +42,14 @@ def record_fields(record_type):
     return [arrow_field(field.name, annotations[field.name]) for field in fields(record_type)]
 
 
+@cache
+def field_names(record_type):
+    return tuple(field.name for field in fields(record_type))
+
+
 def record(row):
-    return {field.name: value if not is_dataclass(value) else record(value)
-            for field in fields(row) if (value := getattr(row, field.name)) is not None}
+    return {name: value if not is_dataclass(value) else record(value)
+            for name in field_names(type(row)) if (value := getattr(row, name)) is not None}
 
 
 def digest(path):
@@ -54,6 +61,8 @@ class Output:
     def __init__(self, root, run_id):
         self.root, self.run_id = root, run_id
         self.schemas, self.partitions, self.writers, self.buffers = {}, {}, {}, defaultdict(list)
+        self.buffered_rows = 0
+        self.sealed = set()
 
     def emit(self, table, rows, when=None, *, partition_by=None):
         for row in rows:
@@ -64,16 +73,22 @@ class Output:
             stamp = getattr(row, partition_by) if partition_by else when
             if isinstance(stamp, datetime):
                 stamp = business_date(stamp)
-            month = stamp.strftime("%Y-%m") if isinstance(stamp, date) else None
+            month = stamp.isoformat()[:7] if isinstance(stamp, date) else None
             key = table, month
+            if key in self.sealed:
+                raise ValueError(f"attempted to append to a finalized partition: {key}")
             self.buffers[key].append({"run_id": self.run_id, **record(row)})
+            self.buffered_rows += 1
             if len(self.buffers[key]) >= BATCH_ROWS:
                 self.flush(key)
+            elif self.buffered_rows >= MAX_BUFFERED_ROWS:
+                self.flush(max(self.buffers, key=lambda partition: len(self.buffers[partition])))
 
     def flush(self, key):
         rows = self.buffers.pop(key, [])
         if not rows:
             return
+        self.buffered_rows -= len(rows)
         name, month = key
         relative = f"{name}/month={month}/part.parquet" if month else f"{name}/part.parquet"
         path = self.root / relative
@@ -90,6 +105,7 @@ class Output:
             if key[1] and key[1] < before:
                 self.flush(key)
                 self.writers.pop(key).close()
+                self.sealed.add(key)
 
     def finish(self):
         for key in sorted(self.buffers, key=lambda x: (x[0], x[1] or "")):

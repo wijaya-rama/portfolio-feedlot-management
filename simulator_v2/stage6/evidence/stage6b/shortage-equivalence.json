@@ -1,0 +1,303 @@
+{
+  "equal_existing_diagnostics": true,
+  "equal_historical_as_known_and_restated_snapshots": true,
+  "equal_monthly_financial_summary": true,
+  "equal_weather": true,
+  "optimized_stock_reporting": {
+    "final_simulation_date": "2026-01-03",
+    "final_simulation_soh": 2,
+    "periods": [
+      {
+        "period_end": "2025-12-31",
+        "period_end_soh": 1,
+        "period_start": "2025-12-31"
+      },
+      {
+        "period_end": "2026-01-03",
+        "period_end_soh": 2,
+        "period_start": "2026-01-01"
+      }
+    ]
+  },
+  "passed": true,
+  "restated_rows_moved_by_routing_clock": [
+    {
+      "journal_id": "SYN-JOURNAL-2d3a768d29457b7cb4bd74a0",
+      "optimized_partition": "2025-12",
+      "original_partition": "2026-01"
+    }
+  ],
+  "run_id_held_constant": "SYN-STAGE6-RUN-92855a5a9116a0ffd8888322",
+  "tables": {
+    "animal_outcomes": {
+      "byte_identical_partitions": 1,
+      "optimized_partitions": 1,
+      "original_partitions": 1,
+      "rows": 2
+    },
+    "animal_profiles": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 2
+    },
+    "animals": {
+      "byte_identical_partitions": 1,
+      "optimized_partitions": 1,
+      "original_partitions": 1,
+      "rows": 2
+    },
+    "close_deltas": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 48
+    },
+    "daily_soh": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 20
+    },
+    "decision_snapshots": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 8
+    },
+    "exceptions": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 21
+    },
+    "feed_plans": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 14
+    },
+    "feeding_weight_inputs": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 14
+    },
+    "finance_monthly": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 4
+    },
+    "finance_snapshots": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 4
+    },
+    "finance_soh": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 20
+    },
+    "financial_approvals": {
+      "byte_identical_partitions": 1,
+      "optimized_partitions": 1,
+      "original_partitions": 1,
+      "rows": 2
+    },
+    "financial_source_links": {
+      "byte_identical_partitions": 1,
+      "optimized_partitions": 1,
+      "original_partitions": 1,
+      "rows": 18
+    },
+    "financial_sources": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 16
+    },
+    "growth_operational": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 87
+    },
+    "journal_lines": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 20
+    },
+    "journals_as_known": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 10
+    },
+    "journals_restated": {
+      "byte_identical_partitions": 0,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 10
+    },
+    "locations": {
+      "byte_identical_partitions": 1,
+      "optimized_partitions": 1,
+      "original_partitions": 1,
+      "rows": 3
+    },
+    "lots": {
+      "byte_identical_partitions": 1,
+      "optimized_partitions": 1,
+      "original_partitions": 1,
+      "rows": 1
+    },
+    "monthly_soh": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 10
+    },
+    "movement_events": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 3
+    },
+    "physical_contexts": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 42
+    },
+    "physical_intervals": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 3
+    },
+    "placement_requests": {
+      "byte_identical_partitions": 1,
+      "optimized_partitions": 1,
+      "original_partitions": 1,
+      "rows": 3
+    },
+    "ration_ingredients": {
+      "byte_identical_partitions": 1,
+      "optimized_partitions": 1,
+      "original_partitions": 1,
+      "rows": 12
+    },
+    "ration_versions": {
+      "byte_identical_partitions": 1,
+      "optimized_partitions": 1,
+      "original_partitions": 1,
+      "rows": 4
+    },
+    "scale_samples_diagnostic": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 2
+    },
+    "trial_balance": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 96
+    },
+    "warehouse_bins": {
+      "byte_identical_partitions": 1,
+      "optimized_partitions": 1,
+      "original_partitions": 1,
+      "rows": 6
+    },
+    "warehouse_equipment": {
+      "byte_identical_partitions": 1,
+      "optimized_partitions": 1,
+      "original_partitions": 1,
+      "rows": 2
+    },
+    "warehouse_ingredients": {
+      "byte_identical_partitions": 1,
+      "optimized_partitions": 1,
+      "original_partitions": 1,
+      "rows": 3
+    },
+    "warehouse_orders": {
+      "byte_identical_partitions": 1,
+      "optimized_partitions": 1,
+      "original_partitions": 1,
+      "rows": 3
+    },
+    "warehouse_po_status": {
+      "byte_identical_partitions": 1,
+      "optimized_partitions": 1,
+      "original_partitions": 1,
+      "rows": 3
+    },
+    "warehouse_prices": {
+      "byte_identical_partitions": 1,
+      "optimized_partitions": 1,
+      "original_partitions": 1,
+      "rows": 3
+    },
+    "warehouse_suppliers": {
+      "byte_identical_partitions": 1,
+      "optimized_partitions": 1,
+      "original_partitions": 1,
+      "rows": 1
+    },
+    "warehouse_warehouses": {
+      "byte_identical_partitions": 1,
+      "optimized_partitions": 1,
+      "original_partitions": 1,
+      "rows": 2
+    },
+    "weather_exposure": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 40
+    },
+    "weigh_attempts": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 2
+    },
+    "weight_estimates": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 14
+    },
+    "weight_observations": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 2
+    },
+    "wip": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 6
+    },
+    "wip_components": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 15
+    },
+    "yardage": {
+      "byte_identical_partitions": 2,
+      "optimized_partitions": 2,
+      "original_partitions": 2,
+      "rows": 7
+    }
+  }
+}

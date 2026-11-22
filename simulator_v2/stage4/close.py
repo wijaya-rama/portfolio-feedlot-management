@@ -78,9 +78,13 @@ def animal_components(batch, journals):
             signed = sum(balance((row,), account) for account in CATTLE_COST)
             if signed:
                 ledger[row.animal_id][row.component] += signed
+    yield from _animal_component_rows(close, animals, ledger)
+
+
+def _animal_component_rows(close, animals, ledger):
     destinations = {AnimalStatus.ACTIVE: 0, AnimalStatus.SOLD: 1, AnimalStatus.DEAD: 2}
     for animal in animals:
-        costs = ledger[animal.animal_id]
+        costs = ledger.get(animal.animal_id, {})
         index = destinations.get(animal.status)
         if index is None and costs:
             raise ValueError(f"cattle cost before receipt: {animal.animal_id}")
@@ -199,42 +203,106 @@ WIP_FIELDS = {
 WAREHOUSE_FIELDS = (Kind.RECEIPT, Kind.ISSUE, "transfer", Kind.ADJUST, Kind.SPOILAGE, Kind.RETURN)
 
 
-def _wip_rows(close, fixture, journals, states):
-    by_animal = defaultdict(list)
-    for journal in journals:
-        if journal.animal_id:
-            by_animal[journal.animal_id].append(journal)
+class JournalSummary:
+    """Additive close controls for eligible Stage 4 journals."""
+    def __init__(self):
+        self.balances = Counter()
+        self.current_balances = Counter()
+        self.debits, self.credits = Counter(), Counter()
+        self.wip = Counter()
+        self.current_wip = Counter()
+        self.costs = defaultdict(Counter)
+        self.components = defaultdict(Counter)
+        self.absorption = Counter()
+        self.releases = Counter()
+        self.clearing = Counter()
+        self.clearing_first = {}
+
+    def add(self, row, month):
+        debit, credit, amount = row.debit_account, row.credit_account, row.amount_cents
+        self.balances[debit] += amount
+        self.balances[credit] -= amount
+        current = row.accounting_month == month
+        component = row.component
+        if current:
+            self.current_balances[debit] += amount
+            self.current_balances[credit] -= amount
+            if component not in {"opening_wip", "warehouse_opening"}:
+                self.debits[debit] += amount
+                self.credits[credit] += amount
+        if debit in CLEARING:
+            self.add_clearing(debit, row, amount)
+        if credit in CLEARING:
+            self.add_clearing(credit, row, -amount)
+        animal = row.animal_id
+        if not animal:
+            return
+        wip = amount * ((debit == Account.WIP) - (credit == Account.WIP))
+        if wip:
+            self.wip[animal] += wip
+            if component.removeprefix("invoice_") in NORMAL_COMPONENTS:
+                self.absorption[animal] += wip
+        if row.principal_release:
+            self.releases[animal] += 1
+        else:
+            signed = amount * ((debit in CATTLE_COST) - (credit in CATTLE_COST))
+            if signed:
+                self.components[animal][component] += signed
+        if current and component != "opening_wip":
+            if row.principal_release:
+                field = "sales_release_cents" if debit == Account.COGS else "mortality_release_cents"
+                self.costs[animal][field] -= wip
+            elif wip:
+                field = WIP_FIELDS.get(component, "adjustments_cents")
+                if row.approval_id and component != "yardage_correction":
+                    field = "adjustments_cents"
+                self.costs[animal][field] += wip
+            elif debit in OUTCOMES or credit in OUTCOMES:
+                self.costs[animal]["late_cogs_cents"] += amount * ((debit == Account.COGS) - (credit == Account.COGS))
+                self.costs[animal]["late_mortality_cents"] += amount * (
+                    (debit == Account.MORTALITY) - (credit == Account.MORTALITY))
+            if wip:
+                self.current_wip[animal] += wip
+
+    def add_clearing(self, account, row, amount):
+        key = account, _clearing_pool(row, account)
+        self.clearing[key] += amount
+        earlier = self.clearing_first.setdefault(key, row.effective_at)
+        if row.effective_at < earlier:
+            self.clearing_first[key] = row.effective_at
+
+    def roll_forward(self, movement):
+        # Advance cumulative controls and retain only this month's activity.
+        for field in ("balances", "wip", "absorption", "releases", "clearing"):
+            getattr(self, field).update(getattr(movement, field))
+        for animal, costs in movement.components.items():
+            self.components[animal].update(costs)
+        for key, first in movement.clearing_first.items():
+            if first < self.clearing_first.setdefault(key, first):
+                self.clearing_first[key] = first
+        for field in ("current_balances", "debits", "credits", "current_wip", "costs"):
+            setattr(self, field, getattr(movement, field))
+
+    def animal_components(self, batch):
+        return _animal_component_rows(*batch[:2], self.components)
+
+
+def _wip_rows(close, fixture, summary, states):
     entries = fixture.operations.timeline.entries
     for state in sorted(states, key=lambda row: row.animal_id):
         animal = state.animal_id
-        relevant = by_animal[animal]
-        before = [row for row in relevant if row.accounting_month < close.month or row.component == "opening_wip"]
-        current = [row for row in relevant if row.accounting_month == close.month and row.component != "opening_wip"]
-        costs = Counter()
-        for row in current:
-            wip = balance((row,), Account.WIP)
-            if row.principal_release:
-                field = "sales_release_cents" if row.debit_account == Account.COGS else "mortality_release_cents"
-                costs[field] += -wip
-            elif wip:
-                field = WIP_FIELDS.get(row.component, "adjustments_cents")
-                if row.approval_id and row.component != "yardage_correction":
-                    field = "adjustments_cents"
-                costs[field] += wip
-            elif row.debit_account in OUTCOMES or row.credit_account in OUTCOMES:
-                costs["late_cogs_cents"] += balance((row,), Account.COGS)
-                costs["late_mortality_cents"] += balance((row,), Account.MORTALITY)
+        costs = summary.costs.get(animal, Counter())
         if entries[animal].available_at > close.knowledge_cutoff:
             raise ValueError("future entry in animal WIP cutoff")
+        ending = summary.wip[animal]
         yield AnimalWip(close.close_id, close.month, animal, state.lot_id, fixture.config["yard_id"],
-                        state.location_id, state.status, balance(before, Account.WIP),
+                        state.location_id, state.status, ending - summary.current_wip[animal],
                         *(costs[field] for field in ("acquisition_cents", "feed_consumption_cents",
                                                       "feed_absorbed_cents", "yardage_cents",
                                                       "veterinary_cents", "veterinary_overhead_cents",
                                                       "adjustments_cents",
                                                       "sales_release_cents", "mortality_release_cents")),
-                        balance(relevant, Account.WIP),
-                        costs["late_cogs_cents"], costs["late_mortality_cents"])
+                        ending, costs["late_cogs_cents"], costs["late_mortality_cents"])
 
 
 def _warehouse_rows(close, fixture):
@@ -262,15 +330,9 @@ def _clearing_pool(row, account):
     return row.pool_id
 
 
-def _exceptions(close, fixture, journals):
-    buckets = defaultdict(list)
-    for row in journals:
-        for account in {row.debit_account, row.credit_account} & CLEARING:
-            buckets[account, _clearing_pool(row, account)].append(row)
-    for (account, pool), group in sorted(buckets.items()):
-        cents = balance(group, account)
-        if not cents:
-            continue
+def _exceptions(close, fixture, summary):
+    for account, pool in sorted(key for key, cents in summary.clearing.items() if cents):
+        cents = summary.clearing[account, pool]
         delivery = fixture.feed.deliveries.get(pool)
         seen_settlement = any(
             version.row.available_at <= close.knowledge_cutoff
@@ -285,25 +347,18 @@ def _exceptions(close, fixture, journals):
         if reason is None:
             raise ValueError(f"unexplained clearing balance at {close.month}: {account}/{pool}/{cents}")
         yield ExceptionRow(close.close_id, close.month, account, pool, close.knowledge_cutoff,
-                           min(row.effective_at for row in group), reason, cents)
+                           summary.clearing_first[account, pool], reason, cents)
 
 
-def _totals(close, rows, warehouse, relevant, current, exceptions):
+def _totals(close, rows, warehouse, summary, exceptions):
     def sum_wip(field):
         return sum(getattr(row, field) for row in rows)
 
-    def retained_absorption(row):
-        return ((row.component.removeprefix("invoice_") in NORMAL_COMPONENTS)
-                and (row.debit_account == Account.WIP or row.credit_account == Account.WIP)
-                and row.animal_id in active)
-
-    active = {row.animal_id for row in rows if row.status == AnimalStatus.ACTIVE}
-    retained = sum(balance((row,), Account.WIP) for row in relevant if retained_absorption(row))
-    revenue = -balance(current, Account.REVENUE)
-    packer = -balance(current, Account.PACKER)
-    cogs = balance(current, Account.COGS)
-    mortality = balance(current, Account.MORTALITY)
-    variance = sum(balance(current, account) for account in VARIANCES)
+    retained = sum(summary.absorption[row.animal_id] for row in rows if row.status == AnimalStatus.ACTIVE)
+    current = summary.current_balances
+    revenue, packer = -current[Account.REVENUE], -current[Account.PACKER]
+    cogs, mortality = current[Account.COGS], current[Account.MORTALITY]
+    variance = sum(current[account] for account in VARIANCES)
     return Monthly(
         close.close_id, close.month, close.view, sum_wip("opening_cents"), sum_wip("acquisition_cents"),
         sum_wip("feed_consumption_cents"), sum_wip("feed_absorbed_cents"), sum_wip("yardage_cents"),
@@ -311,12 +366,13 @@ def _totals(close, rows, warehouse, relevant, current, exceptions):
         sum_wip("adjustments_cents"), sum_wip("sales_release_cents"),
         sum_wip("mortality_release_cents"), sum_wip("closing_cents"), retained,
         sum(row.closing_cents for row in warehouse), sum(row.closing_g_af for row in warehouse),
-        balance(relevant, Account.RECOVERY), sum(row.open_cents for row in exceptions),
+        summary.balances[Account.RECOVERY], sum(row.open_cents for row in exceptions),
         revenue, packer, revenue + packer, cogs, revenue + packer - cogs, mortality, variance,
         revenue + packer - cogs - mortality - variance)
 
 
-def close_month(fixture, period, journals, *, prior=None, original=None, knowledge=None):
+def close_month(fixture, period, journals, *, prior=None, original=None, knowledge=None,
+                journal_checkpoint=None, warehouse_balances=None, yardage_days=None):
     knowledge = period.locked_at if knowledge is None else knowledge
     revised = original is not None
     approval = fixture.restated if revised else None
@@ -326,40 +382,43 @@ def close_month(fixture, period, journals, *, prior=None, original=None, knowled
         raise ValueError("restatement requires same month, later knowledge and approved source")
     if not revised and knowledge != period.locked_at:
         raise ValueError("original close must use the immutable period lock")
-    relevant = [row for row in journals
-                if row.accounting_month <= period.month and row.available_at <= knowledge]
-    current = [row for row in relevant if row.accounting_month == period.month]
-    historical = [row for row in relevant if row.accounting_month < period.month]
+    if journal_checkpoint is None:
+        relevant = [row for row in journals if row.accounting_month <= period.month and row.available_at <= knowledge]
+        summary = JournalSummary()
+        for row in relevant:
+            summary.add(row, period.month)
+        digest, count = sha256(canonical(relevant)), len(relevant)
+    else:
+        summary, digest, count = journal_checkpoint
     replay, _, monthly, stock_checks = calculate_soh(
         fixture.operations.ledger, period.start, period.end, knowledge)
     reject_failures(stock_checks)
     view = "restated" if revised else "as_known"
-    digest = sha256(canonical(relevant))
     identifier = stable_id("MONTHLY-CLOSE", [period, knowledge, view, digest, replay.states, monthly,
                                              approval, original.close_id if revised else None,
                                              prior.close_id if prior else None])
     close = Close(identifier, period.month, period.start, period.end, period.effective_before,
-                  knowledge, period.locked_at, view, fixture.feed.policy.version, digest, len(relevant),
+                  knowledge, period.locked_at, view, fixture.feed.policy.version, digest, count,
                   original.close_id if revised else None, prior.close_id if prior else None, approval)
-    wip = tuple(_wip_rows(close, fixture, relevant, replay.states))
+    wip = tuple(_wip_rows(close, fixture, summary, replay.states))
     stock = tuple(Stock(close.close_id, close.month, row.scope_type, row.scope_id, row.opening_head,
                         row.receipts, row.sales, row.deaths, row.transfers_in, row.transfers_out,
                         row.closing_head, row.animal_days) for row in monthly)
     warehouse = tuple(_warehouse_rows(close, fixture))
-    exceptions = tuple(_exceptions(close, fixture, relevant))
-    opening_entries = [row for row in current if row.component in {"opening_wip", "warehouse_opening"}]
-    activity = [row for row in current if row not in opening_entries]
-    trial = tuple(Trial(close.close_id, close.month, account, balance(historical + opening_entries, account),
-                        sum(row.amount_cents for row in activity if row.debit_account == account),
-                        sum(row.amount_cents for row in activity if row.credit_account == account),
-                        balance(relevant, account)) for account in Account)
-    total = _totals(close, wip, warehouse, relevant, current, exceptions)
+    exceptions = tuple(_exceptions(close, fixture, summary))
+    balances = summary.balances
+    trial = tuple(Trial(close.close_id, close.month, account,
+                        balances[account] - summary.debits[account] + summary.credits[account],
+                        summary.debits[account], summary.credits[account], balances[account])
+                  for account in Account)
+    total = _totals(close, wip, warehouse, summary, exceptions)
     expected_exits = {state.animal_id for state in replay.states
                       if state.status in {AnimalStatus.DEAD, AnimalStatus.SOLD}}
-    actual_exits = Counter(row.animal_id for row in relevant if row.principal_release)
-    warehouse_listing = fixture.operations.warehouse.snapshot(period.effective_before, knowledge)
-    expected_layers = {(row.bin_id, row.layer_id): (row.g_af, row.cents)
-                       for row in warehouse_listing.balances}
+    if warehouse_balances is None:
+        warehouse_balances = fixture.operations.warehouse.snapshot(period.effective_before, knowledge).balances
+    expected_layers = {(row.bin_id, row.layer_id): (row.g_af, row.cents) for row in warehouse_balances}
+    if yardage_days is None:
+        yardage_days = sum(period.start <= row.date <= period.end for row in fixture.yardage)
     actual_layers = {(row.bin_id, row.layer_id): (row.closing_g_af, row.closing_cents)
                      for row in warehouse if row.closing_g_af or row.closing_cents}
     checks = [
@@ -367,28 +426,28 @@ def close_month(fixture, period, journals, *, prior=None, original=None, knowled
          and sum(row.debit_cents - row.credit_cents for row in trial) == 0
          and all(row.opening_signed_cents + row.debit_cents - row.credit_cents
                  == row.closing_signed_cents for row in trial)),
-        ("WAREHOUSE_CONTROL", balance(relevant, Account.WAREHOUSE) == total.inventory_cents
+        ("WAREHOUSE_CONTROL", balances[Account.WAREHOUSE] == total.inventory_cents
          and actual_layers == expected_layers),
         ("OPENING_CONTROL", sum(row.opening_cents for row in warehouse)
          == next(row.opening_signed_cents for row in trial if row.account == Account.WAREHOUSE)
          and total.opening_wip_cents == next(row.opening_signed_cents for row in trial
                                              if row.account == Account.WIP)),
-        ("WIP_CONTROL", balance(relevant, Account.WIP) == total.closing_wip_cents
+        ("WIP_CONTROL", balances[Account.WIP] == total.closing_wip_cents
          and all(row.opening_cents + row.acquisition_cents + row.feed_consumption_cents
                  + row.feed_absorbed_cents + row.yardage_cents + row.veterinary_cents
                  + row.veterinary_overhead_cents
                  + row.adjustments_cents - row.sales_release_cents - row.mortality_release_cents
                  == row.closing_cents >= 0 for row in wip)),
-        ("EXIT_WIP", actual_exits == Counter(dict.fromkeys(expected_exits, 1))
+        ("EXIT_WIP", summary.releases == Counter(dict.fromkeys(expected_exits, 1))
          and all(row.status == AnimalStatus.ACTIVE or not row.closing_cents for row in wip)),
         ("RELEASE_AND_LATE_COST", total.sales_cogs_cents == sum(row.sales_release_cents + row.late_cogs_cents
                                                                for row in wip)
          and total.mortality_burden_cents == sum(row.mortality_release_cents + row.late_mortality_cents
                                                 for row in wip)),
-        ("CLEARING", sum(balance(relevant, account) for account in CLEARING) == total.clearing_cents),
-        ("RECEIVABLE", balance(relevant, Account.RECEIVABLE)
-         == -balance(relevant, Account.REVENUE) - balance(relevant, Account.PACKER)),
-        ("YARDAGE_ELIGIBILITY", sum(period.start <= row.date <= period.end for row in fixture.yardage)
+        ("CLEARING", sum(balances[account] for account in CLEARING) == total.clearing_cents),
+        ("RECEIVABLE", balances[Account.RECEIVABLE]
+         == -balances[Account.REVENUE] - balances[Account.PACKER]),
+        ("YARDAGE_ELIGIBILITY", yardage_days
          == next(row.animal_days for row in stock if row.scope_type == "yard")),
     ]
     checks = tuple(Check(label, f"{period.month}/{view}", True, passed, int(not passed))

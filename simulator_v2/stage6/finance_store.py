@@ -35,6 +35,10 @@ class StoredRecords(Mapping):
         self.remember(key, value)
         return value
 
+    def values(self):
+        rows = self.database.execute(f"SELECT data FROM {self.name} ORDER BY rowid")
+        yield from (loads(data) for data, in rows)
+
     def __setitem__(self, key, value):
         self.database.execute(f"INSERT INTO {self.name} VALUES (?, ?)", (key, dumps(value, protocol=5)))
         self.length += 1
@@ -61,9 +65,6 @@ class FinanceStore:
         db.executescript("""
             CREATE TABLE actions (key TEXT PRIMARY KEY, as_known TEXT NOT NULL,
                                   restated TEXT NOT NULL, data BLOB NOT NULL);
-            CREATE TABLE journals (view TEXT NOT NULL, journal_id TEXT NOT NULL, month TEXT NOT NULL,
-                                   available TEXT NOT NULL, data BLOB NOT NULL,
-                                   UNIQUE(view, journal_id));
         """)
         self.sources = Sources()
         self.sources.rows = StoredRecords(db, "sources")
@@ -91,17 +92,6 @@ class FinanceStore:
         rows = self.database.execute(f"SELECT {view}, data FROM actions ORDER BY {view}, rowid")
         for _, group in groupby(rows, key=lambda row: row[0]):
             yield (loads(data) for _, data in group)
-
-    def write_journals(self, view, journals):
-        self.database.executemany("INSERT INTO journals VALUES (?, ?, ?, ?, ?)",
-                                  ((view, row.journal_id, row.accounting_month, row.available_at.isoformat(),
-                                    dumps(row, protocol=5)) for row in journals))
-
-    def journals(self, view, month, knowledge):
-        records = self.database.execute("""SELECT data FROM journals
-            WHERE view = ? AND month <= ? AND available <= ? ORDER BY rowid""",
-                                        (view, month, knowledge.isoformat()))
-        yield from (loads(data) for data, in records)
 
     def close(self):
         self.database.close()

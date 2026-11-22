@@ -1,5 +1,16 @@
 # Keputusan pilot 1.500 placement
 
+## Stage 6B · HOLD
+
+Preflight membuktikan kalender penuh, carry-in dan carry-out ber-WIP, dua window pakan harian, serta 24 penutupan per view untuk ukuran yang diuji. Stage 4 menjalankan posting dan close. Nama periode serta snapshot original dan restated dapat direkonstruksi dari partisi kandidat. [Pengukuran dan hasil Stage 6B](STAGE6B.md)
+
+- **Lulus pada skala terukur.** Kapasitas fisik, pergerakan, persamaan stok, yardage, horizon akses pakan, pemilihan forecast, AF/DM/nutrien, FIFO, clearing, GL/WIP, release, lock dan restatement lulus. Uji Stage 4 mencakup invoice dan reversals. Stage 6B menguji packer adjustment dan koreksi yardage pada runtime.
+- **Anggaran pilot belum tercapai.** Pipeline masih memproses pertumbuhan per segmen, alokasi per rilis, ekspansi sumber dan posting penuh dua view, kemudian membaca ulang puluhan juta baris pada proyeksi pilot. Model berbasis workload memproyeksikan wall clock dan rekonsiliasi di atas anggaran pada mesin terukur. Anggaran Stage 5 ditetapkan untuk mesin acuan 4 vCPU dan 16 GiB. [Proyeksi dan anggaran](evidence/stage6b/scaling.json)
+- **Kapasitas pilot masih perlu verifikasi.** Angka pen yang diskalakan menguji batas fisik pada preflight. Headroom produksi, aturan prioritas hospital, overflow, kebijakan segregasi lot, dan cadence inbound pada 1.500 placement perlu pengujian sesuai rencana. [Rencana Stage 5](../stage5/STAGE6_HANDOFF.md)
+- **Kalibrasi masih sintetis.** Holdout estimator 7/30/60 hari dan protokol multi-seed Stage 5 belum tercakup. Arsip yang diterima mendukung replay retrospektif dengan fallback musiman. Vintage forecast historis, kesehatan, gain dan intake, karkas dan pricing memerlukan data terukur untuk penggunaan komersial. [Protokol evaluasi](../stage5/EVALUATION.md)
+
+## Stage 6A
+
 **Stage 6A menetapkan HOLD untuk eksekusi pilot 1.500 placement.** Diagnostic runner memenuhi kontrol integrasi seed-42 dan kasus adversarial terkontrol. Promosi pilot memerlukan verifikasi kapasitas konfigurasi pilot dan pengukuran yang menunjukkan proses dapat berakhir dalam anggaran yang disepakati. Stage 6A berakhir pada dataset diagnostik.
 
 ## Cakupan yang diperiksa

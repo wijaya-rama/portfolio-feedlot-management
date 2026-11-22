@@ -5,10 +5,11 @@ from types import SimpleNamespace
 
 from ..stage1.model import EventKind, midnight
 from ..stage3.allocation import DEFAULT_METHOD
-from ..stage4.close import animal_components, close_month, compare_closes
+from ..stage4.close import close_month, compare_closes
 from ..stage4.feed import Feed, LossPolicy
 from ..stage4.fixture import Fixture, YardageDay, settings
 from ..stage4.ledger import Account, Action, Book, journal_lines, periods
+from .close_index import CloseIndex, immediate_warehouse_closes, yardage_by_month
 from .config import at
 from .livestock import DAY
 from .finance_store import FinanceStore
@@ -114,30 +115,36 @@ class Finance(Fixture):
 
     def books(self, cutoff):
         originals = []
+        warehouse_closes = immediate_warehouse_closes(self.operations.warehouse_snapshots[0], self.calendar)
+        yardage_days = yardage_by_month(self.yardage)
         for revised in (False, True):
             view = "restated" if revised else "as_known"
             book = Book(self.sources, self.book_calendar, version=f"{BOOK_VERSION}/{view}",
                         policy=self.feed.policy.version, yard=self.config["yard_id"],
                         restatement=self.restated if revised else None)
+            cutoffs = [cutoff if revised else period.locked_at for period in self.calendar]
+            journal_index = CloseIndex(self.calendar, cutoffs)
             for actions in self.store.batches(view):
                 journals = book.run(actions, cutoff)
-                self.store.write_journals(view, journals)
-                self.emit(f"journals_{view}", journals, partition_by="posted_at")
+                journal_index.add(journals)
+                clock = "period_routing_at" if revised else "posted_at"
+                self.emit(f"journals_{view}", journals, partition_by=clock)
                 if not revised:
                     for row in journals:
                         self.emit("journal_lines", journal_lines((row,)), row.posted_at)
-                # SQL enforces action/journal identity across batches. Stage 6 corrections have
+                # SQL enforces action identity across batches. Journal IDs are derived from action keys.
+                # Stage 6 corrections have
                 # independent signed keys and use immutable source ancestry, so no reversal lookup is needed.
                 book._actions.clear()
                 book._journals.clear()
             del book
             prior = None
-            for index, period in enumerate(self.calendar):
+            for index, (period, checkpoint) in enumerate(zip(self.calendar, journal_index.checkpoints(), strict=True)):
                 original = originals[index] if revised else None
-                knowledge = cutoff if revised else period.locked_at
-                result = close_month(self, period, self.store.journals(view, period.month, knowledge),
-                                     prior=prior, original=original[0] if original else None,
-                                     knowledge=cutoff if revised else None)
+                result = close_month(self, period, (), prior=prior, original=original[0] if original else None,
+                                     knowledge=cutoff if revised else None, journal_checkpoint=checkpoint,
+                                     warehouse_balances=warehouse_closes.get(period.month),
+                                     yardage_days=yardage_days[period.month])
                 prior = result[0]
                 if not revised:
                     originals.append(result)
@@ -145,8 +152,7 @@ class Finance(Fixture):
                                         "finance_exceptions", "finance_monthly"),
                                        ([result[0]], *result[1:6], [result[6]])):
                     self.emit(table, rows, midnight(period.start))
-                self.emit("wip_components", animal_components(
-                    result, self.store.journals(view, period.month, knowledge)), midnight(period.start))
+                self.emit("wip_components", checkpoint[0].animal_components(result), midnight(period.start))
                 if revised:
                     self.emit("close_deltas", compare_closes(original, result), midnight(period.start))
                 yield view, result

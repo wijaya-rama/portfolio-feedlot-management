@@ -6,6 +6,7 @@ from math import floor, ceil
 from statistics import mean
 
 from ..stage1.model import business_date, midnight
+from .reporting import stock_reporting
 from .validation import Audit
 
 DAY = timedelta(days=1)
@@ -46,6 +47,7 @@ def summarize(root, tables, runner, daily, monthly, closes):
     positions = defaultdict(list)
     peaks, roster = Counter(), Counter()
     reporting_months = {row.period_end.strftime("%Y-%m") for row in monthly}
+    peak_yard = 0
     for event in sorted(movements, key=lambda row: (row["effective_at"], row["sequence"])):
         month = business_date(event["effective_at"]).strftime("%Y-%m")
         if event["from_location_id"]:
@@ -53,6 +55,7 @@ def summarize(root, tables, runner, daily, monthly, closes):
         if event["to_location_id"]:
             pen = event["to_location_id"]
             roster[pen] += 1
+            peak_yard = max(peak_yard, sum(roster.values()))
             if month in reporting_months:
                 peaks[month, pen] = max(peaks[month, pen], roster[pen])
     for row in daily:
@@ -146,6 +149,8 @@ def summarize(root, tables, runner, daily, monthly, closes):
     totals["closing_wip_cents"] = revenue[-1].closing_wip_cents
     return {
         "placements_by_date": by_date,
+        "stock_reporting": stock_reporting(monthly, (row["status"] for row in outcomes.values())),
+        "peak_concurrent_inventory": peak_yard,
         "head": {"placements": sum(by_date.values()), "opening": len(runner.yard.opening),
                  "carry_out": status["active"], "sale": status["sold"], "death": status["dead"]},
         "yard_soh": [row for row in monthly if row.scope_type == "yard"], "occupancy": occupancy,

@@ -1,15 +1,19 @@
 """Independent hard gates over the published partition grain and source crosswalks."""
 
 from collections import Counter, defaultdict
-from hashlib import sha256 as hasher
+from datetime import date, datetime
 from math import isclose
 
 import pyarrow.parquet as pq
 
+from ..stage1.model import business_date, midnight
 from ..stage1.provenance import canonical
+from ..stage1.soh import StockRow
 from ..stage3.units import BPS, half_up
 from ..stage4.ledger import Account
+from .close_index import OrderedFingerprints
 from .config import SCHEMA
+from .reporting import stock_reporting
 
 AMOUNTS = ("g_af", "g_dm", "kj", "cp_g", "cents")
 NUTRIENTS = ("g_dm", "energy_kj", "cp_g")
@@ -26,7 +30,7 @@ class Audit:
     def rows(self, table, month=None, columns=None):
         for period, path in self.parts[table]:
             if month is None or period == month:
-                for batch in pq.ParquetFile(self.root / path).iter_batches(columns=columns):
+                for batch in pq.ParquetFile(self.root / path).iter_batches(batch_size=8192, columns=columns):
                     yield from batch.to_pylist()
 
     def check(self, key, valid, detail=""):
@@ -94,6 +98,12 @@ def audit_movements(audit, runner, replay, daily, monthly):
                         row.period_start)
             audit.check("stock_equation", row.transfers_in == row.transfers_out == 0 and
                         row.opening_head + row.receipts - row.sales - row.deaths == row.closing_head, row.period_start)
+    published = [StockRow(**{key: value for key, value in row.items() if key != "run_id"})
+                 for row in audit.rows("monthly_soh") if row["scope_type"] == "yard"]
+    period_rows = [row for row in monthly if row.scope_type == "yard"]
+    audit.check("period_end_stock_reporting", published == period_rows)
+    reported = stock_reporting(published, (row["status"] for row in outcomes.values()))
+    audit.check("final_simulation_stock_reporting", reported["final_simulation_soh"] == sum(pen.values()))
     audit.check("opening_wip_sources", len(opening) == sum(row["kind"] == "opening" for row in events.values())
                 and all(row["wip_cents"] > 0 and row["status"] == "active" for row in opening.values()))
     return animals, events, enter, exit_at, outcomes
@@ -227,7 +237,11 @@ def audit_feeding(audit, months, events, enter, exit_at, anchors, health, runner
         unique = set()
         by_settlement = defaultdict(Counter)
         flows = defaultdict(Counter)
-        for row in audit.rows("feed_allocations", month):
+        for row in audit.rows("feed_allocations", month, [
+            "allocation_id", "animal_id", "pen_id", "access_start", "access_end", "weight_input_id",
+            "exposure_id", "delivery_id", "estimate_id", "decision_cutoff", "settlement_id",
+            "duration_seconds", "window_start", "cents", *NUTRIENTS,
+        ]):
             identifier = row["allocation_id"]
             audit.check("primary_keys", identifier not in unique, ("feed allocation", identifier))
             unique.add(identifier)
@@ -265,7 +279,12 @@ def audit_feeding(audit, months, events, enter, exit_at, anchors, health, runner
                         == (pool["g_dm"], pool["kj"], pool["cp_g"], pool["cents"]), key)
         for path in ("operational", "retrospective") if runner.retro else ("operational",):
             growth = defaultdict(Counter)
-            for row in audit.rows(f"growth_{path}", month):
+            for row in audit.rows(f"growth_{path}", month, [
+                "animal_id", "location_id", "window_start_at", "consumed_g_dm", "energy_mj",
+                "protein_kg", "starting_me_mj", "maintenance_used_me_mj", "gain_used_me_mj",
+                "ending_me_mj", "excess_me_mj", "starting_cp_kg", "cp_maintenance_used_kg",
+                "cp_gain_used_kg", "ending_cp_kg", "excess_cp_kg", "start_at", "end_at", "weather_kind",
+            ]):
                 k = row["animal_id"], row["location_id"], row["window_start_at"]
                 if row["window_start_at"] is not None:
                     growth[k].update(g_dm=row["consumed_g_dm"], energy_kj=round(row["energy_mj"] * 1000),
@@ -290,6 +309,23 @@ def audit_finance(audit, closes, outcomes):
     for row in audit.rows("financial_source_links"):
         child, parent = sources[row["source_id"]], sources[row["parent_id"]]
         audit.check("finance_source_timing", parent <= child, row["source_id"])
+    published = audit.index(audit.rows("finance_snapshots"), "close_id", "financial snapshot")
+    audit.check("snapshot_publication", len(published) == len(closes))
+    by_view = {}
+    for _, result in closes:
+        snap = result[0]
+        row = published[snap.close_id]
+        audit.check("snapshot_publication", all(row[key] == value for key, value in vars(snap).items()), snap.close_id)
+        if snap.view == "as_known":
+            audit.check("original_close_lock", snap.knowledge_cutoff == snap.locked_at
+                        and snap.replaces_close_id is None and snap.approval_id is None, snap.month)
+            by_view[snap.month] = snap
+        else:
+            original = by_view[snap.month]
+            audit.check("restatement_close_lock", snap.replaces_close_id == original.close_id
+                        and snap.effective_before == original.effective_before
+                        and snap.knowledge_cutoff > original.knowledge_cutoff and snap.approval_id,
+                        snap.month)
     sums = Counter()
     releases = {}
     for view in ("as_known", "restated"):
@@ -302,8 +338,10 @@ def audit_finance(audit, closes, outcomes):
             ending = {row.account: row.closing_signed_cents for row in first[4]}
             audit.check("monthly_trial_continuity", all(row.opening_signed_cents == ending[row.account]
                                                          for row in next_close[4]), (view, first[0].month))
-        count = Counter()
-        digests = {snap.month: hasher(b"[") for snap in snapshots} if view == "as_known" else {}
+        fingerprints = OrderedFingerprints(len(snapshots))
+        partitions = audit.parts[f"journals_{view}"]
+        audit.check("journal_partition_order", partitions == sorted(partitions), view)
+        preceding = None
         for month, _ in audit.parts[f"journals_{view}"]:
             journal_links = {}
             for row in audit.rows(f"journals_{view}", month):
@@ -312,8 +350,15 @@ def audit_finance(audit, closes, outcomes):
                 audit.check("journal_source_foreign_key", row["source_id"] in sources, key)
                 audit.check("balanced_paired_entries", row["debit_account"] != row["credit_account"]
                             and row["amount_cents"] >= 0, key)
-                eligibility = [snap for snap in snapshots if row["accounting_month"] <= snap.month
-                               and row["available_at"] <= snap.knowledge_cutoff]
+                clock = row["posted_at"] if view == "as_known" else row["period_routing_at"]
+                audit.check("journal_partition_order", preceding is None or clock >= preceding, key)
+                preceding = clock
+                first = next((index for index, snap in enumerate(snapshots)
+                              if row["accounting_month"] <= snap.month
+                              and row["available_at"] <= snap.knowledge_cutoff), len(snapshots))
+                if first < len(snapshots):
+                    fingerprint_row = {column: value for column, value in row.items() if column != "run_id"}
+                    fingerprints.add(first, canonical(fingerprint_row)[:-1])
                 if view == "as_known":
                     journal_links[key] = (row["debit_account"], row["credit_account"], row["amount_cents"])
                     if row["principal_release"]:
@@ -322,14 +367,6 @@ def audit_finance(audit, closes, outcomes):
                         releases[animal] = row
                     if row["component"] in {"feed_consumption", "mix_normal", "distribution_normal", "refusal_normal"}:
                         sums[row["pool_id"]] += row["amount_cents"]
-                    if eligibility:
-                        encoded = canonical({key: value for key, value in row.items() if key != "run_id"})[:-1]
-                        for snap in eligibility:
-                            digest = digests[snap.month]
-                            if count[snap.month]:
-                                digest.update(b",")
-                            digest.update(encoded)
-                count.update(snap.month for snap in eligibility)
             if view == "as_known":
                 seen = defaultdict(set)
                 for row in audit.rows("journal_lines", month):
@@ -341,11 +378,10 @@ def audit_finance(audit, closes, outcomes):
                     seen[key].add(line)
                 audit.check("balanced_two_line_journal", len(seen) == len(journal_links)
                             and all(lines == {1, 2} for lines in seen.values()), month)
-        for snap in snapshots:
-            audit.check("books_close_counts", count[snap.month] == snap.source_journal_count, (view, snap.month))
-            if snap.month in digests:
-                digests[snap.month].update(b"]\n")
-                audit.check("stable_original_snapshot", digests[snap.month].hexdigest() == snap.journal_sha256, snap.month)
+        for snap, (digest, count) in zip(snapshots, fingerprints.results(), strict=True):
+            audit.check("books_close_counts", count == snap.source_journal_count, (view, snap.month))
+            gate = "stable_original_snapshot" if view == "as_known" else "stable_restated_snapshot"
+            audit.check(gate, digest == snap.journal_sha256, snap.month)
     audit.check("outcome_release", set(releases) == {key for key, row in outcomes.items() if row["status"] != "active"})
     for key, row in releases.items():
         expected = Account.COGS if outcomes[key]["status"] == "sold" else Account.MORTALITY
@@ -398,6 +434,26 @@ def audit_sales(audit, observations, events):
                     row["provisional_cents"] + row["adjustment_cents"], key)
 
 
+def audit_weather(audit, runner):
+    eligible = {}
+    for vintage in runner.config["weather"]["forecasts"]:
+        issued = vintage["issued_at"]
+        available = vintage["available_at"]
+        day = vintage["day"]
+        due = midnight(date.fromisoformat(day))
+        candidate = datetime.fromisoformat(issued), datetime.fromisoformat(available), vintage["source_id"]
+        if candidate[1] <= due and (day not in eligible or candidate > eligible[day]):
+            eligible[day] = candidate
+    published = audit.index(audit.rows("weather_forecasts"), "source_id", "forecast vintages")
+    audit.check("weather_forecast_publication", set(published) == {row[2] for row in eligible.values()})
+    for row in audit.rows("weather_exposure"):
+        day = business_date(row["start_at"])
+        point = eligible.get(day.isoformat())
+        if row["path"] == "operational":
+            expected = ("issued_forecast", point[2]) if point else ("seasonal_fallback", f"SYN-SEASONAL-{day:%m}")
+            audit.check("no_future_weather", (row["kind"], row["source_id"]) == expected, row["start_at"])
+
+
 def reconcile(root, tables, runner, replay, daily, monthly, closes):
     audit = Audit(root, tables)
     for filename in tables:
@@ -411,4 +467,5 @@ def reconcile(root, tables, runner, replay, daily, monthly, closes):
     audit_feeding(audit, [row.month for row in runner.calendar], events, enter, exit_at, anchors, health, runner)
     audit_finance(audit, closes, outcomes)
     audit_sales(audit, observations, events)
+    audit_weather(audit, runner)
     return audit.checks

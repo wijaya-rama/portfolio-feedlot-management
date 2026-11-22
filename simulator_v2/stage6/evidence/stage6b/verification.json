@@ -1,0 +1,20 @@
+{
+  "accepted_hashes_json_sha256": "c48e4dbd11da590633da49a00fb3edf1a7dcff5e9fa2857c548210b5a47be606",
+  "controlled_fixture_cold_builds": {
+    "config": "configs/adversarial-shortage.json",
+    "deterministic_artifacts_match": true,
+    "hashes_json_sha256": "7a6ec393deda3cab5f5a37395344585b48bfbb7e0e3570ccf030f9269b991858",
+    "python_hash_seeds": [
+      107,
+      218
+    ]
+  },
+  "reference_commit": "8dfbaa3160dc88a9b673cd0772a2d7813866e5ee",
+  "reference_rebuild_matches_all_accepted_deterministic_artifacts": true,
+  "regression": {
+    "command": "python -m pytest -q tests simulator_v2/stage{1,2,3,3_5,4,5,6}/tests",
+    "passed": 241,
+    "pytest_summary": "241 passed, 62 subtests passed in 258.78s (0:04:18)",
+    "subtests_passed": 62
+  }
+}

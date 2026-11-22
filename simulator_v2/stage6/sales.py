@@ -83,7 +83,7 @@ class Sales:
             return []
         due = [live for live in self.yard.active.values()
                if self.yard.kinds[live.pen] == LocationKind.PRODUCTION
-               and (when - live.production_age_origin) / DAY >= self.policy["minimum_dof"]]
+               and (when - live.production_age_origin) / DAY >= self.yard.minimum_dof_by_lot[live.lot]]
         if not due:
             return []
         _, estimates = self.weights.freeze(when, due)
