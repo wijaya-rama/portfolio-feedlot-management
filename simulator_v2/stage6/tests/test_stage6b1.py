@@ -236,12 +236,13 @@ def test_full_vs_incremental_validation_and_tamper_detection(tmp_path):
 
     # Tamper with an unchanged 2025-12 partition -> incremental mode must detect digest mismatch
     dec_part = next(name for name, info in tables.items() if info["month"] == "2025-12" and info["table"] == "yardage")
-    prior_digests_bad = {**prior_digests, dec_part: "0" * 64}
+    path, original = _replace_cell(out, tables, "yardage", "cents", lambda value: value + 1, month="2025-12")
     with pytest.raises(ValueError, match="immutable_partition_digest"):
         reconcile_with_mode(
             out, tables, runner, replay, daily, monthly, closes,
-            mode="incremental", changed_months=["2026-01"], prior_partition_digests=prior_digests_bad,
+            mode="incremental", changed_months=["2026-01"], prior_partition_digests=prior_digests,
         )
+    path.write_bytes(original)
 
     with pytest.raises(ValueError, match="requires prior_partition_digests"):
         reconcile_with_mode(out, tables, runner, replay, daily, monthly, closes,
@@ -251,29 +252,47 @@ def test_full_vs_incremental_validation_and_tamper_detection(tmp_path):
                             runner, replay, daily, monthly, closes, mode="incremental",
                             changed_months=["2026-01"], prior_partition_digests=prior_digests)
 
+    with pytest.raises(ValueError, match="immutable_partition_digest"):
+        reconcile_with_mode(out, tables, runner, replay, daily, monthly, closes,
+                            mode="incremental", changed_months=["2026-01"],
+                            prior_partition_digests={name: digest for name, digest in prior_digests.items()
+                                                     if name != dec_part})
+
+    immutable_path = out / dec_part
+    immutable_bytes = immutable_path.read_bytes()
+    immutable_path.unlink()
+    try:
+        with pytest.raises(ValueError, match="immutable_partition_digest"):
+            reconcile_with_mode(out, tables, runner, replay, daily, monthly, closes,
+                                mode="incremental", changed_months=["2026-01"],
+                                prior_partition_digests=prior_digests)
+    finally:
+        immutable_path.write_bytes(immutable_bytes)
+
     path, original = _replace_cell(out, tables, "feed_plans", "planned_g_dm", lambda value: value + 1, month="2026-01")
     with pytest.raises(ValueError, match="ration_and_plan"):
         reconcile_with_mode(out, tables, runner, replay, daily, monthly, closes, mode="incremental",
                             changed_months=["2025-12"], prior_partition_digests=prior_digests)
     path.write_bytes(original)
 
-    for table, column, gate in (
-        ("wip", "closing_cents", "financial_close_publication"),
-        ("finance_monthly", "sales_cogs_cents", "financial_close_publication"),
-        ("warehouse_receipts", "g_af", "warehouse_replay_publication"),
+    for table, column, delta, gate in (
+        ("wip", "closing_cents", 10_000, "financial_close_publication"),
+        ("finance_monthly", "sales_cogs_cents", 10_000, "financial_close_publication"),
+        ("warehouse_receipts", "g_af", 1, "warehouse_replay_publication"),
     ):
-        path, original = _replace_cell(out, tables, table, column, lambda value: value + 1)
+        path, original = _replace_cell(out, tables, table, column, lambda value: value + delta)
         with pytest.raises(ValueError, match=gate):
             reconcile_with_mode(out, tables, runner, replay, daily, monthly, closes, mode="full")
         path.write_bytes(original)
 
     growth = pq.ParquetFile(out / "growth_operational/month=2026-01/part.parquet").read()
     no_feed = growth["window_start_at"].to_pylist().index(None)
-    path, original = _replace_cell(out, tables, "growth_operational", "starting_me_mj", lambda _: float("inf"),
-                                   month="2026-01", position=no_feed)
-    with pytest.raises(ValueError, match="biological_reserve_balance"):
-        reconcile_with_mode(out, tables, runner, replay, daily, monthly, closes, mode="full")
-    path.write_bytes(original)
+    for nonfinite in (float("inf"), float("-inf"), float("nan")):
+        path, original = _replace_cell(out, tables, "growth_operational", "starting_me_mj", lambda _: nonfinite,
+                                       month="2026-01", position=no_feed)
+        with pytest.raises(ValueError, match="biological_reserve_balance"):
+            reconcile_with_mode(out, tables, runner, replay, daily, monthly, closes, mode="full")
+        path.write_bytes(original)
 
     # Tamper with a changed 2026-01 journal amount -> incremental mode must fail fingerprint/line balance
     jan_j = out / "journals_as_known/month=2026-01/part.parquet"
