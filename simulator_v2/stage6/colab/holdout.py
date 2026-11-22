@@ -3,13 +3,13 @@
 import argparse
 from bisect import bisect_left
 from collections import Counter, defaultdict
-from dataclasses import replace
+from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from hashlib import sha256
 from io import BytesIO
 import json
 from pathlib import Path, PurePosixPath
-from statistics import fmean
+from statistics import fmean, median
 import tarfile
 
 import pyarrow.parquet as pq
@@ -26,6 +26,7 @@ from ..config import HERE, SCHEMA, at, model
 from ..export import digest
 
 BASELINE_CODE = "39770fb9e2867127f1ddac671ac694997e26b864"
+PILOT_CODE = "e59d04ecf24eddcdc0473f33e98ae1ea381f595d"
 STAGE5 = HERE.parent / "stage5"
 ENTRY_TICKETS = (Kind.OPENING, Kind.RECEIVING)
 DAY = timedelta(days=1)
@@ -47,7 +48,7 @@ def read_saved(path):
     size = status["placements"]
     code = status["code_sha"]
     baseline = size == 250 and code == BASELINE_CODE
-    pilot = size == 1500 and code == git_commit() and status.get("purpose") == EVALUATION_ONLY
+    pilot = size == 1500 and code == PILOT_CODE and status.get("purpose") == EVALUATION_ONLY
     require(baseline or pilot, "Expected the reviewed 250 archive or an evaluation-only 1,500 archive.")
     require(status["status"] == "completed" and status["validation_status"] == "passed"
             and status["complete_independent_audit"] is True and status["financial_closes"] == 48
@@ -142,24 +143,38 @@ def observation_history(config, tables, cutoff):
     return model_estimator, opening
 
 
-def observed_targets(observations, cutoff):
-    result = {}
-    for animal in observations.by_animal:
-        labels = [row for row in observations.eligible(animal, cutoff, cutoff, include_terminal=True)
-                  if row.kind not in ENTRY_TICKETS]
-        if labels:
-            result[animal] = ([row.measured_at for row in labels], labels)
-    return result
+@dataclass(frozen=True, slots=True)
+class OriginForecast:
+    origin: datetime
+    lot: str
+    carry_in: bool
+    reason: str
+    anchor_kg: float | None = None
+    anchor_at: datetime | None = None
+    prior_kg_per_day: float | None = None
+    nowcast_limit_days: float | None = None
+
+    def score(self, label):
+        if self.reason != "eligible":
+            return (), None, False
+        elapsed = (label.measured_at - self.origin) / DAY
+        total_days = (label.measured_at - self.anchor_at) / DAY
+        legacy_days = min(total_days, self.nowcast_limit_days)
+        age = (self.origin - self.anchor_at) / DAY
+        forecast_days = min(age, self.nowcast_limit_days) + elapsed
+        actual = label.measured_weight_kg
+        errors = (round(self.anchor_kg, 3) - actual,
+                  round(self.anchor_kg + self.prior_kg_per_day * forecast_days, 3) - actual)
+        legacy_b = round(self.anchor_kg + self.prior_kg_per_day * legacy_days, 3) - actual
+        return errors, legacy_b, legacy_days < total_days
 
 
-def forecast_pairs(config, estimator, opening, protocol, cutoff, development):
-    """Pair weekly as-of features with the first eligible observed ticket near each target."""
-    horizons = protocol["horizons_elapsed_days"]
+def forecast_origins(config, estimator, opening):
+    """Freeze inputs once per origin. Target availability is resolved separately."""
     first, last = (date.fromisoformat(config[key]) for key in ("start", "end"))
     monday = first + timedelta(days=(-first.weekday()) % 7)
-    reported = observed_targets(estimator.observations, cutoff)
-    training = observed_targets(estimator.observations, development)
-    selected = ({}, {})
+    forecasts = defaultdict(list)
+    policy = estimator.policy
     for offset in range(0, (last - monday).days + 1, 7):
         origin = at(monday + offset * DAY, 8)
         snapshot, replay, active, weights, clinical = estimator.snapshot(origin)
@@ -168,37 +183,54 @@ def forecast_pairs(config, estimator, opening, protocol, cutoff, development):
         for state in active:
             key = state.animal_id
             anchor = weights[key][-1] if weights[key] else None
-            health = clinical[key][-1] if clinical[key] else None
-            stage = production_stage(kinds[state.location_id], opening.get(key, entered[key]),
-                                     origin - TICK, estimator.adaptation_days)
-            reason = "eligible"
+            age = (origin - anchor.measured_at) / DAY if anchor else None
+            args = (origin, state.lot_id, key in opening)
             if anchor is None:
-                reason = "missing_anchor"
-            elif origin - anchor.measured_at >= estimator.policy["stale_days"] * DAY:
-                reason = "stale_anchor"
-            for horizon in horizons:
-                target = origin + horizon * DAY
-                for labels, pairs in zip((reported, training), selected, strict=True):
-                    if key not in labels:
-                        continue
-                    stamps, tickets = labels[key]
-                    i = bisect_left(stamps, target - 3 * DAY)
-                    if i == len(tickets) or stamps[i] > target + 3 * DAY:
-                        continue
-                    label = tickets[i]
-                    pair_key = (key, horizon, label.observation_id)
-                    rank = (abs(label.measured_at - target), origin)
-                    if pair_key in pairs and pairs[pair_key][0] <= rank:
-                        continue
-                    estimates = [estimator._estimate(snapshot, state, stage, health, anchor, label.measured_at, candidate)
-                                 for candidate in (Model.A, Model.B)] if reason == "eligible" else ()
-                    pairs[pair_key] = (rank, {"animal": key, "lot": state.lot_id, "carry_in": key in opening,
-                                              "origin": origin, "target": label.measured_at, "horizon": horizon,
-                                              "kind": label.kind, "reason": reason,
-                                              "capped": bool(estimates and estimates[1].fallback_flag == "projection_capped"),
-                                              "errors": [row.estimated_liveweight_kg - label.measured_weight_kg
-                                                         for row in estimates]})
-    return tuple([row for _, row in pairs.values()] for pairs in selected)
+                row = OriginForecast(*args, "missing_anchor")
+            elif age >= policy["stale_days"]:
+                row = OriginForecast(*args, "stale_anchor")
+            else:
+                health = clinical[key][-1] if clinical[key] else None
+                stage = production_stage(kinds[state.location_id], opening.get(key, entered[key]),
+                                         origin - TICK, estimator.adaptation_days)
+                nowcast = estimator._estimate(snapshot, state, stage, health, anchor, origin, Model.B)
+                row = OriginForecast(*args, "eligible", anchor.measured_weight_kg, anchor.measured_at,
+                                     nowcast.adg_prior_kg, policy["projection_limit_days"])
+            forecasts[key].append(row)
+    return forecasts
+
+
+def forecast_pairs(forecasts, observations, horizons, effective_before, knowledge_cutoff):
+    """Choose the first eligible ticket per window and deduplicate in that ticket vintage."""
+    leads = [(horizon, horizon * DAY) for horizon in sorted(horizons)]
+    selected = {}
+    for animal, windows in forecasts.items():
+        labels = [row for row in observations.eligible(animal, effective_before, knowledge_cutoff,
+                                                       include_terminal=True) if row.kind not in ENTRY_TICKETS]
+        if not labels:
+            continue
+        stamps = [row.measured_at for row in labels]
+        for window in windows:
+            if window.origin + leads[0][1] - 3 * DAY > stamps[-1]:
+                break
+            for horizon, lead in leads:
+                target = window.origin + lead
+                i = bisect_left(stamps, target - 3 * DAY)
+                if i == len(labels) or stamps[i] > target + 3 * DAY:
+                    continue
+                label = labels[i]
+                pair_key = (animal, horizon, label.observation_id)
+                rank = (abs(label.measured_at - target), window.origin)
+                if pair_key in selected and selected[pair_key][0] <= rank:
+                    continue
+                errors, legacy_b_error, legacy_capped = window.score(label)
+                selected[pair_key] = (rank, {
+                    "animal": animal, "lot": window.lot, "carry_in": window.carry_in, "origin": window.origin,
+                    "target": label.measured_at, "horizon": horizon, "kind": label.kind,
+                    "reason": window.reason, "errors": errors, "legacy_b_error": legacy_b_error,
+                    "legacy_capped": legacy_capped,
+                })
+    return [row for _, row in selected.values()]
 
 
 def calibrate(rows, minimum):
@@ -221,40 +253,71 @@ def calibrate(rows, minimum):
     return limits
 
 
-def summarize(rows, thresholds, intervals=None, development=None, *, stratum=False):
+def interval_folds(forecasts, observations, reported, horizons, development, minimum):
+    # Cohort membership is known without any target weights or ticket availability.
+    training = {animal: windows for animal, windows in forecasts.items()
+                if not windows[0].carry_in and not lot_holdout(windows[0].lot)}
+    cutoffs = {min(row["origin"], development) for row in reported}
+    results = {}
+    for cutoff in sorted(cutoffs | {development}):
+        pool = defaultdict(list)
+        for row in forecast_pairs(training, observations, horizons, development, cutoff):
+            if row["errors"]:
+                pool[row["horizon"]].append(row)
+        for horizon in horizons:
+            rows = pool[horizon]
+            results[cutoff, horizon] = (len(rows), calibrate(rows, minimum))
+    return results
+
+
+def summarize(rows, thresholds, folds, development, *, support_level="primary"):
     usable = [row for row in rows if row["errors"]]
     count, animals, lots = len(usable), len({row["animal"] for row in usable}), len({row["lot"] for row in usable})
     coverage = count / len(rows) if rows else 0
-    support = "stratum" if stratum else "primary"
+    support = {
+        name: (count >= thresholds[f"{name}_pairs"] and animals >= thresholds[f"{name}_animals"]
+               and lots >= thresholds[f"{name}_lots"] and coverage >= thresholds["min_prediction_coverage"])
+        for name in ("primary", "stratum")
+    }
     return {
         "forecast_target_pairs": len(rows), "eligible_pairs": count, "eligible_animals": animals, "eligible_lots": lots,
         "prediction_coverage": round(coverage, 6) if rows else None,
         "eligibility": dict(Counter(row["reason"] for row in rows)),
-        "capped_model_b_pairs": sum(row["capped"] for row in usable),
+        "legacy_capped_model_b_pairs": sum(row["legacy_capped"] for row in usable),
         "actual_lead_days": ([min((row["target"] - row["origin"]) / DAY for row in rows),
                               max((row["target"] - row["origin"]) / DAY for row in rows)] if rows else None),
-        "meets_sample_support": (count >= thresholds[f"{support}_pairs"] and animals >= thresholds[f"{support}_animals"]
-                                 and lots >= thresholds[f"{support}_lots"] and
-                                 coverage >= thresholds["min_prediction_coverage"]),
-        "observed_errors": error_metrics(usable, intervals, development) if usable else None,
+        "support_level": support_level,
+        "meets_sample_support": support[support_level],
+        "meets_primary_support": support["primary"],
+        "meets_stratum_support": support["stratum"],
+        "observed_errors": error_metrics(usable, folds, development) if usable else None,
     }
 
 
-def error_metrics(rows, intervals, development):
+def errors_summary(errors):
+    return {"mae_kg": round(fmean(map(abs, errors)), 4), "bias_kg": round(fmean(errors), 4)}
+
+
+def error_metrics(rows, folds, development):
     result = {}
     for column, label in enumerate(("A", "B")):
-        errors = [row["errors"][column] for row in rows]
-        stats = {"mae_kg": round(fmean(map(abs, errors)), 4), "bias_kg": round(fmean(errors), 4)}
-        if intervals:
-            # July-frozen residuals are available only for origins on/after July 1.
-            calibrated = [row["errors"][column] for row in rows if row["origin"] >= development]
-            low, high = intervals[column]
-            stats.update(interval_pairs=len(calibrated), interval_width_kg=round(high - low, 4),
-                         interval_coverage=(round(fmean(low <= error <= high for error in calibrated), 6)
-                                            if calibrated else None))
+        fitted = []
+        for row in rows:
+            cutoff = min(row["origin"], development)
+            _, quantiles = folds[cutoff, row["horizon"]]
+            if quantiles is not None:
+                low, high = quantiles[column]
+                fitted.append((row["errors"][column], low, high))
+        stats = errors_summary([row["errors"][column] for row in rows])
+        stats.update(
+            interval_pairs=len(fitted), interval_pairs_without_calibration=len(rows) - len(fitted),
+            interval_width_kg=round(median(high - low for _, low, high in fitted), 4) if fitted else None,
+            interval_coverage=round(fmean(low <= error <= high for error, low, high in fitted), 6) if fitted else None,
+        )
         result[label] = stats
     a, b = result["A"]["mae_kg"], result["B"]["mae_kg"]
     result["relative_mae_improvement_b_vs_a"] = round((a - b) / a, 6) if a else None
+    result["legacy_B"] = errors_summary([row["legacy_b_error"] for row in rows])
     return result
 
 
@@ -270,13 +333,15 @@ def evaluate(config, tables, provenance):
     temporal_start = boundary("temporal_holdout_target_from_local")
     temporal_stop = boundary("temporal_holdout_target_until_local_exclusive")
     estimator, opening = observation_history(config, tables, cutoff)
-    reported, training = forecast_pairs(config, estimator, opening, protocol, cutoff, development)
+    forecasts = forecast_origins(config, estimator, opening)
+    leads = protocol["horizons_elapsed_days"]
+    reported = forecast_pairs(forecasts, estimator.observations, leads, cutoff, cutoff)
     thresholds = protocol["sufficiency"]
+    folds = interval_folds(forecasts, estimator.observations, reported, leads, development,
+                           thresholds["calibration_pairs_per_horizon"])
     horizons = {}
-    for horizon in protocol["horizons_elapsed_days"]:
-        pool = [row for row in training if row["horizon"] == horizon and row["errors"]
-                and not row["carry_in"] and not lot_holdout(row["lot"])]
-        intervals = calibrate(pool, thresholds["calibration_pairs_per_horizon"])
+    for horizon in leads:
+        july_pairs, july_quantiles = folds[development, horizon]
         groups = {name: [] for name in ("lot_holdout", "temporal_holdout", "intersection", "carry_in")}
         for row in reported:
             if row["horizon"] != horizon:
@@ -293,22 +358,31 @@ def evaluate(config, tables, provenance):
             if is_lot and is_temporal:
                 groups["intersection"].append(row)
         horizons[str(horizon)] = {
-            "calibration_pairs_at_july_cutoff": len(pool),
-            "interval_status": "july_vintage" if intervals else "insufficient_calibration_pairs",
-            **{name: summarize(rows, thresholds, intervals, development) | {
+            "calibration_pairs_at_july_cutoff": july_pairs,
+            "july_residual_quantiles_kg": dict(zip(("A", "B"), july_quantiles, strict=True)) if july_quantiles else None,
+            "calibration_folds_with_intervals": sum(limits is not None for (_, lead), (_, limits) in folds.items()
+                                                    if lead == horizon),
+            "interval_status": "rolling_vintage" if july_quantiles else "insufficient_calibration_pairs_at_july_cutoff",
+            **{name: summarize(rows, thresholds, folds, development,
+                               support_level="primary" if name in ("lot_holdout", "temporal_holdout") else "stratum") | {
                 "by_ticket_kind": {kind.value: summarize([row for row in rows if row["kind"] == kind], thresholds,
-                                                         stratum=True)
+                                                         folds, development, support_level="stratum")
                                    for kind in Kind if kind not in ENTRY_TICKETS},
             } for name, rows in groups.items()},
         }
     return {
-        **provenance, "protocol_version": protocol["version"], "report_version": "stage5-saved-holdout.1",
+        **provenance, "protocol_version": protocol["version"], "report_version": "stage5-saved-holdout.2",
         "stage5_status": "incomplete", "promotion_eligible": False, "evaluated_seed": config["seed"],
         "required_seeds": seeds, "support_thresholds": thresholds, "acceptance_thresholds": protocol["acceptance"],
         "horizons": horizons,
         "origin_schedule": "Monday 08:00 America/Edmonton; elapsed UTC horizons",
         "deduplication": "same animal, horizon and final ticket; closest nominal target then earliest origin",
-        "confidence_rule": "anchor freshness at origin; capped Model B forecasts retained and counted",
+        "evaluator_commit": git_commit(),
+        "forecast_rule": "stage5-origin-projection.1; cap the anchor-to-origin nowcast; extend at origin ADG",
+        "legacy_forecast_rule": "Stage 2 projection cap from the anchor through the target",
+        "confidence_rule": "anchor freshness at origin; shared eligible pairs for A and both B rules",
+        "interval_rule": "development ticket vintage at min(origin, July cutoff); equal weight per lot",
+        "error_convention": "prediction minus observation; interval = [prediction - q95, prediction - q05]",
         "scope": "observed single-seed diagnostics; no multi-seed, clustered bootstrap or full promotion assessment",
     }
 

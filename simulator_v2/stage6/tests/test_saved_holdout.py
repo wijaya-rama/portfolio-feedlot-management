@@ -3,18 +3,21 @@
 import ast
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
+from types import SimpleNamespace
 from hashlib import sha256
 from io import BytesIO
 import json
+from pathlib import Path
 import re
 import tarfile
+import tempfile
 import uuid
 
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
-from simulator_v2.stage2.observations import correct
+from simulator_v2.stage2.observations import Kind, Observations, correct
 from simulator_v2.stage6.__main__ import build
 from simulator_v2.stage6.colab import holdout
 from simulator_v2.stage6.config import HERE, at
@@ -52,13 +55,12 @@ def test_replay_recovers_weekly_features_and_future_corrections_only_as_labels(t
         assert result["intersection"]["eligible_pairs"] > 0
         assert result["intersection"]["eligible_lots"] == 1
         assert not result["intersection"]["meets_sample_support"]
-        assert result["interval_status"] == "insufficient_calibration_pairs"
-    assert report["horizons"]["60"]["intersection"]["capped_model_b_pairs"] > 0
+        assert result["interval_status"] == "insufficient_calibration_pairs_at_july_cutoff"
+    assert report["horizons"]["60"]["intersection"]["legacy_capped_model_b_pairs"] > 0
     assert report["horizons"]["7"]["carry_in"]["eligible_animals"] == 1
 
     cutoff = at(date(2026, 2, 1), 0)
-    development = at(date(2025, 7, 1), 0)
-    protocol = {"horizons_elapsed_days": [7, 30, 60]}
+    horizons = [7, 30, 60]
     estimator, opening = holdout.observation_history(config, tables, cutoff)
     labels = [row for row in estimator.observations.records
               if row.kind == "follow_up" and row.measured_at >= at(date(2025, 10, 1), 0)]
@@ -71,8 +73,10 @@ def test_replay_recovers_weekly_features_and_future_corrections_only_as_labels(t
     origin = original.measured_at + timedelta(days=1)
     old_snapshot = estimator.snapshot(origin)[0]
     assert old_snapshot == revised_estimator.snapshot(origin)[0]
-    before, _ = holdout.forecast_pairs(config, estimator, opening, protocol, cutoff, development)
-    after, _ = holdout.forecast_pairs(config, revised_estimator, revised_opening, protocol, cutoff, development)
+    before = holdout.forecast_pairs(holdout.forecast_origins(config, estimator, opening),
+                                    estimator.observations, horizons, cutoff, cutoff)
+    after = holdout.forecast_pairs(holdout.forecast_origins(config, revised_estimator, revised_opening),
+                                   revised_estimator.observations, horizons, cutoff, cutoff)
     for pairs in (before, after):
         assert len(pairs) == len({(row["animal"], row["horizon"], row["target"]) for row in pairs})
     changed = [row for row in before if row["animal"] == original.animal_id
@@ -88,7 +92,7 @@ def saved_archive(tmp_path, *, size=250):
     baseline = size == 250
     config = json.loads((HERE / "configs" / ("stage6b1-baseline-250.json" if baseline
                                               else "stage7-pilot-1500.json")).read_bytes())
-    code = holdout.BASELINE_CODE if baseline else holdout.git_commit()
+    code = holdout.BASELINE_CODE if baseline else holdout.PILOT_CODE
     version = holdout.SCHEMA
     run = "SYN-STAGE6-RUN-archive-reader-test"
     hash_bytes = lambda data: sha256(data).hexdigest()
@@ -132,7 +136,8 @@ def saved_archive(tmp_path, *, size=250):
 
 
 @pytest.mark.parametrize("size", [250, 1500])
-def test_reader_checks_audit_scope_archive_hash_and_receipts(tmp_path, size):
+def test_reader_checks_audit_scope_archive_hash_and_receipts(tmp_path, size, monkeypatch):
+    monkeypatch.setattr(holdout, "git_commit", lambda: "a-different-evaluator-commit")
     archive, status = saved_archive(tmp_path, size=size)
     marker = tmp_path / "status.json"
     marker.write_text(json.dumps(status))
@@ -214,3 +219,115 @@ def test_evaluation_pilot_requires_distinct_authorization_and_production_is_lock
     ns["input"] = lambda _: "MULAI EVALUASI 1500"
     exec(execute, ns)
     assert calls == [({"version": "pilot"}, 1500, "")]
+
+
+def test_evaluation_cap_applies_to_nowcast_before_origin_only():
+    origin = at(date(2025, 6, 2), 8)
+    forecast = holdout.OriginForecast(origin, "SYN-LOT-0001", False, "eligible",
+                                      400, origin - timedelta(days=14), 1.28, 35)
+    for lead, expected, legacy, capped in ((0, 417.92, 417.92, False),
+                                           (7, 426.88, 426.88, False),
+                                           (30, 456.32, 444.8, True),
+                                           (60, 494.72, 444.8, True)):
+        label = SimpleNamespace(measured_at=origin + timedelta(days=lead), measured_weight_kg=450)
+        error, legacy_error, legacy_capped = forecast.score(label)
+        assert error == pytest.approx((-50, expected - 450))
+        assert legacy_error == pytest.approx(legacy - 450)
+        assert legacy_capped is capped
+
+
+def test_interval_folds_resolve_label_versions_and_hold_out_lots_and_carry_in():
+    origin = at(date(2025, 6, 2), 8)
+    early, late, july = (at(date(2025, month, day), 8) for month, day in ((6, 16), (6, 23), (7, 1)))
+    training = "SYN-LOT-0001"
+    held = "SYN-LOT-0003"
+    assert not holdout.lot_holdout(training) and holdout.lot_holdout(held)
+
+    def ticket(identifier, measured, available, kg, *, parent=None):
+        return SimpleNamespace(observation_id=identifier, measured_at=measured, available_at=available,
+                               kind=Kind.FOLLOW_UP, quality_flag="corrected" if parent else "accepted",
+                               corrects_observation_id=parent, measured_weight_kg=kg)
+
+    measured = origin + timedelta(days=7)
+    original = ticket("original", measured, measured, 402)
+    revision = ticket("revision", measured, late, 406, parent="original")
+    future_revision = ticket("future revision", measured, july + timedelta(days=1), 650, parent="revision")
+    held_ticket = ticket("held", measured, measured, 900)
+    carry_ticket = ticket("carry", measured, measured, 200)
+    after_development = ticket("late target", july + timedelta(days=2), july + timedelta(days=2), 800)
+    observations = object.__new__(Observations)
+    observations.by_animal = {"development": (original, revision, future_revision, after_development),
+                              "held": (held_ticket,), "carry": (carry_ticket,)}
+    forecasts = {
+        key: [holdout.OriginForecast(instant, lot, carry, "eligible", 400, instant, 1, 35) for instant in starts]
+        for key, lot, carry, starts in (("development", training, False, (origin, july - timedelta(days=5))),
+                                       ("held", held, False, (origin,)), ("carry", training, True, (origin,)))
+    }
+    reported = [{"origin": early}, {"origin": late}, {"origin": july + timedelta(days=14)}]
+    folds = holdout.interval_folds(forecasts, observations, reported, [7], july, minimum=1)
+    assert folds[early, 7] == (1, [[-2, -2], [5, 5]])
+    assert folds[late, 7] == folds[july, 7] == (1, [[-6, -6], [1, 1]])
+    assert len(folds) == 3
+
+
+def test_intersection_exposes_primary_and_stratum_support_without_relaxing_primary():
+    protocol = json.loads((holdout.STAGE5 / "evaluation.json").read_bytes())
+    origin = at(date(2025, 10, 6), 8)
+    cutoff = at(date(2025, 7, 1), 0)
+    rows = [{"animal": f"A{i % 54}", "lot": f"LOT-{(i % 54) % 4}", "origin": origin,
+             "target": origin + timedelta(days=60), "reason": "eligible", "errors": (-65, -30),
+             "legacy_b_error": -30, "legacy_capped": True, "horizon": 60} for i in range(104)]
+    folds = {(cutoff, 60): (100, [[-90, -50], [-35, -20]])}
+    stratum = holdout.summarize(rows, protocol["sufficiency"], folds, cutoff, support_level="stratum")
+    primary = holdout.summarize(rows, protocol["sufficiency"], folds, cutoff)
+    assert stratum["meets_sample_support"] and stratum["meets_stratum_support"]
+    assert not stratum["meets_primary_support"] and not primary["meets_sample_support"]
+    assert stratum["observed_errors"]["B"]["interval_coverage"] == 1
+    assert stratum["observed_errors"]["B"]["interval_width_kg"] == 15
+
+
+def test_interval_quantiles_weight_each_development_lot_equally():
+    rows = ([{"lot": "large", "errors": (0, 2)}] * 95 +
+            [{"lot": "small", "errors": (100, 50)}] * 5)
+    assert holdout.calibrate(rows, minimum=100) == [[0, 100], [2, 50]]
+    assert holdout.calibrate(rows, minimum=101) is None
+
+
+def test_notebook_evaluation_keeps_old_report_and_uses_separately_pinned_evaluator(tmp_path):
+    code = notebook_code("Evaluate Saved Dataset")
+    relative = "evaluation-1500/dataset-evaluation-only.tar"
+    archive = tmp_path / relative
+    archive.parent.mkdir()
+    archive.touch()
+    archive.with_name("status.json").touch()
+    output = tmp_path / "Feedlot_V2_Holdout"
+    output.mkdir()
+    old = output / "holdout-1500-seed-42-abcdefgh1234.json"
+    old.write_text("historical report")
+    report = {"report_version": "stage5-saved-holdout.2", "evaluator_commit": "evaluator-sha",
+              "stage5_status": "incomplete", "promotion_eligible": False, "placements": 1500,
+              "evaluated_seed": 42, "archive_sha256": "abcdefgh1234rest", "horizons": {}}
+    fetches = []
+    evaluator = tmp_path / "evaluator"
+
+    def require(condition, message):
+        if not condition:
+            raise RuntimeError(message)
+
+    def run(command, *, cwd, **kwargs):
+        assert cwd == evaluator
+        assert command == ["python", "-m", "simulator_v2.stage6.colab.holdout", str(archive)]
+        return SimpleNamespace(returncode=0, stdout=json.dumps(report), stderr="")
+
+    ns = {"MY_DRIVE": tmp_path, "SESSION": tmp_path, "PILOT_ARCHIVE": archive.name,
+          "EVALUATOR_SOURCE": evaluator, "EVALUATOR_SHA": "evaluator-sha", "PYTHON": "python",
+          "get_source": lambda *args: fetches.append(args), "check_dependencies": lambda *_: None,
+          "runner_env": dict, "require": require, "subprocess": SimpleNamespace(run=run),
+          "tempfile": tempfile, "Path": Path, "json": json,
+          "copy_verified": lambda source, dest: dest.write_bytes(source.read_bytes())}
+    exec(code, ns)
+    assert fetches == []
+    ns["evaluate_saved_archive"](relative)
+    assert fetches == [(evaluator, "evaluator-sha")]
+    assert old.read_text() == "historical report"
+    assert json.loads(old.with_stem(old.stem + "-v2").read_text()) == report
