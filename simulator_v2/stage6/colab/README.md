@@ -1,25 +1,22 @@
-# Panduan Google Colab · Stage 6B.1
+# Feedlot Simulator V2 di Google Colab
 
-[**Buka Feedlot V2 Benchmark di Google Colab**](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage6b1-colab-prep/simulator_v2/stage6/colab/Feedlot_V2_Benchmark.ipynb)
+[Buka notebook pilot dan produksi di Colab](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-final-dataset-readiness/simulator_v2/stage6/colab/Feedlot_V2_Benchmark.ipynb)
 
-## Jalankan 250 placement
+## Mulai dari iPhone
 
-1. Buka tautan dengan Safari atau Chrome di iPhone atau dengan browser komputer, lalu masuk ke akun Google. Di Safari iPhone, pilih **Minta Situs Web Desktop** dari menu halaman jika menu Colab tersembunyi. Jika Colab meminta salinan yang dapat diedit, gunakan **File → Save a copy in Drive**.
-2. Pilih **Runtime → Change runtime type → Hardware accelerator → None**, lalu sambungkan runtime Python 3. Gunakan runtime CPU yang tersedia pada akun. Langkah ini tidak memerlukan pembelian Compute Units atau pengaktifan Google Cloud billing.
-3. Tekan ▶ pada **Check Environment**, **Get Verified Source**, **Install Dependencies**, dan **Connect Google Drive** secara berurutan. Berikan izin Drive saat diminta. Jalankan **Select Simulation Size** dengan **250** terpilih dan kedua kotak pilot kosong.
-4. Centang **Mulai_simulasi**, tekan ▶ pada **Run Simulation**, lalu ketik **250** saat diminta dan tekan Enter. Sebaiknya pertahankan tab aktif. Jika iPhone menyulitkan pengoperasian, gunakan browser komputer.
-5. Setelah runner selesai, tekan ▶ pada **Validate Results**, **Save Results**, dan **View Summary**. Di Drive, buka **My Drive → Feedlot_V2_Benchmarks → placements-250-…**. Gunakan `dataset.tar` dari folder dengan `status.json` bernilai `completed` dan `validation_status` bernilai `passed`.
+1. Buka tautan di Safari dan masuk ke akun Google. Pilih **Minta Situs Web Desktop** jika menu Colab tersembunyi. Gunakan **File → Save a copy in Drive** jika diperlukan agar formulir dapat diisi.
+2. Pilih **Runtime → Change runtime type → Hardware accelerator → None**. Jalankan sel **Check Environment**, **Get Verified Source**, **Install Dependencies**, kemudian **Connect Google Drive**. Berikan akses Drive saat Colab meminta izin.
+3. Pilih **1500** dan jalankan **Select Simulation Size & Preflight**. Berhenti setelah preflight sambil menunggu bukti holdout estimator Stage 5. [Gerbang yang masih terbuka](../FINAL_DATASET_READINESS.md)
+4. Setelah gerbang itu selesai dan Anda mengizinkan pilot, centang **Gerbang_estimator_selesai**, **Saya_menyetujui_pilot_1500**, dan **Mulai_atau_lanjutkan**. Jalankan **Run Simulation** dan ketik `MULAI 1500` saat diminta.
+5. Sesudah runner selesai, jalankan **Validate Results**, **Save Results**, lalu **View Summary**. Paket berada di **My Drive → Feedlot_V2_Releases → placements-1500-… → dataset.tar**. Gunakan paket dari folder yang menunjukkan `status=completed` dan `validation_status=passed`.
 
-Notebook mengambil commit `39770fb9e2867127f1ddac671ac694997e26b864` dan menjalankan CLI Stage 6 dengan seed 42, konfigurasi baseline kesehatan `stage6b1-baseline-health.1`, dan persediaan khusus silase, jelai, dan oat. Kalender bisnis Edmonton mencakup seluruh 2024–2025, termasuk carry-in, carry-out dan 24 penutupan per view. Runner menjalankan audit penuh sebelum menerbitkan Parquet lokal. Notebook memeriksa laporan audit, inventaris partisi dan SHA-256, kemudian menyimpan konfigurasi, manifest versi kode, hash deterministik, laporan validasi dan performa, log, serta satu arsip dataset di Drive.
+Pilot memakai seed 42. Produksi 15.000 memiliki pilihan dan persetujuan tersendiri. Notebook memeriksa hasil pilot, SHA-256 paket yang tersimpan, audit penuh, 48 penutupan, dan kemampuan runtime sebelum mengizinkan konfirmasi `MULAI 15000`. Hasil 250 yang sudah tersimpan tetap menjadi bukti pengukuran. Alur baru langsung mengarah ke pilot 1.500.
 
-## Sumber daya dan ukuran
+## Pulihkan percobaan setelah Colab terputus
 
-Gunakan Linux x86_64, CPython 3.11–3.13, Git, dan Drive. Notebook menginstal `numpy==2.3.5`, `pyarrow==19.0.1`, dan `tzdata==2025.2` dari wheel ke lingkungan lokal yang terisolasi. Batas awal untuk 250 adalah **4 GiB RAM tersedia**, **6 GiB disk lokal kosong**, dan **1 GiB ruang Drive yang dilaporkan**. Batas awal untuk 500 dan 1.500 masing-masing adalah 5/8/2 GiB dan 8/16/6 GiB, kemudian disesuaikan dari hasil ukuran sebelumnya. Batas ini menyediakan ruang kerja dan cadangan untuk staging dan arsip. Durasi, puncak RSS, ukuran Parquet, dan waktu audit ditampilkan sebagai pengukuran runtime yang benar-benar menjalankan notebook. Perkiraan untuk ukuran berikutnya hanya dipakai untuk pemeriksaan sumber daya. Target referensi 600 detik tidak membatasi durasi Colab.
+- Catat nama folder percobaan yang muncul saat mulai. Di runtime CPU baru, ulangi langkah persiapan dan preflight dengan ukuran yang sama. Masukkan nama folder ke **Attempt_ID**, nyalakan kotak persetujuan yang berlaku, jalankan **Run Simulation**, dan ketik `LANJUT 1500` atau `LANJUT 15000`.
+- `last_verified_checkpoint=operations` melanjutkan dari tahap keuangan. `last_verified_checkpoint=finance` melanjutkan dari audit penuh. Jika operasi belum selesai disalin ke Drive, runtime baru mengulang operasi dari awal. Checkpoint memakai commit, seed, konfigurasi, versi runtime dan dependensi yang sama. Arsip checkpoint berisi state Python internal. Gunakan arsip dari percobaan Anda sendiri.
+- Jika audit atau penyalinan paket akhir terputus, jalankan kembali **Save Results** jika dataset lokal masih ada dan sebelumnya lulus validasi. Jika runtime hilang, pemulihan dari checkpoint keuangan menjalankan audit penuh kembali sebelum menerbitkan berkas.
+- Status Drive dapat tertinggal di `running` saat runtime hilang. Lihat `last_verified_checkpoint` dan `status.json`. Berkas `.partial` belum terverifikasi. Jika hash checkpoint berbeda, selesaikan di runtime asli bila state lokal masih dapat diverifikasi. Gunakan percobaan baru jika checkpoint dan state lokal sama-sama gagal.
 
-Jalankan 500 setelah hasil 250 berstatus `completed` di Drive dan sumber daya cukup. Pilihan 1.500 memakai konfigurasi kandidat dari rencana Stage 5 dengan 350 carry-in, profil baseline yang sama, dan algoritme skala Stage 6B. Pilot masih **HOLD** sampai 250 dan 500 lulus, gerbang kesiapan Stage 5 selesai, dan Anda menyetujui eksekusi. Dua kotak pilot mencatat konfirmasi tersebut. Skala 15.000 menunggu rilis terpisah dengan persetujuan eksplisit. [Gerbang kesiapan pilot](../PILOT_READINESS.md) · [Rencana Stage 5](../../stage5/pilot.json)
-
-## Percobaan terputus
-
-Checkpoint dispatch harian dan SQLite membantu runner dalam satu build. Pemulihan lengkap state ternak, feed warehouse, RNG, keuangan, dan publikasi belum tersedia. Setelah proses simulasi berhenti atau runtime hilang, ulangi langkah dari awal dengan ukuran dan seed yang sama. Notebook membuat folder percobaan baru dan menyimpan status lama sebagai catatan. `running`, `awaiting_validation`, `validated`, `interrupted`, `save_failed`, serta berkas `.partial` menandakan paket final belum terkonfirmasi.
-
-Jika tahap penyalinan Drive gagal sementara runtime masih hidup dan audit sudah lulus, periksa ruang atau sambungan Drive lalu ulangi **Save Results**. Jika Drive tidak sempat menerima pembaruan saat runtime berhenti, status lama mungkin tetap `running`. Audit incremental menghasilkan `complete_independent_audit=false` dan mencakup sebagian pemeriksaan. Paket final memerlukan audit penuh.
+Checkpoint hanya tersedia di batas fase. Colab dapat menghentikan sesi sebelum batas tersebut. Batas sumber daya yang ditampilkan adalah margin perencanaan. Notebook memakai CPU dan dependensi Python terpin pada penyimpanan lokal, lalu memeriksa hash dan ukuran data pada Drive yang ter-mount. [Arsitektur, estimasi dan bukti](../FINAL_DATASET_READINESS.md)

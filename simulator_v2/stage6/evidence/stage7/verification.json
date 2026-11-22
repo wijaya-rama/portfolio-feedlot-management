@@ -1,0 +1,70 @@
+{
+  "environment": {
+    "python": "3.12.14",
+    "pyarrow": "19.0.1",
+    "system": "Linux",
+    "machine": "x86_64",
+    "memory_cgroup_cap_bytes": 8589934592
+  },
+  "verified_code_commit": "41e1bbb963a0a08b95dd72c14e5281ac5ebea86c",
+  "source_anchor_reported_by_user": {
+    "code_commit": "39770fb9e2867127f1ddac671ac694997e26b864",
+    "runtime": "Google Colab CPU",
+    "python": "3.13.18",
+    "logical_cpus": 2,
+    "available_ram_gib": 11.45,
+    "approximate_free_local_disk_gib": 225,
+    "runner_wall_seconds": 621.43,
+    "full_audit_seconds": 121.6,
+    "peak_rss_gib": 0.59,
+    "parquet_gib": 0.37,
+    "placements": 250,
+    "carry_in": 58,
+    "carry_out": 55,
+    "monthly_closes": 48,
+    "status": "completed",
+    "complete_audit": "passed",
+    "drive_path": "My Drive/Feedlot_V2_Benchmarks/placements-250-20261122-110450-ad280072/dataset.tar"
+  },
+  "recovery_test": {
+    "interruption": "SIGKILL after opening finance and producing the first close; restore in separate processes",
+    "restore_method": "operations checkpoint copied to a fresh workspace; finance checkpoint reopened before full audit",
+    "tamper_test": "same-size modification of a finance partition rejected before publication",
+    "start": "2025-12-31",
+    "end": "2026-01-03",
+    "placements": 3,
+    "carry_in": 1,
+    "monthly_closes": 4,
+    "run_id": "SYN-STAGE6-RUN-d89f48c25513fee71b8bf367",
+    "hashes_sha256": "c6271fee7832dc6cf087a9a4c16ce0bada2910a9511d212c10fa5d95a18ea59b",
+    "partitions_compared": 126,
+    "deterministic_reports_compared": 5,
+    "cold_and_resumed_indices_identical": true,
+    "hard_gates": 58,
+    "complete_independent_audit": true,
+    "retrospective_checkpoint_smoke": "passed"
+  },
+  "notebook_workflow_smoke": {
+    "backend": "fresh local workspace and local filesystem standing in for the Google Drive mount",
+    "verified_source_pin": "41e1bbb963a0a08b95dd72c14e5281ac5ebea86c",
+    "run_id": "SYN-STAGE6-RUN-769cfb7b99374d634e188bad",
+    "hashes_sha256": "65aa882a13ebdcd33ca1581ddefbf3a9f5f97bbf0511a940192c52c6cc09f74e",
+    "hard_gates": 59,
+    "monthly_closes": 4,
+    "operations_archive_restored": true,
+    "completed_package_sha256_verified": true,
+    "status": "completed"
+  },
+  "stage5_holdout": "open",
+  "integrated_pilot_and_production_run": false,
+  "simulator_regression": {
+    "command": "PYTHONPATH=src python -m pytest -q simulator_v2",
+    "passed": 172,
+    "subtests_passed": 2
+  },
+  "analytics_regression": {
+    "command": "PYTHONPATH=src python -m pytest -q tests",
+    "passed": 87,
+    "subtests_passed": 60
+  }
+}

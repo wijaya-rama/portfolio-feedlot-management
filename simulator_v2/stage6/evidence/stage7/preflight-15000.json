@@ -1,0 +1,142 @@
+{
+  "version": "stage7-production-15000.1",
+  "scheduled_receipts": 15000,
+  "carry_in": 3500,
+  "sale_delay_days": {
+    "0": {
+      "production_pens": 43,
+      "receiving_pens": 1,
+      "concurrent_head": 3888,
+      "sold": 14809,
+      "year_end_head": 3691,
+      "receiving_spare_pens": 2,
+      "production_spare_pens": 14
+    },
+    "21": {
+      "production_pens": 48,
+      "receiving_pens": 1,
+      "concurrent_head": 4356,
+      "sold": 14344,
+      "year_end_head": 4156,
+      "receiving_spare_pens": 2,
+      "production_spare_pens": 9
+    },
+    "35": {
+      "production_pens": 50,
+      "receiving_pens": 1,
+      "concurrent_head": 4591,
+      "sold": 14109,
+      "year_end_head": 4391,
+      "receiving_spare_pens": 2,
+      "production_spare_pens": 7
+    }
+  },
+  "equipment": {
+    "max_loads_per_window": 64,
+    "short_window_slots": 72
+  },
+  "supplier": {
+    "42": {
+      "demand_g_dm_per_day": {
+        "SYN-ING-SILAGE": 18997000,
+        "SYN-ING-BARLEY": 30140000,
+        "SYN-ING-OATS": 5863000
+      },
+      "minimum_stock_g_af": {
+        "SYN-ING-SILAGE": 87152766,
+        "SYN-ING-BARLEY": 48438288,
+        "SYN-ING-OATS": 32879220
+      },
+      "peak_inbound_g_af": 186124400,
+      "purchase_orders": 40,
+      "receipts": 76,
+      "lead_days": 3,
+      "second_receipt_calendar_days": 5
+    },
+    "171": {
+      "demand_g_dm_per_day": {
+        "SYN-ING-SILAGE": 18997000,
+        "SYN-ING-BARLEY": 30140000,
+        "SYN-ING-OATS": 5863000
+      },
+      "minimum_stock_g_af": {
+        "SYN-ING-SILAGE": 88882693,
+        "SYN-ING-BARLEY": 48925636,
+        "SYN-ING-OATS": 33613516
+      },
+      "peak_inbound_g_af": 183792011,
+      "purchase_orders": 40,
+      "receipts": 76,
+      "lead_days": 3,
+      "second_receipt_calendar_days": 5
+    },
+    "382": {
+      "demand_g_dm_per_day": {
+        "SYN-ING-SILAGE": 18997000,
+        "SYN-ING-BARLEY": 30140000,
+        "SYN-ING-OATS": 5863000
+      },
+      "minimum_stock_g_af": {
+        "SYN-ING-SILAGE": 88528645,
+        "SYN-ING-BARLEY": 48426818,
+        "SYN-ING-OATS": 33294866
+      },
+      "peak_inbound_g_af": 185762277,
+      "purchase_orders": 40,
+      "receipts": 76,
+      "lead_days": 3,
+      "second_receipt_calendar_days": 5
+    },
+    "901": {
+      "demand_g_dm_per_day": {
+        "SYN-ING-SILAGE": 18997000,
+        "SYN-ING-BARLEY": 30140000,
+        "SYN-ING-OATS": 5863000
+      },
+      "minimum_stock_g_af": {
+        "SYN-ING-SILAGE": 88323506,
+        "SYN-ING-BARLEY": 47019458,
+        "SYN-ING-OATS": 33438478
+      },
+      "peak_inbound_g_af": 186739554,
+      "purchase_orders": 40,
+      "receipts": 76,
+      "lead_days": 3,
+      "second_receipt_calendar_days": 5
+    },
+    "1009": {
+      "demand_g_dm_per_day": {
+        "SYN-ING-SILAGE": 18997000,
+        "SYN-ING-BARLEY": 30140000,
+        "SYN-ING-OATS": 5863000
+      },
+      "minimum_stock_g_af": {
+        "SYN-ING-SILAGE": 89130640,
+        "SYN-ING-BARLEY": 47776621,
+        "SYN-ING-OATS": 33169960
+      },
+      "peak_inbound_g_af": 186455947,
+      "purchase_orders": 40,
+      "receipts": 76,
+      "lead_days": 3,
+      "second_receipt_calendar_days": 5
+    }
+  },
+  "silage_stress": {
+    "demand_g_dm_per_day": {
+      "SYN-ING-SILAGE": 20880750,
+      "SYN-ING-BARLEY": 27896000,
+      "SYN-ING-OATS": 6223250
+    },
+    "minimum_stock_g_af": {
+      "SYN-ING-SILAGE": 53968686,
+      "SYN-ING-BARLEY": 34381508,
+      "SYN-ING-OATS": 28755020
+    },
+    "peak_inbound_g_af": 148869582,
+    "purchase_orders": 48,
+    "receipts": 91,
+    "lead_days": 3,
+    "second_receipt_calendar_days": 6
+  }
+}

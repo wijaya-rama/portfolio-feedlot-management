@@ -1,5 +1,9 @@
 # Keputusan pilot 1.500 placement
 
+## Stage 7 · Konfigurasi siap, eksekusi menunggu holdout
+
+Benchmark 250 di Colab sudah selesai berdasarkan pengukuran pengguna. Jalur berikutnya langsung menuju pilot 1.500 setelah holdout estimator Stage 5 dan otorisasi. Preflight operasi dan pemulihan dua fase telah diuji. Target 15.000 tetap menunggu hasil pilot dan kapasitas runtime yang terverifikasi. [Keputusan terbaru dan bukti](FINAL_DATASET_READINESS.md) · [Panduan Colab](colab/README.md)
+
 ## Stage 6B.1 · HOLD
 
 Stage 6B.1 menyelesaikan investigasi mortalitas berlebih, optimasi audit lintas domain dan posting, kontrak validasi dua mode (`full` vs `incremental`), serta perencanaan pasokan pakan berbasis bahan. Seluruh 249 tes regresi (termasuk 8 tes baru Stage 6B.1), 62 subtes, 241 hash baseline Stage 1–4, determinisme cold-run, dan ekuivalensi semantik 78 tabel lulus penuh. [Laporan lengkap Stage 6B.1](STAGE6B1.md) · [Bukti Stage 6B.1](evidence/stage6b1/)
