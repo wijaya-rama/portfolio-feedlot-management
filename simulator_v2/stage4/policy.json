@@ -1,0 +1,43 @@
+{
+  "version": "stage4-management.1",
+  "source_scenario": "stage3.5-integrated.1",
+  "method": "metabolic_bodyweight",
+  "loss_policies": {
+    "selected": {"mix_bps": {"default": 110, "SYN-HAND-RATION-V1": 0}, "distribution_bps": 60, "refusal_bps": 500, "refusal_evidence": "synthetic_observed"},
+    "consumption_only": {"mix_bps": {"default": 0}, "distribution_bps": 0, "refusal_bps": 0, "refusal_evidence": "synthetic_observed"},
+    "tighter": {"mix_bps": {"default": 90}, "distribution_bps": 45, "refusal_bps": 300, "refusal_evidence": "synthetic_observed"}
+  },
+  "refusal_recovery_g_af": {"SYN-DELIVERY-202312311500-PEN-A-BUNK": 500},
+  "warehouse_normal_allowance_bps": 0,
+  "warehouse_adjustment_reasons": {
+    "approved count variance": "stock_count",
+    "approved shrinkage": "warehouse_shrink",
+    "approved damaged stock": "warehouse_damage",
+    "approved receiving correction": "receiving_correction"
+  },
+  "currency": "CAD",
+  "yard_id": "SYN-YARD",
+  "opening_wip_cents": {"SYN-A01": 100000, "SYN-A02": 110000},
+  "purchase_cents": {"SYN-A03": 120000, "SYN-A04": 125000, "SYN-A05": 130000, "SYN-A06": 135000, "SYN-A07": 140000, "SYN-A08": 145000, "SYN-A09": 150000, "SYN-A10": 155000, "SYN-A11": 160000, "SYN-A12": 165000},
+  "yardage_tariffs": [
+    {"id": "SYN-YARDAGE-DEC", "from": "2023-12-31", "cents": 120},
+    {"id": "SYN-YARDAGE-FEB", "from": "2024-02-01", "cents": 130}
+  ],
+  "yardage_correction": {
+    "id": "SYN-YARDAGE-JAN31-CORRECTION", "service_date": "2024-01-31", "available_local": "2024-02-02 09:00", "delta_cents": 10,
+    "approval": "SYN-APPROVE-YARDAGE-JAN31", "reason": "Synthetic omitted tariff surcharge for the last January business day"
+  },
+  "vet_services_cents": {"SYN-CLINICAL-01-03": 8000, "SYN-CLINICAL-02-03": 4500, "SYN-CLINICAL-05-03": 6000, "SYN-CLINICAL-10-03": 7000, "SYN-CLINICAL-10-05": 3500},
+  "sale_provisional_cents": {"SYN-A04": 176000, "SYN-A05": 184000, "SYN-A06": 181000, "SYN-A07": 193000, "SYN-A12": 202000},
+  "packer_final": {"animal_id": "SYN-A04", "id": "SYN-PACKER-DEC-FINAL", "available_local": "2024-01-04 11:00", "final_cents": 175750},
+  "restatement": {"id": "SYN-APPROVE-STAGE4-RESTATEMENT", "reason": "Approve hindsight presentation of documented access, location and January 31 yardage corrections"},
+  "market": {
+    "region": "AB-southern", "unit": "CAD_cents_per_kg_live", "maximum_age_days": 14,
+    "quotes": [
+      ["SYN-LIVE-DEC-STEER", "2023-12-29 09:00", "2023-12-29 13:00", "steer", 355],
+      ["SYN-LIVE-DEC-HEIFER", "2023-12-29 09:00", "2023-12-29 13:00", "heifer", 340],
+      ["SYN-LIVE-JAN-STEER", "2024-01-25 09:00", "2024-01-25 13:00", "steer", 365],
+      ["SYN-LIVE-MAR-STEER", "2024-03-07 09:00", "2024-03-07 14:00", "steer", 372]
+    ]
+  }
+}
