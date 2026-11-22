@@ -1,22 +1,33 @@
-# Feedlot Simulator V2 di Google Colab
+# Evaluasi holdout dan pilot Feedlot V2 di Colab
 
-[Buka notebook pilot dan produksi di Colab](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-final-dataset-readiness/simulator_v2/stage6/colab/Feedlot_V2_Benchmark.ipynb)
+[Buka notebook di Colab](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-holdout-evaluation/simulator_v2/stage6/colab/Feedlot_V2_Benchmark.ipynb)
 
-## Mulai dari iPhone
+## Langkah berikutnya di iPhone
 
-1. Buka tautan di Safari dan masuk ke akun Google. Pilih **Minta Situs Web Desktop** jika menu Colab tersembunyi. Gunakan **File → Save a copy in Drive** jika diperlukan agar formulir dapat diisi.
-2. Pilih **Runtime → Change runtime type → Hardware accelerator → None**. Jalankan sel **Check Environment**, **Get Verified Source**, **Install Dependencies**, kemudian **Connect Google Drive**. Berikan akses Drive saat Colab meminta izin.
-3. Pilih **1500** dan jalankan **Select Simulation Size & Preflight**. Berhenti setelah preflight sambil menunggu bukti holdout estimator Stage 5. [Gerbang yang masih terbuka](../FINAL_DATASET_READINESS.md)
-4. Setelah gerbang itu selesai dan Anda mengizinkan pilot, centang **Gerbang_estimator_selesai**, **Saya_menyetujui_pilot_1500**, dan **Mulai_atau_lanjutkan**. Jalankan **Run Simulation** dan ketik `MULAI 1500` saat diminta.
-5. Sesudah runner selesai, jalankan **Validate Results**, **Save Results**, lalu **View Summary**. Paket berada di **My Drive → Feedlot_V2_Releases → placements-1500-… → dataset.tar**. Gunakan paket dari folder yang menunjukkan `status=completed` dan `validation_status=passed`.
+1. Buka notebook di Safari dan masuk ke akun Google. Pilih **Minta Situs Web Desktop** jika menu Colab tersembunyi. Bila diperlukan, pilih **File → Save a copy in Drive**. Pilih **Runtime → Change runtime type → Hardware accelerator → None**.
+2. Jalankan sel persiapan dari **Check Environment** sampai **Connect Google Drive**. Izinkan mount Drive ketika diminta.
+3. Centang **Evaluasi_arsip_tersimpan** dan jalankan **Evaluate Saved Dataset**. Path bawaan menunjuk paket 250 placement. Jika paket dipindah, isi `Arsip_di_My_Drive` dengan path relatif ke My Drive. Simpan `status.json` di folder yang sama dengan paket.
+4. Buka laporan JSON di **My Drive → Feedlot_V2_Holdout**. Lihat jumlah pasangan, sapi, lot dan cakupan per horizon, khususnya irisan holdout lot dan waktu. Sel ini membaca paket yang sudah ada dan tidak menjalankan simulator.
 
-Pilot memakai seed 42. Produksi 15.000 memiliki pilihan dan persetujuan tersendiri. Notebook memeriksa hasil pilot, SHA-256 paket yang tersimpan, audit penuh, 48 penutupan, dan kemampuan runtime sebelum mengizinkan konfirmasi `MULAI 15000`. Hasil 250 yang sudah tersimpan tetap menjadi bukti pengukuran. Alur baru langsung mengarah ke pilot 1.500.
+## Bukti yang bisa diperoleh dari paket 250
 
-## Pulihkan percobaan setelah Colab terputus
+Paket yang dilaporkan pengguna berasal dari commit `39770fb` dan memuat seed 42. Pemeriksaan dilakukan terhadap kode penerbit, konfigurasi, struktur tabel dan bukti versi repository. Isi paket privat baru dibaca saat pengguna menjalankan sel di Colab. Konfigurasi 250 menjadwalkan 60 lot. Split hash membagi **18 lot dan 75 placement** ke holdout lot sebelum penyaringan tiket, usia anchor dan waktu pengukuran. Dukungan aktual per horizon, terutama di irisan lot dan waktu, baru diketahui setelah membaca arsip.
 
-- Catat nama folder percobaan yang muncul saat mulai. Di runtime CPU baru, ulangi langkah persiapan dan preflight dengan ukuran yang sama. Masukkan nama folder ke **Attempt_ID**, nyalakan kotak persetujuan yang berlaku, jalankan **Run Simulation**, dan ketik `LANJUT 1500` atau `LANJUT 15000`.
-- `last_verified_checkpoint=operations` melanjutkan dari tahap keuangan. `last_verified_checkpoint=finance` melanjutkan dari audit penuh. Jika operasi belum selesai disalin ke Drive, runtime baru mengulang operasi dari awal. Checkpoint memakai commit, seed, konfigurasi, versi runtime dan dependensi yang sama. Arsip checkpoint berisi state Python internal. Gunakan arsip dari percobaan Anda sendiri.
-- Jika audit atau penyalinan paket akhir terputus, jalankan kembali **Save Results** jika dataset lokal masih ada dan sebelumnya lulus validasi. Jika runtime hilang, pemulihan dari checkpoint keuangan menjalankan audit penuh kembali sebelum menerbitkan berkas.
-- Status Drive dapat tertinggal di `running` saat runtime hilang. Lihat `last_verified_checkpoint` dan `status.json`. Berkas `.partial` belum terverifikasi. Jika hash checkpoint berbeda, selesaikan di runtime asli bila state lokal masih dapat diverifikasi. Gunakan percobaan baru jika checkpoint dan state lokal sama-sama gagal.
+Tiket timbang dan koreksinya, movement ledger, master hewan/lot/lokasi, saldo pembukaan dan kejadian klinis memungkinkan estimasi A/B melalui replay cutoff mingguan. Tabel `weight_estimates` Stage 6 berisi nowcast Model B pada waktu keputusan. Evaluator merekonstruksi kedua model dengan fitur yang tersedia pada origin untuk menilai bobot pada waktu timbang aktual. Pembacaan mengecek status audit penuh, hash arsip dan partisi input, serta jumlah receipt. Evaluasi menggunakan tabel observasi dan kejadian, termasuk koreksi tiket yang sudah tersedia pada cutoff yang relevan.
 
-Checkpoint hanya tersedia di batas fase. Colab dapat menghentikan sesi sebelum batas tersebut. Batas sumber daya yang ditampilkan adalah margin perencanaan. Notebook memakai CPU dan dependensi Python terpin pada penyimpanan lokal, lalu memeriksa hash dan ukuran data pada Drive yang ter-mount. [Arsitektur, estimasi dan bukti](../FINAL_DATASET_READINESS.md)
+- Origin dipatok pada Senin pukul 08.00 Edmonton. Horizon 7/30/60 hari dihitung sebagai waktu UTC berlalu. Pasangan memakai tiket non-entry pertama dalam jendela ±3 hari, untuk hewan yang aktif di origin. Tiket yang terpilih berulang pada horizon yang sama memakai origin terdekat dengan target nominal, lalu yang paling awal jika seri.
+- Outcome memakai vintage 1 Februari 2026. Estimasi hanya memakai fakta efektif sebelum origin dan sudah tersedia saat itu. Anchor stale diperiksa di origin. Forecast Model B yang mencapai batas proyeksi tetap dihitung dan jumlahnya ditampilkan, termasuk pada horizon 60 hari.
+- Laporan menampilkan MAE, bias, cakupan dan dukungan untuk holdout lot, waktu, irisan, carry-in, dan jenis tiket. Interval 90% memakai kuantil residual dari vintage development 1 Juli, dengan bobot sama per lot dan tanpa lot holdout atau carry-in. Interval dilaporkan hanya untuk origin pada atau setelah cutoff development dan hanya jika jumlah pasangan kalibrasi mencukupi. Coverage prediksi menggunakan pasangan dengan tiket yang memenuhi syarat.
+- Stage 5 mensyaratkan minimal **100 pasangan, 60 sapi, 8 lot, dan cakupan 70% per horizon**. Lima seed yang dipatok adalah 42, 171, 382, 901, dan 1009. Sedikitnya empat seed harus memenuhi metrik primer dan semua seed harus melewati hard gate. Laporan ini selalu menyatakan `stage5_status=incomplete`. Evaluasi promosi lengkap masih memerlukan seed lain, bootstrap per lot, kalibrasi rolling untuk origin awal, serta pemeriksaan ketahanan dan determinisme sesuai protokol. [Protokol Stage 5](../../stage5/EVALUATION.md)
+
+## Otorisasi pilot 1.500 khusus evaluasi
+
+Jika Anda ingin mengumpulkan data tambahan, pilih **1500**, lalu jalankan **Select Simulation Size & Preflight**. Centang **Jalankan_pilot_evaluasi** di **Run Evaluation-Only Pilot**, jalankan sel, dan ketik `MULAI EVALUASI 1500`. Ini menjalankan satu seed 42 dengan prasyarat sumber daya Stage 7. Setelah runner selesai, jalankan **Validate Results**, **Save Results**, lalu **View Summary**.
+
+Hasil berada di **My Drive → Feedlot_V2_Evaluation_Pilots → evaluation-1500-… → dataset-evaluation-only.tar**. `status.json` memisahkan audit penuh yang lulus dari holdout yang belum lengkap melalui `purpose=evaluation_only`, `stage5_status=incomplete` dan `promotion_eligible=false`. Gerbang fisik, finansial, kronologi, 48 close, inventaris dan integritas publikasi tetap berlaku. Untuk membaca ulang paket pilot, masukkan path paket itu ke **Evaluate Saved Dataset**. Pilot ini menambah sampel seed 42, sedangkan persyaratan lima seed tetap terbuka.
+
+## Pemulihan dan produksi
+
+- Untuk memulihkan pilot, ulangi persiapan dengan ukuran **1500**. Masukkan nama folder lama di **Attempt_ID**, centang **Jalankan_pilot_evaluasi**, jalankan sel, dan ketik `LANJUT EVALUASI 1500`. Checkpoint `operations` melanjutkan ke keuangan. Checkpoint `finance` melanjutkan ke audit penuh. Fase yang belum tersegel diulang. Checkpoint harus berasal dari percobaan Anda sendiri dengan kode, konfigurasi dan runtime yang sesuai.
+- Bila hasil sudah lulus audit lokal dan transfer terputus, jalankan kembali **Save Results**. Jika runtime hilang, gunakan checkpoint Drive. `status=completed` dan `validation_status=passed` menandakan paket evaluasi sudah lolos audit dan verifikasi penyalinan.
+- Pilihan **15000** menyediakan preflight. Eksekusi produksi dikunci pada versi notebook ini. Pembukaan eksekusi memerlukan bukti holdout yang ditinjau, penerimaan operasi dari pilot yang diaudit, dan kapasitas runtime serta Drive yang memadai. Pilihan atau checkbox pengguna tidak mengubah status holdout. [Arsitektur dan gerbang produksi](../FINAL_DATASET_READINESS.md)

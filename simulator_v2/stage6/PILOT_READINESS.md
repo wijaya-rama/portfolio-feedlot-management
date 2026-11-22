@@ -1,8 +1,8 @@
 # Keputusan pilot 1.500 placement
 
-## Stage 7 · Konfigurasi siap, eksekusi menunggu holdout
+## Stage 7 · Arsip 250 dan pilot khusus evaluasi
 
-Benchmark 250 di Colab sudah selesai berdasarkan pengukuran pengguna. Jalur berikutnya langsung menuju pilot 1.500 setelah holdout estimator Stage 5 dan otorisasi. Preflight operasi dan pemulihan dua fase telah diuji. Target 15.000 tetap menunggu hasil pilot dan kapasitas runtime yang terverifikasi. [Keputusan terbaru dan bukti](FINAL_DATASET_READINESS.md) · [Panduan Colab](colab/README.md)
+Evaluasi terlebih dahulu arsip 250 yang sudah tersimpan. Analisis satu seed memberikan bukti awal Stage 5. Pilot 1.500 tersedia dengan otorisasi khusus evaluasi, dan audit penuh tetap berlaku. Promosi dan produksi 15.000 menunggu holdout lengkap, bukti penerimaan operasi, dan kapasitas runtime terverifikasi. [Keputusan terbaru dan bukti](FINAL_DATASET_READINESS.md) · [Panduan Colab](colab/README.md)
 
 ## Stage 6B.1 · HOLD
 
