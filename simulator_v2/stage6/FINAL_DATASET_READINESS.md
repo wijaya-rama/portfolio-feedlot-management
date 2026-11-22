@@ -52,6 +52,8 @@ Pada uji lintas proses, proses dihentikan paksa setelah operasi dan sebelum keua
 
 ## Sumber daya dan rilis
 
+Rencana terbaru memisahkan evaluasi forecast, keputusan rilis integritas, dan kecukupan runtime. Gunakan laporan performa pilot yang sudah selesai untuk memperkirakan fase terpanjang. [Jalur produksi dan perbandingan development](PRODUCTION_PATH.md)
+
 | Ukuran | Colab 250 terukur dan dilaporkan pengguna | Pilot 1.500, proyeksi linear | Produksi 15.000, proyeksi linear |
 |---|---:|---:|---:|
 | Wall time runner termasuk audit | 621,43 detik | 62 menit | 10,4 jam |

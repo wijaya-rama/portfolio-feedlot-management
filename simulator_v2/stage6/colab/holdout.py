@@ -153,6 +153,9 @@ class OriginForecast:
     anchor_at: datetime | None = None
     prior_kg_per_day: float | None = None
     nowcast_limit_days: float | None = None
+    stage: str | None = None
+    adaptation_end: datetime | None = None
+    clinical_status: str | None = None
 
     def score(self, label):
         if self.reason != "eligible":
@@ -169,7 +172,7 @@ class OriginForecast:
         return errors, legacy_b, legacy_days < total_days
 
 
-def forecast_origins(config, estimator, opening):
+def forecast_origins(config, estimator, opening, *, before=None):
     """Freeze inputs once per origin. Target availability is resolved separately."""
     first, last = (date.fromisoformat(config[key]) for key in ("start", "end"))
     monday = first + timedelta(days=(-first.weekday()) % 7)
@@ -177,6 +180,8 @@ def forecast_origins(config, estimator, opening):
     policy = estimator.policy
     for offset in range(0, (last - monday).days + 1, 7):
         origin = at(monday + offset * DAY, 8)
+        if before is not None and origin >= before:
+            break
         snapshot, replay, active, weights, clinical = estimator.snapshot(origin)
         entered = {event.animal_id: event.effective_at for event in replay.events if event.kind in ENTRY}
         kinds = {row.location_id: row.kind for row in replay.location_versions}
@@ -191,16 +196,17 @@ def forecast_origins(config, estimator, opening):
                 row = OriginForecast(*args, "stale_anchor")
             else:
                 health = clinical[key][-1] if clinical[key] else None
-                stage = production_stage(kinds[state.location_id], opening.get(key, entered[key]),
-                                         origin - TICK, estimator.adaptation_days)
+                entry = opening.get(key, entered[key])
+                stage = production_stage(kinds[state.location_id], entry, origin - TICK, estimator.adaptation_days)
                 nowcast = estimator._estimate(snapshot, state, stage, health, anchor, origin, Model.B)
                 row = OriginForecast(*args, "eligible", anchor.measured_weight_kg, anchor.measured_at,
-                                     nowcast.adg_prior_kg, policy["projection_limit_days"])
+                                     nowcast.adg_prior_kg, policy["projection_limit_days"], stage,
+                                     entry + estimator.adaptation_days * DAY, nowcast.clinical_status)
             forecasts[key].append(row)
     return forecasts
 
 
-def forecast_pairs(forecasts, observations, horizons, effective_before, knowledge_cutoff):
+def forecast_pairs(forecasts, observations, horizons, effective_before, knowledge_cutoff, *, extra_score=None):
     """Choose the first eligible ticket per window and deduplicate in that ticket vintage."""
     leads = [(horizon, horizon * DAY) for horizon in sorted(horizons)]
     selected = {}
@@ -224,12 +230,15 @@ def forecast_pairs(forecasts, observations, horizons, effective_before, knowledg
                 if pair_key in selected and selected[pair_key][0] <= rank:
                     continue
                 errors, legacy_b_error, legacy_capped = window.score(label)
-                selected[pair_key] = (rank, {
+                pair = {
                     "animal": animal, "lot": window.lot, "carry_in": window.carry_in, "origin": window.origin,
                     "target": label.measured_at, "horizon": horizon, "kind": label.kind,
                     "reason": window.reason, "errors": errors, "legacy_b_error": legacy_b_error,
                     "legacy_capped": legacy_capped,
-                })
+                }
+                if errors and extra_score is not None:
+                    pair.update(extra_score(window, label))
+                selected[pair_key] = rank, pair
     return [row for _, row in selected.values()]
 
 

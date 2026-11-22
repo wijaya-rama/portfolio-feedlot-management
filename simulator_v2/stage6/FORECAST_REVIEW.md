@@ -1,5 +1,7 @@
 # Telaah forecast Stage 7
 
+Hasil aktual v2 dan rencana pengujian kandidat selanjutnya tersedia di [jalur evaluasi dan produksi](PRODUCTION_PATH.md).
+
 Telaah ini memakai laporan pilot 1.500 yang diserahkan pengguna, seed 42, `SYN-STAGE6-RUN-c10780f1f054de8422edc83c`, evaluator `stage5-saved-holdout.1`. Arsip sumber memiliki awalan SHA-256 `5221f92c9596`. Tabel di bawah merangkum laporan lama. Angka revisi memerlukan pembacaan arsip Parquet di Colab.
 
 | Horizon | MAE temporal A / B, kg | Bias B 60 hari, kg | Coverage interval B holdout lot | Pasangan berinterval / seluruh pasangan eligible holdout lot |
