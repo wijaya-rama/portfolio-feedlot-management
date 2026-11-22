@@ -1,0 +1,13 @@
+{
+  "byte_identical_partitions": 1343,
+  "config": "configs/preflight-25.json",
+  "equal_existing_diagnostics": true,
+  "equal_historical_as_known_and_restated_snapshots": true,
+  "equal_monthly_financial_summary": true,
+  "passed": true,
+  "restated_rows_moved_by_routing_clock": [],
+  "run_id_held_constant": "SYN-STAGE6-RUN-d84845c1f9b0592ac0c51f82",
+  "seed": 42,
+  "tables_compared": 78,
+  "total_partitions": 1446
+}

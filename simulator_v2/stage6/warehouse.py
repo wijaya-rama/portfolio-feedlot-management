@@ -82,22 +82,33 @@ class Supply:
         self.supplier = supplier
         ingredients, bins, prices = [], [], []
         self.main, self.dock, self.prices = {}, {}, {}
-        capacity = p["bin_grams_per_design_head"] * design_head
+        default_capacity = p["bin_grams_per_design_head"] * design_head
         self.opening = p["opening_grams_per_design_head"] * design_head
         self.target = p["ordered_grams_per_design_head"] * design_head
-        if (not p["ingredients"] or not 0 <= self.opening <= capacity or not 1 <= self.target <= capacity
+        self.opening_by_key, self.target_by_key, self.capacity_by_key, self.reorder_by_key = {}, {}, {}, {}
+        if (not p["ingredients"] or not 0 <= self.opening <= default_capacity or not 1 <= self.target <= default_capacity
                 or p["order_cycle_days"] < 1 or p["lead_days"] < 1 or p["split_receipt_delay_days"] < 1):
             raise ValueError("invalid warehouse supply or storage parameters")
         for row in p["ingredients"]:
             name = row["code"]
             key = f"SYN-ING-{name}"
+            cap = row.get("bin_grams_per_design_head", p["bin_grams_per_design_head"]) * design_head
+            opn = row.get("opening_grams_per_design_head", p["opening_grams_per_design_head"]) * design_head
+            tgt = row.get("ordered_grams_per_design_head", p["ordered_grams_per_design_head"]) * design_head
+            rop = (row["reorder_grams_per_design_head"] * design_head
+                   if row.get("reorder_grams_per_design_head") is not None else None)
+            if (not 0 <= opn <= cap or not 1 <= tgt <= cap
+                    or (rop is not None and not 0 <= rop <= tgt)):
+                raise ValueError(f"invalid material-specific supply parameters: {name}")
+            self.opening_by_key[key], self.target_by_key[key], self.capacity_by_key[key] = opn, tgt, cap
+            self.reorder_by_key[key] = rop
             ingredient = Ingredient(*doc(f"{key}-V1", opened), key, name, row["dm_bps"],
                                     row["kj_per_kg_dm"], row["cp_bps"])
             price = Price(*doc(f"SYN-PRICE-{name}-V1", opened), key, supplier.supplier_id,
                           row["cents_per_tonne"], "t")
             main, dock = f"SYN-BIN-{name}", f"SYN-DOCK-{name}"
-            bins.extend([Bin(*doc(f"{main}-V1", opened), main, warehouse.warehouse_id, capacity),
-                         Bin(*doc(f"{dock}-V1", opened), dock, inbound.warehouse_id, capacity)])
+            bins.extend([Bin(*doc(f"{main}-V1", opened), main, warehouse.warehouse_id, cap),
+                         Bin(*doc(f"{dock}-V1", opened), dock, inbound.warehouse_id, cap)])
             self.main[key], self.dock[key], self.prices[key] = main, dock, price
             ingredients.append(ingredient)
             prices.append(price)
@@ -127,15 +138,18 @@ class Supply:
         self.emit("ration_ingredients", components)
         for name in ("ingredients", "suppliers", "warehouses", "bins", "prices", "equipment"):
             self.emit(f"warehouse_{name}", getattr(self.masters, name))
-        if self.opening:
+        if any(self.opening_by_key.values()):
             for key, price in self.prices.items():
+                opn = self.opening_by_key[key]
+                if not opn:
+                    continue
                 batch = self.batch(key, f"{key}-OPENING", opened)
-                self.apply(Kind.OPENING, opened, self.main[key], key, self.opening, batch_id=batch,
-                           amount_cents=half_up(self.opening * price.cents_per_unit, 1000000))
-            spoil = min(self.opening, p["opening_spoilage_g_af"])
+                self.apply(Kind.OPENING, opened, self.main[key], key, opn, batch_id=batch,
+                           amount_cents=half_up(opn * price.cents_per_unit, 1000000))
+            first_key = ingredients[0].ingredient_id
+            spoil = min(self.opening_by_key[first_key], p["opening_spoilage_g_af"])
             if spoil:
-                key = ingredients[0].ingredient_id
-                self.apply(Kind.SPOILAGE, at(first, 5), self.main[key], key, spoil,
+                self.apply(Kind.SPOILAGE, at(first, 5), self.main[first_key], first_key, spoil,
                            reason="synthetic_storage_damage_inspection")
 
     def batch(self, key, batch, when):
@@ -175,10 +189,13 @@ class Supply:
             self.apply(Kind.TRANSFER, when, self.dock[key], key, amount, batch_id=batch,
                        target_bin_id=self.main[key])
             self.order_reserved[key] -= amount
-        if (day - self.first).days % self.policy["order_cycle_days"]:
-            return
+        on_cycle = ((day - self.first).days % self.policy["order_cycle_days"]) == 0
         for key, bin_id in self.main.items():
-            need = self.target - self.state.bin_quantities[bin_id] - self.order_reserved[key]
+            position = self.state.bin_quantities[bin_id] + self.order_reserved[key]
+            rop = self.reorder_by_key[key]
+            if not on_cycle and (rop is None or position > rop):
+                continue
+            need = self.target_by_key[key] - position
             if need < 2:
                 continue
             order = f"{key}-PO-{day:%Y%m%d}"

@@ -81,6 +81,12 @@ def validate(config):
     if (min(health["receiving_multiplier"], health["post_recovery_multiplier"]) < 0
             or not 1 <= health["reassess_days"] < health["chronic_after_days"]):
         raise ValueError("invalid clinical schedule")
+    if "chronic_death_daily" in health and not 0 <= health["chronic_death_daily"] <= 1:
+        raise ValueError("invalid probability: chronic_death_daily")
+    if "recovery_basis" in health and health["recovery_basis"] not in {"per_reassessment", "daily_compounded"}:
+        raise ValueError(f"invalid recovery_basis: {health['recovery_basis']}")
+    if "scenario_version" in health and (not isinstance(health["scenario_version"], str) or not health["scenario_version"].strip()):
+        raise ValueError("invalid health scenario_version")
     if any(type(value) is not int or value < 0 for value in config["finance"].values()):
         raise ValueError("finance values must be nonnegative integer cents")
     if config["finance"]["purchase_cents_per_kg"] <= 0:

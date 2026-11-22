@@ -1,0 +1,1245 @@
+{
+  "baseline_health_assumptions": {
+    "background_death_daily": 4e-05,
+    "chronic_after_days": 9,
+    "chronic_death_daily": 0.0015,
+    "chronic_probability": 0.3,
+    "detected_death_daily": [
+      0.0001,
+      0.001,
+      0.01
+    ],
+    "detection_daily": [
+      0.4,
+      0.7,
+      0.9
+    ],
+    "onset_daily": 0.0022,
+    "post_recovery_multiplier": 2.0,
+    "reassess_days": 2,
+    "receiving_multiplier": 3.5,
+    "recovery_basis": "daily_compounded",
+    "recovery_daily": [
+      0.38,
+      0.24,
+      0.14
+    ],
+    "repeat_probability": 0.35,
+    "scenario_version": "stage6b1-baseline-health.1",
+    "severity_weights": [
+      0.6,
+      0.3,
+      0.1
+    ],
+    "treatment_probability": 0.85,
+    "untreated_death_daily": [
+      0.0002,
+      0.0025,
+      0.025
+    ]
+  },
+  "calibration_disclaimer": "Synthetic operational parameters only; not empirically calibrated to commercial feedlot datasets.",
+  "in_memory_operations_bridges": {
+    "preflight_100_legacy_42": {
+      "config": "stage6b-preflight-100.1",
+      "epidemiological_bridge": {
+        "affected_animals": 77,
+        "animal_attack_proportion_pct": 62.6,
+        "animals_with_chronic_transition": 0,
+        "animals_with_severe_episode": 21,
+        "by_severity": {
+          "mild": {
+            "cfr_pct": 1.47,
+            "chronic": 0,
+            "detected": 0,
+            "died": 1,
+            "hospital_admitted": 0,
+            "median_days_to_death": 0.0,
+            "median_days_to_detect": null,
+            "median_days_to_recover": 5.98,
+            "onsets": 68,
+            "recovered": 66,
+            "repeat_treated_episodes": 15,
+            "treated": 51
+          },
+          "moderate": {
+            "cfr_pct": 2.04,
+            "chronic": 0,
+            "detected": 0,
+            "died": 1,
+            "hospital_admitted": 0,
+            "median_days_to_death": 0.0,
+            "median_days_to_detect": null,
+            "median_days_to_recover": 6.0,
+            "onsets": 49,
+            "recovered": 48,
+            "repeat_treated_episodes": 19,
+            "treated": 40
+          },
+          "severe": {
+            "cfr_pct": 62.5,
+            "chronic": 0,
+            "detected": 0,
+            "died": 15,
+            "hospital_admitted": 22,
+            "median_days_to_death": 5.0,
+            "median_days_to_detect": null,
+            "median_days_to_recover": 6.0,
+            "onsets": 24,
+            "recovered": 9,
+            "repeat_treated_episodes": 12,
+            "treated": 21
+          }
+        },
+        "censored_active_or_sold_while_unrecovered": {
+          "mild_sold": 1
+        },
+        "death_breakdown": {
+          "background_death": 2,
+          "mild_onset_day_undetected": 1,
+          "moderate_onset_day_undetected": 1,
+          "severe_onset_day_undetected": 2,
+          "severe_post_onset_undetected": 13
+        },
+        "episodes_per_100_animal_years": 302.09,
+        "onset_by_location": {
+          "production": 131,
+          "receiving": 10
+        },
+        "repeat_episode_animals": 38,
+        "total_onset_episodes": 141
+      },
+      "exceptions": {},
+      "mortality_rates": {
+        "annualized_deaths_per_100_animal_years_calendar": 40.52,
+        "annualized_deaths_per_100_animal_years_elapsed": 40.71,
+        "crude_proportion_pct": 15.45,
+        "deaths_per_1000_calendar_animal_days": 1.1094,
+        "deaths_per_1000_elapsed_animal_days": 1.1145
+      },
+      "population": {
+        "animal_years_elapsed": 46.675,
+        "calendar_animal_days": 17127,
+        "carry_out_censored": 22,
+        "daily_health_state_animal_days": {
+          "chronic": 40,
+          "healthy": 16156,
+          "ill_detected": 700,
+          "ill_undetected": 131
+        },
+        "died": 19,
+        "elapsed_animal_days": 17048.0,
+        "mean_elapsed_days_per_animal": 138.6,
+        "opening_carry_in": 23,
+        "placements": 100,
+        "sold": 82,
+        "total_animals_at_risk": 123
+      },
+      "seed": 42,
+      "supply": {
+        "BARLEY": {
+          "capacity_kg_af": 4620.0,
+          "cycle_plus_lead_days": 12,
+          "dm_bps": 8800,
+          "max_daily_issue_kg_af": 170.01,
+          "max_rolling_cycle_plus_lead_kg_af": 1840.2,
+          "mean_daily_issue_kg_af": 135.92,
+          "min_bin_day": "2024-10-25",
+          "min_bin_kg_af": 1031.1,
+          "opening_kg_af": 2552.0,
+          "peak_bin_kg_af": 2552.0,
+          "target_kg_af": 2816.0
+        },
+        "OATS": {
+          "capacity_kg_af": 4620.0,
+          "cycle_plus_lead_days": 12,
+          "dm_bps": 8900,
+          "max_daily_issue_kg_af": 35.2,
+          "max_rolling_cycle_plus_lead_kg_af": 399.6,
+          "mean_daily_issue_kg_af": 28.88,
+          "min_bin_day": "2024-01-05",
+          "min_bin_kg_af": 2387.7,
+          "opening_kg_af": 2552.0,
+          "peak_bin_kg_af": 2655.0,
+          "target_kg_af": 2816.0
+        },
+        "SILAGE": {
+          "capacity_kg_af": 4620.0,
+          "cycle_plus_lead_days": 12,
+          "dm_bps": 4500,
+          "max_daily_issue_kg_af": 237.27,
+          "max_rolling_cycle_plus_lead_kg_af": 2694.9,
+          "mean_daily_issue_kg_af": 189.09,
+          "min_bin_day": "2025-10-17",
+          "min_bin_kg_af": 126.0,
+          "opening_kg_af": 2552.0,
+          "peak_bin_kg_af": 2552.0,
+          "target_kg_af": 2816.0
+        }
+      }
+    },
+    "preflight_250_legacy_42": {
+      "config": "stage6b-preflight-250.1",
+      "epidemiological_bridge": {
+        "affected_animals": 181,
+        "animal_attack_proportion_pct": 58.77,
+        "animals_chronic": 28,
+        "animals_severe": 48,
+        "by_severity": {
+          "mild": {
+            "cfr_pct": 0.62,
+            "chronic": 8,
+            "detected": 157,
+            "died": 1,
+            "hospital_admitted": 0,
+            "median_days_to_death": 0.0,
+            "median_days_to_detect": 1.0,
+            "median_days_to_recover": 5.0,
+            "onsets": 160,
+            "recovered": 157,
+            "repeat_treated_episodes": 45,
+            "treated": 128
+          },
+          "moderate": {
+            "cfr_pct": 2.54,
+            "chronic": 16,
+            "detected": 116,
+            "died": 3,
+            "hospital_admitted": 0,
+            "median_days_to_death": 0.0,
+            "median_days_to_detect": 0.0,
+            "median_days_to_recover": 6.0,
+            "onsets": 118,
+            "recovered": 115,
+            "repeat_treated_episodes": 46,
+            "treated": 96
+          },
+          "severe": {
+            "cfr_pct": 62.75,
+            "chronic": 6,
+            "detected": 47,
+            "died": 32,
+            "hospital_admitted": 47,
+            "median_days_to_death": 4.5,
+            "median_days_to_detect": 0.0,
+            "median_days_to_recover": 4.0,
+            "onsets": 51,
+            "recovered": 19,
+            "repeat_treated_episodes": 22,
+            "treated": 44
+          }
+        },
+        "censored_unrecovered": {
+          "mild_sold": 2
+        },
+        "episodes_per_100_animal_years": 278.5,
+        "onset_by_location": {
+          "production": 310,
+          "receiving": 19
+        },
+        "repeat_episode_animals": 85,
+        "theoretical_markov": {
+          "approx_disease_deaths_per_100_animal_years": 42.13,
+          "approx_episodes_per_100_animal_years": 319.59,
+          "approx_total_deaths_per_100_animal_years": 46.88,
+          "background_deaths_per_100_animal_years": 4.75,
+          "by_severity": {
+            "mild": {
+              "effective_review_recovery_prob": 0.42,
+              "expected_post_detection_days": 4.75,
+              "overall_cfr_pct": 0.376,
+              "post_detection_cfr_pct": 0.238
+            },
+            "moderate": {
+              "effective_review_recovery_prob": 0.25,
+              "expected_post_detection_days": 7.8,
+              "overall_cfr_pct": 3.714,
+              "post_detection_cfr_pct": 3.119
+            },
+            "severe": {
+              "effective_review_recovery_prob": 0.12,
+              "expected_post_detection_days": 7.27,
+              "overall_cfr_pct": 65.595,
+              "post_detection_cfr_pct": 61.835
+            }
+          },
+          "chronic_death_daily": null,
+          "recovery_basis": "per_reassessment",
+          "weighted_episode_cfr_pct": 13.184
+        },
+        "total_onset_episodes": 329
+      },
+      "exceptions": {
+        "ingredient_shortage_load_cancelled": 2
+      },
+      "health_scenario": "stage6b-adverse-health.1-legacy",
+      "mortality_rates": {
+        "annualized_deaths_per_100_animal_years_calendar": 37.08,
+        "annualized_deaths_per_100_animal_years_elapsed": 37.25,
+        "background_deaths": 8,
+        "crude_proportion_pct": 14.29,
+        "death_breakdown": {
+          "background_death": 8,
+          "mild_onset_day_undetected": 1,
+          "moderate_detected_acute_treated": 1,
+          "moderate_onset_day_undetected": 2,
+          "severe_chronic": 6,
+          "severe_detected_acute_treated": 20,
+          "severe_detected_acute_untreated": 2,
+          "severe_onset_day_undetected": 4
+        },
+        "deaths_per_1000_calendar_animal_days": 1.0151,
+        "deaths_per_1000_elapsed_animal_days": 1.0198,
+        "disease_deaths": 36
+      },
+      "population": {
+        "animal_years_elapsed": 118.132,
+        "calendar_animal_days": 43346,
+        "capacity_by_kind": {
+          "hospital": 6,
+          "production": 90,
+          "receiving": 10
+        },
+        "carry_out_censored": 52,
+        "daily_health_state_animal_days": {
+          "chronic": 183,
+          "healthy": 40948,
+          "ill_detected": 1659,
+          "ill_undetected": 306
+        },
+        "died": 44,
+        "elapsed_animal_days": 43147.79,
+        "mean_elapsed_days": 140.09,
+        "opening_carry_in": 58,
+        "peak_concurrent_by_kind": {
+          "hospital": 3,
+          "production": 65,
+          "receiving": 5
+        },
+        "peak_concurrent_yard": 66,
+        "peak_pen_occupancy": {
+          "SYN-H01": 2,
+          "SYN-H02": 2,
+          "SYN-P01": 15,
+          "SYN-P02": 15,
+          "SYN-P03": 11,
+          "SYN-P04": 15,
+          "SYN-P05": 13,
+          "SYN-P06": 12,
+          "SYN-R01": 5
+        },
+        "placements": 250,
+        "sold": 212,
+        "total_animals_at_risk": 308
+      },
+      "seed": 42,
+      "supply": {
+        "BARLEY": {
+          "capacity_kg_af": 11130.0,
+          "max_rolling_12d_issue_kg_af": 4429.5,
+          "min_bin_day": "2024-03-15",
+          "min_bin_kg_af": 2433.8,
+          "opening_kg_af": 6148.0,
+          "peak_bin_kg_af": 6148.0,
+          "peak_bin_utilization_pct": 55.2,
+          "purchase_orders": 105,
+          "reorder_kg_af": null,
+          "split_receipts": 208,
+          "target_kg_af": 6784.0
+        },
+        "OATS": {
+          "capacity_kg_af": 11130.0,
+          "max_rolling_12d_issue_kg_af": 1001.5,
+          "min_bin_day": "2024-01-05",
+          "min_bin_kg_af": 5744.9,
+          "opening_kg_af": 6148.0,
+          "peak_bin_kg_af": 6321.0,
+          "peak_bin_utilization_pct": 56.8,
+          "purchase_orders": 105,
+          "reorder_kg_af": null,
+          "split_receipts": 208,
+          "target_kg_af": 6784.0
+        },
+        "SILAGE": {
+          "capacity_kg_af": 11130.0,
+          "max_rolling_12d_issue_kg_af": 6789.9,
+          "min_bin_day": "2025-11-28",
+          "min_bin_kg_af": 2.2,
+          "opening_kg_af": 6148.0,
+          "peak_bin_kg_af": 6148.0,
+          "peak_bin_utilization_pct": 55.2,
+          "purchase_orders": 105,
+          "reorder_kg_af": null,
+          "split_receipts": 208,
+          "target_kg_af": 6784.0
+        }
+      }
+    },
+    "stage6b1_baseline_250_42": {
+      "config": "stage6b1-baseline-250.1",
+      "epidemiological_bridge": {
+        "affected_animals": 86,
+        "animal_attack_proportion_pct": 27.92,
+        "animals_chronic": 5,
+        "animals_severe": 13,
+        "by_severity": {
+          "mild": {
+            "cfr_pct": 0.0,
+            "chronic": 2,
+            "detected": 72,
+            "died": 0,
+            "hospital_admitted": 0,
+            "median_days_to_death": null,
+            "median_days_to_detect": 1.0,
+            "median_days_to_recover": 4.0,
+            "onsets": 72,
+            "recovered": 72,
+            "repeat_treated_episodes": 14,
+            "treated": 55
+          },
+          "moderate": {
+            "cfr_pct": 3.45,
+            "chronic": 1,
+            "detected": 28,
+            "died": 1,
+            "hospital_admitted": 0,
+            "median_days_to_death": 0.0,
+            "median_days_to_detect": 0.0,
+            "median_days_to_recover": 4.0,
+            "onsets": 29,
+            "recovered": 28,
+            "repeat_treated_episodes": 6,
+            "treated": 26
+          },
+          "severe": {
+            "cfr_pct": 7.69,
+            "chronic": 2,
+            "detected": 13,
+            "died": 1,
+            "hospital_admitted": 13,
+            "median_days_to_death": 2.0,
+            "median_days_to_detect": 0.0,
+            "median_days_to_recover": 7.0,
+            "onsets": 13,
+            "recovered": 12,
+            "repeat_treated_episodes": 5,
+            "treated": 11
+          }
+        },
+        "censored_unrecovered": {},
+        "episodes_per_100_animal_years": 91.41,
+        "onset_by_location": {
+          "production": 104,
+          "receiving": 10
+        },
+        "repeat_episode_animals": 21,
+        "theoretical_markov": {
+          "approx_disease_deaths_per_100_animal_years": 1.07,
+          "approx_episodes_per_100_animal_years": 88.79,
+          "approx_total_deaths_per_100_animal_years": 2.53,
+          "background_deaths_per_100_animal_years": 1.46,
+          "by_severity": {
+            "mild": {
+              "effective_review_recovery_prob": 0.6156,
+              "expected_post_detection_days": 3.25,
+              "overall_cfr_pct": 0.084,
+              "post_detection_cfr_pct": 0.034
+            },
+            "moderate": {
+              "effective_review_recovery_prob": 0.4224,
+              "expected_post_detection_days": 4.72,
+              "overall_cfr_pct": 0.835,
+              "post_detection_cfr_pct": 0.479
+            },
+            "severe": {
+              "effective_review_recovery_prob": 0.2604,
+              "expected_post_detection_days": 7.28,
+              "overall_cfr_pct": 9.081,
+              "post_detection_cfr_pct": 6.491
+            }
+          },
+          "chronic_death_daily": 0.0015,
+          "recovery_basis": "daily_compounded",
+          "weighted_episode_cfr_pct": 1.209
+        },
+        "total_onset_episodes": 114
+      },
+      "exceptions": {},
+      "health_scenario": "stage6b1-baseline-health.1",
+      "mortality_rates": {
+        "annualized_deaths_per_100_animal_years_calendar": 3.99,
+        "annualized_deaths_per_100_animal_years_elapsed": 4.01,
+        "background_deaths": 3,
+        "crude_proportion_pct": 1.62,
+        "death_breakdown": {
+          "background_death": 3,
+          "moderate_onset_day_undetected": 1,
+          "severe_detected_acute_treated": 1
+        },
+        "deaths_per_1000_calendar_animal_days": 0.1093,
+        "deaths_per_1000_elapsed_animal_days": 0.1098,
+        "disease_deaths": 2
+      },
+      "population": {
+        "animal_years_elapsed": 124.716,
+        "calendar_animal_days": 45738,
+        "capacity_by_kind": {
+          "hospital": 6,
+          "production": 90,
+          "receiving": 10
+        },
+        "carry_out_censored": 55,
+        "daily_health_state_animal_days": {
+          "chronic": 18,
+          "healthy": 44892,
+          "ill_detected": 468,
+          "ill_undetected": 110
+        },
+        "died": 5,
+        "elapsed_animal_days": 45552.46,
+        "mean_elapsed_days": 147.9,
+        "opening_carry_in": 58,
+        "peak_concurrent_by_kind": {
+          "hospital": 2,
+          "production": 67,
+          "receiving": 5
+        },
+        "peak_concurrent_yard": 69,
+        "peak_pen_occupancy": {
+          "SYN-H01": 1,
+          "SYN-H02": 1,
+          "SYN-P01": 15,
+          "SYN-P02": 15,
+          "SYN-P03": 15,
+          "SYN-P04": 15,
+          "SYN-P05": 10,
+          "SYN-P06": 9,
+          "SYN-R01": 5
+        },
+        "placements": 250,
+        "sold": 248,
+        "total_animals_at_risk": 308
+      },
+      "seed": 42,
+      "supply": {
+        "BARLEY": {
+          "capacity_kg_af": 12190.0,
+          "max_rolling_12d_issue_kg_af": 4804.1,
+          "min_bin_day": "2025-05-30",
+          "min_bin_kg_af": 3864.1,
+          "opening_kg_af": 7420.0,
+          "peak_bin_kg_af": 7420.0,
+          "peak_bin_utilization_pct": 60.9,
+          "purchase_orders": 106,
+          "reorder_kg_af": 6148.0,
+          "split_receipts": 208,
+          "target_kg_af": 8480.0
+        },
+        "OATS": {
+          "capacity_kg_af": 4770.0,
+          "max_rolling_12d_issue_kg_af": 1058.8,
+          "min_bin_day": "2025-08-01",
+          "min_bin_kg_af": 1698.6,
+          "opening_kg_af": 2332.0,
+          "peak_bin_kg_af": 2332.0,
+          "peak_bin_utilization_pct": 48.9,
+          "purchase_orders": 105,
+          "reorder_kg_af": 1908.0,
+          "split_receipts": 208,
+          "target_kg_af": 2756.0
+        },
+        "SILAGE": {
+          "capacity_kg_af": 19080.0,
+          "max_rolling_12d_issue_kg_af": 7277.3,
+          "min_bin_day": "2025-08-01",
+          "min_bin_kg_af": 6530.1,
+          "opening_kg_af": 12190.0,
+          "peak_bin_kg_af": 12190.0,
+          "peak_bin_utilization_pct": 63.9,
+          "purchase_orders": 105,
+          "reorder_kg_af": 10070.0,
+          "split_receipts": 208,
+          "target_kg_af": 13780.0
+        }
+      }
+    }
+  },
+  "material_specific_supply_policy": {
+    "BARLEY": {
+      "bin_grams_per_design_head": 115000,
+      "opening_grams_per_design_head": 70000,
+      "ordered_grams_per_design_head": 80000,
+      "reorder_grams_per_design_head": 58000
+    },
+    "OATS": {
+      "bin_grams_per_design_head": 45000,
+      "opening_grams_per_design_head": 22000,
+      "ordered_grams_per_design_head": 26000,
+      "reorder_grams_per_design_head": 18000
+    },
+    "SILAGE": {
+      "bin_grams_per_design_head": 180000,
+      "opening_grams_per_design_head": 115000,
+      "ordered_grams_per_design_head": 130000,
+      "reorder_grams_per_design_head": 95000
+    }
+  },
+  "published_dataset_bridges": {
+    "diagnostic_legacy_42": {
+      "animal_level_incidence": {
+        "animal_attack_proportion_pct": 25.93,
+        "animals_chronic": 5,
+        "animals_detected": 25,
+        "animals_hospital_admitted": 4,
+        "animals_severe": 4,
+        "animals_treated": 17,
+        "animals_with_any_onset": 28,
+        "animals_with_repeat_episodes": 7
+      },
+      "config_version": "stage6a-diagnostic.1",
+      "denominators_and_competing_exits": {
+        "animal_years_calendar": 12.862,
+        "animal_years_elapsed": 12.7,
+        "calendar_animal_days": 4698,
+        "carry_in_opening": 8,
+        "carry_out_censored": 40,
+        "competing_exit_proportions_pct": {
+          "carry_out_censored_pct": 37.04,
+          "died_pct": 3.7,
+          "sold_pct": 59.26
+        },
+        "death_exits": 4,
+        "elapsed_animal_days": 4638.58,
+        "mean_elapsed_days_per_animal": 42.95,
+        "placements": 100,
+        "sold_exits": 64,
+        "total_animals_at_risk": 108
+      },
+      "episode_level_bridge": {
+        "action_totals": {
+          "chronic": 5,
+          "death": 4,
+          "first_observation": 32,
+          "hospital_admission": 4,
+          "onset": 36,
+          "reassessment": 107,
+          "recovery": 29,
+          "repeat_treatment": 25,
+          "return_to_production": 4,
+          "treatment": 22
+        },
+        "by_severity": {
+          "mild": {
+            "cfr_pct": 0.0,
+            "chronic": 1,
+            "detected": 15,
+            "died": 0,
+            "hospital_admitted": 0,
+            "median_days_to_death": null,
+            "median_days_to_detect": 1.0,
+            "median_days_to_recover": 4.0,
+            "onsets": 17,
+            "recovered": 14,
+            "repeat_treated_episodes": 2,
+            "repeat_treatment_services": 4,
+            "treated": 7
+          },
+          "moderate": {
+            "cfr_pct": 14.29,
+            "chronic": 1,
+            "detected": 13,
+            "died": 2,
+            "hospital_admitted": 0,
+            "median_days_to_death": 9.0,
+            "median_days_to_detect": 0.0,
+            "median_days_to_recover": 6.5,
+            "onsets": 14,
+            "recovered": 12,
+            "repeat_treated_episodes": 9,
+            "repeat_treatment_services": 13,
+            "treated": 13
+          },
+          "severe": {
+            "cfr_pct": 40.0,
+            "chronic": 3,
+            "detected": 4,
+            "died": 2,
+            "hospital_admitted": 4,
+            "median_days_to_death": 5.5,
+            "median_days_to_detect": 0.0,
+            "median_days_to_recover": 14.0,
+            "onsets": 5,
+            "recovered": 3,
+            "repeat_treated_episodes": 2,
+            "repeat_treatment_services": 8,
+            "treated": 2
+          }
+        },
+        "censored_while_unrecovered": {
+          "mild_active": 2,
+          "mild_sold": 1
+        },
+        "episodes_per_100_animal_years_elapsed": 283.47,
+        "onset_by_location_kind": {
+          "production": 31,
+          "receiving": 5
+        },
+        "total_onset_episodes": 36
+      },
+      "health_scenario_version": "stage6b-adverse-health.1-legacy",
+      "mortality_metrics": {
+        "annualized_deaths_per_100_animal_years_calendar": 31.1,
+        "annualized_deaths_per_100_animal_years_elapsed": 31.5,
+        "background_deaths": 0,
+        "crude_mortality_proportion_pct": 3.7,
+        "death_breakdown_by_severity_and_stage": {
+          "moderate_detected_acute_treated": 1,
+          "moderate_onset_day_undetected": 1,
+          "severe_chronic": 1,
+          "severe_onset_day_undetected": 1
+        },
+        "deaths_per_1000_calendar_animal_days": 0.8514,
+        "deaths_per_1000_elapsed_animal_days": 0.8623,
+        "disease_attributed_deaths": 4
+      },
+      "rng_stream_independence": {
+        "all_streams_distinct": true,
+        "distinct_streams": [
+          "health/background-death",
+          "health/onset",
+          "health/severity",
+          "health/episode-death",
+          "health/detection",
+          "health/treatment",
+          "health/recovery",
+          "health/chronic",
+          "health/repeat"
+        ],
+        "note": "Each health draw uses SHA-256 over (seed, 'stage6a/<stream>', animal_id, day_or_episode), independent of feed/weight/carcass/finance streams."
+      },
+      "seed": 42,
+      "theoretical_markov_expectation": {
+        "approx_disease_deaths_per_100_animal_years": 42.13,
+        "approx_episodes_per_100_animal_years": 319.59,
+        "approx_total_deaths_per_100_animal_years": 46.88,
+        "background_deaths_per_100_animal_years": 4.75,
+        "by_severity": {
+          "mild": {
+            "effective_review_recovery_prob": 0.42,
+            "expected_post_detection_days": 4.75,
+            "overall_cfr_pct": 0.376,
+            "post_detection_cfr_pct": 0.238
+          },
+          "moderate": {
+            "effective_review_recovery_prob": 0.25,
+            "expected_post_detection_days": 7.8,
+            "overall_cfr_pct": 3.714,
+            "post_detection_cfr_pct": 3.119
+          },
+          "severe": {
+            "effective_review_recovery_prob": 0.12,
+            "expected_post_detection_days": 7.27,
+            "overall_cfr_pct": 65.595,
+            "post_detection_cfr_pct": 61.835
+          }
+        },
+        "chronic_death_daily": null,
+        "recovery_basis": "per_reassessment",
+        "weighted_episode_cfr_pct": 13.184
+      }
+    },
+    "preflight_25_legacy_42": {
+      "animal_level_incidence": {
+        "animal_attack_proportion_pct": 61.29,
+        "animals_chronic": 2,
+        "animals_detected": 18,
+        "animals_hospital_admitted": 3,
+        "animals_severe": 3,
+        "animals_treated": 16,
+        "animals_with_any_onset": 19,
+        "animals_with_repeat_episodes": 10
+      },
+      "config_version": "stage6b-preflight-25.1",
+      "denominators_and_competing_exits": {
+        "animal_years_calendar": 12.534,
+        "animal_years_elapsed": 12.482,
+        "calendar_animal_days": 4578,
+        "carry_in_opening": 6,
+        "carry_out_censored": 5,
+        "competing_exit_proportions_pct": {
+          "carry_out_censored_pct": 16.13,
+          "died_pct": 3.23,
+          "sold_pct": 80.65
+        },
+        "death_exits": 1,
+        "elapsed_animal_days": 4558.9,
+        "mean_elapsed_days_per_animal": 147.06,
+        "placements": 25,
+        "sold_exits": 25,
+        "total_animals_at_risk": 31
+      },
+      "episode_level_bridge": {
+        "action_totals": {
+          "chronic": 2,
+          "death": 1,
+          "first_observation": 36,
+          "hospital_admission": 3,
+          "onset": 37,
+          "reassessment": 101,
+          "recovery": 34,
+          "repeat_treatment": 28,
+          "return_to_production": 2,
+          "treatment": 31
+        },
+        "by_severity": {
+          "mild": {
+            "cfr_pct": 0.0,
+            "chronic": 1,
+            "detected": 22,
+            "died": 0,
+            "hospital_admitted": 0,
+            "median_days_to_death": null,
+            "median_days_to_detect": 1.0,
+            "median_days_to_recover": 7.0,
+            "onsets": 23,
+            "recovered": 22,
+            "repeat_treated_episodes": 11,
+            "repeat_treatment_services": 14,
+            "treated": 18
+          },
+          "moderate": {
+            "cfr_pct": 0.0,
+            "chronic": 1,
+            "detected": 11,
+            "died": 0,
+            "hospital_admitted": 0,
+            "median_days_to_death": null,
+            "median_days_to_detect": 0.0,
+            "median_days_to_recover": 5.5,
+            "onsets": 11,
+            "recovered": 10,
+            "repeat_treated_episodes": 6,
+            "repeat_treatment_services": 13,
+            "treated": 10
+          },
+          "severe": {
+            "cfr_pct": 33.33,
+            "chronic": 0,
+            "detected": 3,
+            "died": 1,
+            "hospital_admitted": 3,
+            "median_days_to_death": 6.0,
+            "median_days_to_detect": 0.0,
+            "median_days_to_recover": 4.5,
+            "onsets": 3,
+            "recovered": 2,
+            "repeat_treated_episodes": 1,
+            "repeat_treatment_services": 1,
+            "treated": 3
+          }
+        },
+        "censored_while_unrecovered": {
+          "mild_sold": 1,
+          "moderate_active": 1
+        },
+        "episodes_per_100_animal_years_elapsed": 296.44,
+        "onset_by_location_kind": {
+          "production": 36,
+          "receiving": 1
+        },
+        "total_onset_episodes": 37
+      },
+      "health_scenario_version": "stage6b-adverse-health.1-legacy",
+      "mortality_metrics": {
+        "annualized_deaths_per_100_animal_years_calendar": 7.98,
+        "annualized_deaths_per_100_animal_years_elapsed": 8.01,
+        "background_deaths": 0,
+        "crude_mortality_proportion_pct": 3.23,
+        "death_breakdown_by_severity_and_stage": {
+          "severe_detected_acute_treated": 1
+        },
+        "deaths_per_1000_calendar_animal_days": 0.2184,
+        "deaths_per_1000_elapsed_animal_days": 0.2194,
+        "disease_attributed_deaths": 1
+      },
+      "rng_stream_independence": {
+        "all_streams_distinct": true,
+        "distinct_streams": [
+          "health/background-death",
+          "health/onset",
+          "health/severity",
+          "health/episode-death",
+          "health/detection",
+          "health/treatment",
+          "health/recovery",
+          "health/chronic",
+          "health/repeat"
+        ],
+        "note": "Each health draw uses SHA-256 over (seed, 'stage6a/<stream>', animal_id, day_or_episode), independent of feed/weight/carcass/finance streams."
+      },
+      "seed": 42,
+      "theoretical_markov_expectation": {
+        "approx_disease_deaths_per_100_animal_years": 42.13,
+        "approx_episodes_per_100_animal_years": 319.59,
+        "approx_total_deaths_per_100_animal_years": 46.88,
+        "background_deaths_per_100_animal_years": 4.75,
+        "by_severity": {
+          "mild": {
+            "effective_review_recovery_prob": 0.42,
+            "expected_post_detection_days": 4.75,
+            "overall_cfr_pct": 0.376,
+            "post_detection_cfr_pct": 0.238
+          },
+          "moderate": {
+            "effective_review_recovery_prob": 0.25,
+            "expected_post_detection_days": 7.8,
+            "overall_cfr_pct": 3.714,
+            "post_detection_cfr_pct": 3.119
+          },
+          "severe": {
+            "effective_review_recovery_prob": 0.12,
+            "expected_post_detection_days": 7.27,
+            "overall_cfr_pct": 65.595,
+            "post_detection_cfr_pct": 61.835
+          }
+        },
+        "chronic_death_daily": null,
+        "recovery_basis": "per_reassessment",
+        "weighted_episode_cfr_pct": 13.184
+      }
+    },
+    "stage6b1_baseline_100_42": {
+      "animal_level_incidence": {
+        "animal_attack_proportion_pct": 28.46,
+        "animals_chronic": 1,
+        "animals_detected": 34,
+        "animals_hospital_admitted": 5,
+        "animals_severe": 5,
+        "animals_treated": 28,
+        "animals_with_any_onset": 35,
+        "animals_with_repeat_episodes": 10
+      },
+      "config_version": "stage6b1-baseline-100.1",
+      "denominators_and_competing_exits": {
+        "animal_years_calendar": 49.643,
+        "animal_years_elapsed": 49.441,
+        "calendar_animal_days": 18132,
+        "carry_in_opening": 23,
+        "carry_out_censored": 22,
+        "competing_exit_proportions_pct": {
+          "carry_out_censored_pct": 17.89,
+          "died_pct": 0.81,
+          "sold_pct": 81.3
+        },
+        "death_exits": 1,
+        "elapsed_animal_days": 18058.17,
+        "mean_elapsed_days_per_animal": 146.81,
+        "placements": 100,
+        "sold_exits": 100,
+        "total_animals_at_risk": 123
+      },
+      "episode_level_bridge": {
+        "action_totals": {
+          "chronic": 1,
+          "death": 1,
+          "first_observation": 48,
+          "hospital_admission": 5,
+          "onset": 49,
+          "reassessment": 98,
+          "recovery": 48,
+          "repeat_treatment": 11,
+          "return_to_production": 5,
+          "treatment": 37
+        },
+        "by_severity": {
+          "mild": {
+            "cfr_pct": 0.0,
+            "chronic": 0,
+            "detected": 33,
+            "died": 0,
+            "hospital_admitted": 0,
+            "median_days_to_death": null,
+            "median_days_to_detect": 1.0,
+            "median_days_to_recover": 4.0,
+            "onsets": 33,
+            "recovered": 33,
+            "repeat_treated_episodes": 5,
+            "repeat_treatment_services": 5,
+            "treated": 24
+          },
+          "moderate": {
+            "cfr_pct": 9.09,
+            "chronic": 0,
+            "detected": 10,
+            "died": 1,
+            "hospital_admitted": 0,
+            "median_days_to_death": 0.0,
+            "median_days_to_detect": 0.0,
+            "median_days_to_recover": 4.0,
+            "onsets": 11,
+            "recovered": 10,
+            "repeat_treated_episodes": 2,
+            "repeat_treatment_services": 4,
+            "treated": 9
+          },
+          "severe": {
+            "cfr_pct": 0.0,
+            "chronic": 1,
+            "detected": 5,
+            "died": 0,
+            "hospital_admitted": 5,
+            "median_days_to_death": null,
+            "median_days_to_detect": 0.0,
+            "median_days_to_recover": 6.0,
+            "onsets": 5,
+            "recovered": 5,
+            "repeat_treated_episodes": 1,
+            "repeat_treatment_services": 2,
+            "treated": 4
+          }
+        },
+        "censored_while_unrecovered": {},
+        "episodes_per_100_animal_years_elapsed": 99.11,
+        "onset_by_location_kind": {
+          "production": 44,
+          "receiving": 5
+        },
+        "total_onset_episodes": 49
+      },
+      "health_scenario_version": "stage6b1-baseline-health.1",
+      "mortality_metrics": {
+        "annualized_deaths_per_100_animal_years_calendar": 2.01,
+        "annualized_deaths_per_100_animal_years_elapsed": 2.02,
+        "background_deaths": 0,
+        "crude_mortality_proportion_pct": 0.81,
+        "death_breakdown_by_severity_and_stage": {
+          "moderate_onset_day_undetected": 1
+        },
+        "deaths_per_1000_calendar_animal_days": 0.0552,
+        "deaths_per_1000_elapsed_animal_days": 0.0554,
+        "disease_attributed_deaths": 1
+      },
+      "rng_stream_independence": {
+        "all_streams_distinct": true,
+        "distinct_streams": [
+          "health/background-death",
+          "health/onset",
+          "health/severity",
+          "health/episode-death",
+          "health/detection",
+          "health/treatment",
+          "health/recovery",
+          "health/chronic",
+          "health/repeat"
+        ],
+        "note": "Each health draw uses SHA-256 over (seed, 'stage6a/<stream>', animal_id, day_or_episode), independent of feed/weight/carcass/finance streams."
+      },
+      "seed": 42,
+      "theoretical_markov_expectation": {
+        "approx_disease_deaths_per_100_animal_years": 1.07,
+        "approx_episodes_per_100_animal_years": 88.79,
+        "approx_total_deaths_per_100_animal_years": 2.53,
+        "background_deaths_per_100_animal_years": 1.46,
+        "by_severity": {
+          "mild": {
+            "effective_review_recovery_prob": 0.6156,
+            "expected_post_detection_days": 3.25,
+            "overall_cfr_pct": 0.084,
+            "post_detection_cfr_pct": 0.034
+          },
+          "moderate": {
+            "effective_review_recovery_prob": 0.4224,
+            "expected_post_detection_days": 4.72,
+            "overall_cfr_pct": 0.835,
+            "post_detection_cfr_pct": 0.479
+          },
+          "severe": {
+            "effective_review_recovery_prob": 0.2604,
+            "expected_post_detection_days": 7.28,
+            "overall_cfr_pct": 9.081,
+            "post_detection_cfr_pct": 6.491
+          }
+        },
+        "chronic_death_daily": 0.0015,
+        "recovery_basis": "daily_compounded",
+        "weighted_episode_cfr_pct": 1.209
+      }
+    },
+    "stage6b1_baseline_25_42": {
+      "animal_level_incidence": {
+        "animal_attack_proportion_pct": 32.26,
+        "animals_chronic": 0,
+        "animals_detected": 10,
+        "animals_hospital_admitted": 0,
+        "animals_severe": 0,
+        "animals_treated": 7,
+        "animals_with_any_onset": 10,
+        "animals_with_repeat_episodes": 1
+      },
+      "config_version": "stage6b1-baseline-25.1",
+      "denominators_and_competing_exits": {
+        "animal_years_calendar": 12.736,
+        "animal_years_elapsed": 12.685,
+        "calendar_animal_days": 4652,
+        "carry_in_opening": 6,
+        "carry_out_censored": 5,
+        "competing_exit_proportions_pct": {
+          "carry_out_censored_pct": 16.13,
+          "died_pct": 0.0,
+          "sold_pct": 83.87
+        },
+        "death_exits": 0,
+        "elapsed_animal_days": 4633.23,
+        "mean_elapsed_days_per_animal": 149.46,
+        "placements": 25,
+        "sold_exits": 26,
+        "total_animals_at_risk": 31
+      },
+      "episode_level_bridge": {
+        "action_totals": {
+          "first_observation": 12,
+          "onset": 12,
+          "reassessment": 16,
+          "recovery": 12,
+          "repeat_treatment": 1,
+          "treatment": 8
+        },
+        "by_severity": {
+          "mild": {
+            "cfr_pct": 0.0,
+            "chronic": 0,
+            "detected": 9,
+            "died": 0,
+            "hospital_admitted": 0,
+            "median_days_to_death": null,
+            "median_days_to_detect": 1.0,
+            "median_days_to_recover": 4.0,
+            "onsets": 9,
+            "recovered": 9,
+            "repeat_treated_episodes": 0,
+            "repeat_treatment_services": 0,
+            "treated": 6
+          },
+          "moderate": {
+            "cfr_pct": 0.0,
+            "chronic": 0,
+            "detected": 3,
+            "died": 0,
+            "hospital_admitted": 0,
+            "median_days_to_death": null,
+            "median_days_to_detect": 0.0,
+            "median_days_to_recover": 4.0,
+            "onsets": 3,
+            "recovered": 3,
+            "repeat_treated_episodes": 1,
+            "repeat_treatment_services": 1,
+            "treated": 2
+          },
+          "severe": {
+            "cfr_pct": 0.0,
+            "chronic": 0,
+            "detected": 0,
+            "died": 0,
+            "hospital_admitted": 0,
+            "median_days_to_death": null,
+            "median_days_to_detect": null,
+            "median_days_to_recover": null,
+            "onsets": 0,
+            "recovered": 0,
+            "repeat_treated_episodes": 0,
+            "repeat_treatment_services": 0,
+            "treated": 0
+          }
+        },
+        "censored_while_unrecovered": {},
+        "episodes_per_100_animal_years_elapsed": 94.6,
+        "onset_by_location_kind": {
+          "production": 12
+        },
+        "total_onset_episodes": 12
+      },
+      "health_scenario_version": "stage6b1-baseline-health.1",
+      "mortality_metrics": {
+        "annualized_deaths_per_100_animal_years_calendar": 0.0,
+        "annualized_deaths_per_100_animal_years_elapsed": 0.0,
+        "background_deaths": 0,
+        "crude_mortality_proportion_pct": 0.0,
+        "death_breakdown_by_severity_and_stage": {},
+        "deaths_per_1000_calendar_animal_days": 0.0,
+        "deaths_per_1000_elapsed_animal_days": 0.0,
+        "disease_attributed_deaths": 0
+      },
+      "rng_stream_independence": {
+        "all_streams_distinct": true,
+        "distinct_streams": [
+          "health/background-death",
+          "health/onset",
+          "health/severity",
+          "health/episode-death",
+          "health/detection",
+          "health/treatment",
+          "health/recovery",
+          "health/chronic",
+          "health/repeat"
+        ],
+        "note": "Each health draw uses SHA-256 over (seed, 'stage6a/<stream>', animal_id, day_or_episode), independent of feed/weight/carcass/finance streams."
+      },
+      "seed": 42,
+      "theoretical_markov_expectation": {
+        "approx_disease_deaths_per_100_animal_years": 1.07,
+        "approx_episodes_per_100_animal_years": 88.79,
+        "approx_total_deaths_per_100_animal_years": 2.53,
+        "background_deaths_per_100_animal_years": 1.46,
+        "by_severity": {
+          "mild": {
+            "effective_review_recovery_prob": 0.6156,
+            "expected_post_detection_days": 3.25,
+            "overall_cfr_pct": 0.084,
+            "post_detection_cfr_pct": 0.034
+          },
+          "moderate": {
+            "effective_review_recovery_prob": 0.4224,
+            "expected_post_detection_days": 4.72,
+            "overall_cfr_pct": 0.835,
+            "post_detection_cfr_pct": 0.479
+          },
+          "severe": {
+            "effective_review_recovery_prob": 0.2604,
+            "expected_post_detection_days": 7.28,
+            "overall_cfr_pct": 9.081,
+            "post_detection_cfr_pct": 6.491
+          }
+        },
+        "chronic_death_daily": 0.0015,
+        "recovery_basis": "daily_compounded",
+        "weighted_episode_cfr_pct": 1.209
+      }
+    }
+  },
+  "sensitivity_ranges": {
+    "background_death_daily": [
+      2e-05,
+      7e-05
+    ],
+    "chronic_death_daily": [
+      0.0008,
+      0.003
+    ],
+    "detected_death_daily_severe": [
+      0.005,
+      0.02
+    ],
+    "onset_daily": [
+      0.0015,
+      0.004
+    ],
+    "receiving_multiplier": [
+      2.5,
+      4.5
+    ],
+    "untreated_death_daily_severe": [
+      0.015,
+      0.045
+    ]
+  }
+}

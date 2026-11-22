@@ -47,9 +47,43 @@ def field_names(record_type):
     return tuple(field.name for field in fields(record_type))
 
 
+def _record_value(value):
+    return {name: _record_value(v) if is_dataclass(type(v)) else v
+            for name in field_names(type(value)) if (v := getattr(value, name)) is not None}
+
+
 def record(row):
-    return {name: value if not is_dataclass(value) else record(value)
-            for name in field_names(type(row)) if (value := getattr(row, name)) is not None}
+    return _record_value(row)
+
+
+@cache
+def _column_specs(record_type):
+    """Precompute field extractors and nested-struct flags once per dataclass type."""
+    annotations = get_type_hints(record_type)
+    specs = []
+    for field in fields(record_type):
+        annotation = annotations[field.name]
+        arguments = get_args(annotation)
+        if type(None) in arguments:
+            annotation = next(value for value in arguments if value is not type(None))
+        pa_type = arrow_field(field.name, annotations[field.name]).type
+        is_struct = is_dataclass(annotation)
+        is_list_struct = (get_origin(annotation) is tuple and is_dataclass(get_args(annotation)[0]))
+        specs.append((field.name, pa_type, is_struct, is_list_struct))
+    return tuple(specs)
+
+
+def _table_from_rows(rows, schema, run_id_scalar, specs):
+    arrays = [pa.repeat(run_id_scalar, len(rows))]
+    for name, pa_type, is_struct, is_list_struct in specs:
+        if is_struct:
+            values = [None if (v := getattr(r, name)) is None else _record_value(v) for r in rows]
+        elif is_list_struct:
+            values = [None if (v := getattr(r, name)) is None else [_record_value(item) for item in v] for r in rows]
+        else:
+            values = [getattr(r, name) for r in rows]
+        arrays.append(pa.array(values, type=pa_type))
+    return pa.Table.from_arrays(arrays, schema=schema)
 
 
 def digest(path):
@@ -60,26 +94,62 @@ def digest(path):
 class Output:
     def __init__(self, root, run_id):
         self.root, self.run_id = root, run_id
-        self.schemas, self.partitions, self.writers, self.buffers = {}, {}, {}, defaultdict(list)
+        self._run_id_scalar = pa.scalar(run_id, type=pa.string())
+        self.schemas, self._specs, self.partitions, self.writers, self.buffers = {}, {}, {}, {}, defaultdict(list)
         self.buffered_rows = 0
         self.sealed = set()
 
+    def _register_table(self, table, row_type):
+        self.schemas[table] = pa.schema([pa.field("run_id", pa.string(), nullable=False),
+                                         *record_fields(row_type)],
+                                        metadata={"schema_version": SCHEMA, "synthetic": "true"})
+        self._specs[table] = _column_specs(row_type)
+
     def emit(self, table, rows, when=None, *, partition_by=None):
+        if partition_by is None:
+            if isinstance(when, datetime):
+                month = business_date(when).isoformat()[:7]
+            elif isinstance(when, date):
+                month = when.isoformat()[:7]
+            else:
+                month = None
+            key = table, month
+            buf = None
+            registered = table in self.schemas
+            for row in rows:
+                if buf is None:
+                    if key in self.sealed:
+                        raise ValueError(f"attempted to append to a finalized partition: {key}")
+                    buf = self.buffers[key]
+                if not registered:
+                    self._register_table(table, type(row))
+                    registered = True
+                buf.append(row)
+                self.buffered_rows += 1
+                if len(buf) >= BATCH_ROWS:
+                    self.flush(key)
+                    buf = self.buffers[key]
+                elif self.buffered_rows >= MAX_BUFFERED_ROWS:
+                    self.flush(max(self.buffers, key=lambda partition: len(self.buffers[partition])))
+                    buf = self.buffers[key]
+            return
+
+        registered = table in self.schemas
         for row in rows:
-            if table not in self.schemas:
-                self.schemas[table] = pa.schema([pa.field("run_id", pa.string(), nullable=False),
-                                                *record_fields(type(row))],
-                                               metadata={"schema_version": SCHEMA, "synthetic": "true"})
-            stamp = getattr(row, partition_by) if partition_by else when
+            if not registered:
+                self._register_table(table, type(row))
+                registered = True
+            stamp = getattr(row, partition_by)
             if isinstance(stamp, datetime):
                 stamp = business_date(stamp)
             month = stamp.isoformat()[:7] if isinstance(stamp, date) else None
             key = table, month
             if key in self.sealed:
                 raise ValueError(f"attempted to append to a finalized partition: {key}")
-            self.buffers[key].append({"run_id": self.run_id, **record(row)})
+            buf = self.buffers[key]
+            buf.append(row)
             self.buffered_rows += 1
-            if len(self.buffers[key]) >= BATCH_ROWS:
+            if len(buf) >= BATCH_ROWS:
                 self.flush(key)
             elif self.buffered_rows >= MAX_BUFFERED_ROWS:
                 self.flush(max(self.buffers, key=lambda partition: len(self.buffers[partition])))
@@ -96,7 +166,7 @@ class Output:
             path.parent.mkdir(parents=True, exist_ok=True)
             self.writers[key] = pq.ParquetWriter(path, self.schemas[name], compression="zstd", version="2.6")
             self.partitions[relative] = {"table": name, "month": month, "rows": 0}
-        self.writers[key].write_table(pa.Table.from_pylist(rows, schema=self.schemas[name]))
+        self.writers[key].write_table(_table_from_rows(rows, self.schemas[name], self._run_id_scalar, self._specs[name]))
         self.partitions[relative]["rows"] += len(rows)
 
     def finalize_months(self, before):

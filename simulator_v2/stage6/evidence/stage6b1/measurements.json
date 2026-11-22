@@ -1,0 +1,2659 @@
+{
+  "machine": {
+    "cpu_model": "Intel(R) Xeon(R) CPU @ 2.30GHz",
+    "effective_cpuset": "0-1",
+    "logical_cpus_visible": 2,
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.39",
+    "python": "3.12.16"
+  },
+  "runs": [
+    {
+      "animal_days": 4698,
+      "book_view_profiles": {
+        "as_known": {
+          "close_count": 4,
+          "journal_posting_and_close_seconds": 5.7493,
+          "process_high_water_rss_kib_after_view": 327776
+        },
+        "restated": {
+          "close_count": 4,
+          "journal_posting_and_close_seconds": 5.2274,
+          "process_high_water_rss_kib_after_view": 336096
+        }
+      },
+      "calendar": {
+        "days": 99,
+        "end": "2026-02-28",
+        "start": "2025-11-22"
+      },
+      "closes": {
+        "as_known": {
+          "close_count": 4,
+          "closing_wip_cents": 7049825
+        },
+        "restated": {
+          "close_count": 4,
+          "closing_wip_cents": 7049825
+        }
+      },
+      "code_checkout_commit": "6629a55456d63d1202f8f4d1776e2963a04d8774",
+      "config_sha256": "98813f947bf5b5817ede8348df813e17d39cf69d34c919311218b72462ce3d06",
+      "counts_by_table": {
+        "accounting_feed_allocations": 9324,
+        "animal_outcomes": 108,
+        "animal_profiles": 108,
+        "animals": 108,
+        "bunk_settlements": 672,
+        "bunk_tickets": 672,
+        "carcasses": 64,
+        "close_deltas": 96,
+        "daily_soh": 1188,
+        "decision_snapshots": 211,
+        "draft_decisions": 220,
+        "feed_access_snapshots": 672,
+        "feed_allocations": 23342,
+        "feed_cost_bridge": 672,
+        "feed_deliveries": 672,
+        "feed_exposures": 9324,
+        "feed_plans": 672,
+        "feed_releases": 1680,
+        "feeding_weight_inputs": 9324,
+        "finance_monthly": 8,
+        "finance_snapshots": 8,
+        "finance_soh": 96,
+        "financial_approvals": 2,
+        "financial_source_links": 105487,
+        "financial_sources": 63393,
+        "formula_comparisons": 2016,
+        "growth_operational": 60570,
+        "growth_retrospective": 60884,
+        "health_events": 268,
+        "journal_lines": 78458,
+        "journals_as_known": 39229,
+        "journals_restated": 39229,
+        "locations": 5,
+        "lots": 6,
+        "mix_inputs": 2042,
+        "mix_issue_links": 2016,
+        "mix_orders": 672,
+        "mixes": 672,
+        "monthly_soh": 48,
+        "movement_events": 310,
+        "opening_cattle": 8,
+        "packer_settlements": 64,
+        "physical_contexts": 2736,
+        "physical_intervals": 242,
+        "placement_requests": 100,
+        "posting_allocation_links": 23342,
+        "ration_ingredients": 12,
+        "ration_versions": 4,
+        "scale_samples_diagnostic": 420,
+        "shipment_lines": 64,
+        "trial_balance": 192,
+        "truck_tickets": 672,
+        "warehouse_af_bridge": 684,
+        "warehouse_assays": 87,
+        "warehouse_balances": 61,
+        "warehouse_batches": 87,
+        "warehouse_bins": 6,
+        "warehouse_close": 780,
+        "warehouse_dm_bridge": 390,
+        "warehouse_entries": 2298,
+        "warehouse_equipment": 2,
+        "warehouse_finance": 2298,
+        "warehouse_ingredients": 3,
+        "warehouse_layers": 87,
+        "warehouse_orders": 45,
+        "warehouse_po_status": 45,
+        "warehouse_prices": 3,
+        "warehouse_receipts": 84,
+        "warehouse_suppliers": 1,
+        "warehouse_transactions": 2188,
+        "warehouse_warehouses": 2,
+        "weather_exposure": 1993,
+        "weigh_attempts": 488,
+        "weight_estimates": 9544,
+        "weight_observations": 421,
+        "wip": 582,
+        "wip_components": 3573,
+        "yardage": 4698
+      },
+      "dataset": "opt2-diagnostic",
+      "feeding_windows": 198,
+      "hashes_sha256": "5510221664403a5b90468f75331302aec1c2fa9e0fb259272b01ffeeea6a9550",
+      "head": {
+        "carry_out": 40,
+        "death": 4,
+        "opening": 8,
+        "placements": 100,
+        "sale": 64
+      },
+      "operating_exceptions": {},
+      "peak_concurrent_inventory": 73,
+      "performance": {
+        "accounting_and_close_seconds": 25.054,
+        "cross_domain_validation_seconds": 8.881,
+        "diagnostics_and_manifest_seconds": 1.31,
+        "largest_partition_bytes": 3202929,
+        "operations_seconds": 20.069,
+        "parquet_bytes": 33215636,
+        "parquet_partitions": 263,
+        "peak_rss_kib_linux": 355244,
+        "snapshot_parquet_bytes": 184386,
+        "source_and_fact_counts": {
+          "accounting_feed_allocations": 9324,
+          "feed_allocations": 23342,
+          "financial_sources": 63393,
+          "health_events": 268,
+          "journal_lines": 78458,
+          "movement_events": 310,
+          "packer_settlements": 64,
+          "warehouse_transactions": 2188,
+          "weight_observations": 421
+        },
+        "wall_seconds_before_atomic_rename": 56.909
+      },
+      "performance_phases": {
+        "animal_ledger_finalize": {
+          "calls": 1,
+          "exclusive_seconds": 0.01,
+          "process_high_water_rss_kib_at_phase_end": 218040,
+          "seconds": 0.01
+        },
+        "animal_scheduling_and_replay": {
+          "calls": 1,
+          "exclusive_seconds": 0.4939,
+          "process_high_water_rss_kib_at_phase_end": 220640,
+          "seconds": 19.6576
+        },
+        "biology": {
+          "calls": 1980,
+          "exclusive_seconds": 9.9661,
+          "process_high_water_rss_kib_at_phase_end": 218040,
+          "seconds": 11.9437
+        },
+        "close_journal_fingerprints": {
+          "calls": 204,
+          "exclusive_seconds": 1.1269,
+          "process_high_water_rss_kib_at_phase_end": 335968,
+          "seconds": 1.1269
+        },
+        "close_stock_replay": {
+          "calls": 8,
+          "exclusive_seconds": 0.0954,
+          "process_high_water_rss_kib_at_phase_end": 335968,
+          "seconds": 0.0954
+        },
+        "close_warehouse_checkpoints": {
+          "calls": 1,
+          "exclusive_seconds": 0.0056,
+          "process_high_water_rss_kib_at_phase_end": 311808,
+          "seconds": 0.0056
+        },
+        "feeding": {
+          "calls": 198,
+          "exclusive_seconds": 5.0676,
+          "process_high_water_rss_kib_at_phase_end": 218040,
+          "seconds": 6.075
+        },
+        "fifo_dm_selection": {
+          "calls": 2016,
+          "exclusive_seconds": 0.0708,
+          "process_high_water_rss_kib_at_phase_end": 218040,
+          "seconds": 0.0708
+        },
+        "fifo_transactions": {
+          "calls": 2188,
+          "exclusive_seconds": 0.278,
+          "process_high_water_rss_kib_at_phase_end": 218040,
+          "seconds": 0.278
+        },
+        "financial_close": {
+          "calls": 8,
+          "exclusive_seconds": 0.0813,
+          "process_high_water_rss_kib_at_phase_end": 335968,
+          "seconds": 0.1767
+        },
+        "financial_source_expansion": {
+          "calls": 1,
+          "exclusive_seconds": 13.2252,
+          "process_high_water_rss_kib_at_phase_end": 311808,
+          "seconds": 14.0612
+        },
+        "financial_validation": {
+          "calls": 1,
+          "exclusive_seconds": 5.5019,
+          "process_high_water_rss_kib_at_phase_end": 355244,
+          "seconds": 5.5019
+        },
+        "health": {
+          "calls": 99,
+          "exclusive_seconds": 0.0941,
+          "process_high_water_rss_kib_at_phase_end": 218040,
+          "seconds": 0.0941
+        },
+        "input_and_artifact_file_hashes": {
+          "calls": 104,
+          "exclusive_seconds": 0.0094,
+          "process_high_water_rss_kib_at_phase_end": 355244,
+          "seconds": 0.0094
+        },
+        "journal_period_index": {
+          "calls": 204,
+          "exclusive_seconds": 0.6644,
+          "process_high_water_rss_kib_at_phase_end": 335968,
+          "seconds": 1.7913
+        },
+        "journal_posting": {
+          "calls": 204,
+          "exclusive_seconds": 6.7737,
+          "process_high_water_rss_kib_at_phase_end": 335968,
+          "seconds": 6.7737
+        },
+        "operations_stock_replay": {
+          "calls": 1,
+          "exclusive_seconds": 0.0369,
+          "process_high_water_rss_kib_at_phase_end": 220640,
+          "seconds": 0.0369
+        },
+        "parquet_file_hashes": {
+          "calls": 263,
+          "exclusive_seconds": 0.1551,
+          "process_high_water_rss_kib_at_phase_end": 336352,
+          "seconds": 0.1551
+        },
+        "parquet_serialization": {
+          "calls": 332,
+          "exclusive_seconds": 6.7568,
+          "process_high_water_rss_kib_at_phase_end": 336352,
+          "seconds": 6.7568
+        },
+        "physical_validation": {
+          "calls": 1,
+          "exclusive_seconds": 2.8022,
+          "process_high_water_rss_kib_at_phase_end": 342588,
+          "seconds": 2.8022
+        },
+        "procurement": {
+          "calls": 99,
+          "exclusive_seconds": 0.0108,
+          "process_high_water_rss_kib_at_phase_end": 218040,
+          "seconds": 0.0338
+        },
+        "report_diagnostics": {
+          "calls": 1,
+          "exclusive_seconds": 1.2957,
+          "process_high_water_rss_kib_at_phase_end": 355244,
+          "seconds": 1.2957
+        },
+        "validation": {
+          "calls": 1,
+          "exclusive_seconds": 0.5765,
+          "process_high_water_rss_kib_at_phase_end": 355244,
+          "seconds": 8.8806
+        },
+        "warehouse_replay": {
+          "calls": 1,
+          "exclusive_seconds": 0.2971,
+          "process_high_water_rss_kib_at_phase_end": 220640,
+          "seconds": 0.2971
+        }
+      },
+      "realized_sale_dof": {
+        "max": 75.2708,
+        "mean": 50.7891,
+        "median": 48.7708,
+        "min": 38.2708,
+        "n": 64,
+        "p05": 38.2708,
+        "p25": 40.2708,
+        "p75": 59.2708,
+        "p95": 68.2708
+      },
+      "run_id": "SYN-STAGE6-RUN-c263b45e2384e95440cec095",
+      "schema_version": "stage6a.1",
+      "seed": 42,
+      "stock_reporting": {
+        "final_simulation_date": "2026-02-28",
+        "final_simulation_soh": 40,
+        "periods": [
+          {
+            "period_end": "2025-11-30",
+            "period_end_soh": 22,
+            "period_start": "2025-11-22"
+          },
+          {
+            "period_end": "2025-12-31",
+            "period_end_soh": 52,
+            "period_start": "2025-12-01"
+          },
+          {
+            "period_end": "2026-01-31",
+            "period_end_soh": 42,
+            "period_start": "2026-01-01"
+          },
+          {
+            "period_end": "2026-02-28",
+            "period_end_soh": 40,
+            "period_start": "2026-02-01"
+          }
+        ]
+      },
+      "validation": {
+        "assertion_count": 1003469,
+        "gate_category_count": 59,
+        "gates": {
+          "allocation_conservation": {
+            "assertions": 672,
+            "passed": true
+          },
+          "animal_days": {
+            "assertions": 99,
+            "passed": true
+          },
+          "balanced_paired_entries": {
+            "assertions": 78458,
+            "passed": true
+          },
+          "balanced_two_line_journal": {
+            "assertions": 78463,
+            "passed": true
+          },
+          "biological_reserve_balance": {
+            "assertions": 121454,
+            "passed": true
+          },
+          "books_close_counts": {
+            "assertions": 8,
+            "passed": true
+          },
+          "bunk_conservation": {
+            "assertions": 672,
+            "passed": true
+          },
+          "carcass_consistency": {
+            "assertions": 64,
+            "passed": true
+          },
+          "carcass_scale_link": {
+            "assertions": 47,
+            "passed": true
+          },
+          "delivery_conservation": {
+            "assertions": 672,
+            "passed": true
+          },
+          "dispatch_time": {
+            "assertions": 672,
+            "passed": true
+          },
+          "feed_eligibility": {
+            "assertions": 23342,
+            "passed": true
+          },
+          "feed_to_biology": {
+            "assertions": 8,
+            "passed": true
+          },
+          "fifo_issue_to_mix": {
+            "assertions": 2046,
+            "passed": true
+          },
+          "final_simulation_stock_reporting": {
+            "assertions": 1,
+            "passed": true
+          },
+          "finance_source_timing": {
+            "assertions": 105487,
+            "passed": true
+          },
+          "foreign_keys": {
+            "assertions": 311,
+            "passed": true
+          },
+          "frozen_feed_input": {
+            "assertions": 23342,
+            "passed": true
+          },
+          "growth_time": {
+            "assertions": 121454,
+            "passed": true
+          },
+          "health_episode_link": {
+            "assertions": 232,
+            "passed": true
+          },
+          "health_event_time": {
+            "assertions": 268,
+            "passed": true
+          },
+          "health_movement_link": {
+            "assertions": 12,
+            "passed": true
+          },
+          "immutable_scale_revision": {
+            "assertions": 1,
+            "passed": true
+          },
+          "journal_partition_order": {
+            "assertions": 78460,
+            "passed": true
+          },
+          "journal_source_foreign_key": {
+            "assertions": 78458,
+            "passed": true
+          },
+          "measured_vs_latent": {
+            "assertions": 420,
+            "passed": true
+          },
+          "mix_conservation": {
+            "assertions": 672,
+            "passed": true
+          },
+          "monthly_close_continuity": {
+            "assertions": 6,
+            "passed": true
+          },
+          "monthly_trial_continuity": {
+            "assertions": 6,
+            "passed": true
+          },
+          "movement_replay": {
+            "assertions": 1,
+            "passed": true
+          },
+          "no_double_charged_feed": {
+            "assertions": 672,
+            "passed": true
+          },
+          "no_future_estimates": {
+            "assertions": 9544,
+            "passed": true
+          },
+          "no_future_health": {
+            "assertions": 1424,
+            "passed": true
+          },
+          "no_future_weather": {
+            "assertions": 990,
+            "passed": true
+          },
+          "opening_wip_sources": {
+            "assertions": 1,
+            "passed": true
+          },
+          "original_close_lock": {
+            "assertions": 4,
+            "passed": true
+          },
+          "outcome_release": {
+            "assertions": 137,
+            "passed": true
+          },
+          "outcomes": {
+            "assertions": 2,
+            "passed": true
+          },
+          "period_end_stock_reporting": {
+            "assertions": 1,
+            "passed": true
+          },
+          "placement_disposition": {
+            "assertions": 1,
+            "passed": true
+          },
+          "primary_keys": {
+            "assertions": 237200,
+            "passed": true
+          },
+          "ration_and_plan": {
+            "assertions": 672,
+            "passed": true
+          },
+          "restatement_close_lock": {
+            "assertions": 4,
+            "passed": true
+          },
+          "sale_disposition": {
+            "assertions": 65,
+            "passed": true
+          },
+          "scale_attempt_link": {
+            "assertions": 488,
+            "passed": true
+          },
+          "schema_version": {
+            "assertions": 263,
+            "passed": true
+          },
+          "settlement_trace": {
+            "assertions": 672,
+            "passed": true
+          },
+          "snapshot_publication": {
+            "assertions": 9,
+            "passed": true
+          },
+          "stable_original_snapshot": {
+            "assertions": 4,
+            "passed": true
+          },
+          "stable_restated_snapshot": {
+            "assertions": 4,
+            "passed": true
+          },
+          "stock_equation": {
+            "assertions": 99,
+            "passed": true
+          },
+          "synthetic_grid_settlement": {
+            "assertions": 64,
+            "passed": true
+          },
+          "terminal_scale": {
+            "assertions": 47,
+            "passed": true
+          },
+          "timed_to_posting_allocation": {
+            "assertions": 32670,
+            "passed": true
+          },
+          "warehouse_af_value": {
+            "assertions": 1368,
+            "passed": true
+          },
+          "warehouse_dm": {
+            "assertions": 390,
+            "passed": true
+          },
+          "weather_forecast_publication": {
+            "assertions": 1,
+            "passed": true
+          },
+          "weighing_chronology": {
+            "assertions": 421,
+            "passed": true
+          },
+          "yard_capacity": {
+            "assertions": 444,
+            "passed": true
+          }
+        },
+        "movement_checks": 10,
+        "stage4_controls": 72,
+        "status": "passed"
+      },
+      "wall_seconds_including_atomic_publish": 56.928,
+      "weather": {
+        "operational_seconds": {
+          "seasonal_fallback": 8553600.0
+        },
+        "retrospective_seconds": {
+          "archive_reanalysis": 1119600.0,
+          "seasonal_fallback": 7434000.0
+        }
+      }
+    },
+    {
+      "animal_days": 4578,
+      "book_view_profiles": {
+        "as_known": {
+          "close_count": 24,
+          "journal_posting_and_close_seconds": 12.9764,
+          "process_high_water_rss_kib_after_view": 405320
+        },
+        "restated": {
+          "close_count": 24,
+          "journal_posting_and_close_seconds": 12.544,
+          "process_high_water_rss_kib_after_view": 419184
+        }
+      },
+      "calendar": {
+        "days": 731,
+        "end": "2025-12-31",
+        "start": "2024-01-01"
+      },
+      "closes": {
+        "as_known": {
+          "close_count": 24,
+          "closing_wip_cents": 1069638
+        },
+        "restated": {
+          "close_count": 24,
+          "closing_wip_cents": 1069638
+        }
+      },
+      "code_checkout_commit": "6629a55456d63d1202f8f4d1776e2963a04d8774",
+      "config_sha256": "7a48c4cba290a788b96299c31689385c174906b71e39b7e58ad98fa6d44f9652",
+      "counts_by_table": {
+        "accounting_feed_allocations": 9129,
+        "animal_outcomes": 31,
+        "animal_profiles": 31,
+        "animals": 31,
+        "bunk_settlements": 5801,
+        "bunk_tickets": 5801,
+        "carcasses": 25,
+        "close_deltas": 576,
+        "daily_soh": 30702,
+        "decision_snapshots": 1489,
+        "draft_decisions": 30,
+        "feed_access_snapshots": 5801,
+        "feed_allocations": 45670,
+        "feed_cost_bridge": 5801,
+        "feed_deliveries": 5801,
+        "feed_exposures": 9129,
+        "feed_plans": 5801,
+        "feed_releases": 29012,
+        "feeding_weight_inputs": 9129,
+        "finance_monthly": 48,
+        "finance_snapshots": 48,
+        "finance_soh": 2016,
+        "financial_approvals": 2,
+        "financial_source_links": 173318,
+        "financial_sources": 137201,
+        "formula_comparisons": 17403,
+        "growth_operational": 82189,
+        "growth_retrospective": 83633,
+        "health_events": 275,
+        "journal_lines": 146552,
+        "journals_as_known": 73276,
+        "journals_restated": 73276,
+        "locations": 10,
+        "lots": 31,
+        "mix_inputs": 17983,
+        "mix_issue_links": 17403,
+        "mix_orders": 5801,
+        "mixes": 5801,
+        "monthly_soh": 1008,
+        "movement_events": 87,
+        "opening_cattle": 6,
+        "packer_settlements": 25,
+        "physical_contexts": 15227,
+        "physical_intervals": 61,
+        "placement_requests": 25,
+        "posting_allocation_links": 45670,
+        "ration_ingredients": 12,
+        "ration_versions": 4,
+        "scale_samples_diagnostic": 285,
+        "shipment_lines": 25,
+        "trial_balance": 1152,
+        "truck_tickets": 5801,
+        "warehouse_af_bridge": 30024,
+        "warehouse_assays": 627,
+        "warehouse_balances": 45,
+        "warehouse_batches": 627,
+        "warehouse_bins": 6,
+        "warehouse_close": 31188,
+        "warehouse_dm_bridge": 15594,
+        "warehouse_entries": 19859,
+        "warehouse_equipment": 2,
+        "warehouse_finance": 19859,
+        "warehouse_ingredients": 3,
+        "warehouse_layers": 627,
+        "warehouse_orders": 315,
+        "warehouse_po_status": 315,
+        "warehouse_prices": 3,
+        "warehouse_receipts": 624,
+        "warehouse_suppliers": 1,
+        "warehouse_transactions": 18655,
+        "warehouse_warehouses": 2,
+        "weather_exposure": 14848,
+        "weigh_attempts": 332,
+        "weight_estimates": 9159,
+        "weight_observations": 286,
+        "wip": 932,
+        "wip_components": 6033,
+        "yardage": 4578
+      },
+      "dataset": "opt2-25-42",
+      "feeding_windows": 1462,
+      "hashes_sha256": "c8035ff2154e7f67dc8145ed995d5c6bc968431deceb6277a5f55f9a30fd6467",
+      "head": {
+        "carry_out": 5,
+        "death": 1,
+        "opening": 6,
+        "placements": 25,
+        "sale": 25
+      },
+      "operating_exceptions": {},
+      "peak_concurrent_inventory": 7,
+      "performance": {
+        "accounting_and_close_seconds": 60.604,
+        "cross_domain_validation_seconds": 25.043,
+        "diagnostics_and_manifest_seconds": 5.664,
+        "largest_partition_bytes": 3277981,
+        "operations_seconds": 53.867,
+        "parquet_bytes": 68384173,
+        "parquet_partitions": 1446,
+        "peak_rss_kib_linux": 430240,
+        "snapshot_parquet_bytes": 1065848,
+        "source_and_fact_counts": {
+          "accounting_feed_allocations": 9129,
+          "feed_allocations": 45670,
+          "financial_sources": 137201,
+          "health_events": 275,
+          "journal_lines": 146552,
+          "movement_events": 87,
+          "packer_settlements": 25,
+          "warehouse_transactions": 18655,
+          "weight_observations": 286
+        },
+        "wall_seconds_before_atomic_rename": 148.645
+      },
+      "performance_phases": {
+        "animal_ledger_finalize": {
+          "calls": 1,
+          "exclusive_seconds": 0.0048,
+          "process_high_water_rss_kib_at_phase_end": 204816,
+          "seconds": 0.0048
+        },
+        "animal_scheduling_and_replay": {
+          "calls": 1,
+          "exclusive_seconds": 3.0277,
+          "process_high_water_rss_kib_at_phase_end": 253200,
+          "seconds": 53.4345
+        },
+        "biology": {
+          "calls": 14620,
+          "exclusive_seconds": 14.7669,
+          "process_high_water_rss_kib_at_phase_end": 204688,
+          "seconds": 14.7669
+        },
+        "close_journal_fingerprints": {
+          "calls": 1470,
+          "exclusive_seconds": 2.1195,
+          "process_high_water_rss_kib_at_phase_end": 415216,
+          "seconds": 2.1195
+        },
+        "close_stock_replay": {
+          "calls": 48,
+          "exclusive_seconds": 1.0666,
+          "process_high_water_rss_kib_at_phase_end": 418800,
+          "seconds": 1.0666
+        },
+        "close_warehouse_checkpoints": {
+          "calls": 1,
+          "exclusive_seconds": 0.0479,
+          "process_high_water_rss_kib_at_phase_end": 385768,
+          "seconds": 0.0479
+        },
+        "feeding": {
+          "calls": 1462,
+          "exclusive_seconds": 17.2778,
+          "process_high_water_rss_kib_at_phase_end": 204688,
+          "seconds": 20.0533
+        },
+        "fifo_dm_selection": {
+          "calls": 17403,
+          "exclusive_seconds": 0.6126,
+          "process_high_water_rss_kib_at_phase_end": 204560,
+          "seconds": 0.6126
+        },
+        "fifo_transactions": {
+          "calls": 18655,
+          "exclusive_seconds": 2.3289,
+          "process_high_water_rss_kib_at_phase_end": 204560,
+          "seconds": 2.3289
+        },
+        "financial_close": {
+          "calls": 48,
+          "exclusive_seconds": 2.9882,
+          "process_high_water_rss_kib_at_phase_end": 419184,
+          "seconds": 4.0548
+        },
+        "financial_source_expansion": {
+          "calls": 1,
+          "exclusive_seconds": 33.2466,
+          "process_high_water_rss_kib_at_phase_end": 385768,
+          "seconds": 35.0387
+        },
+        "financial_validation": {
+          "calls": 1,
+          "exclusive_seconds": 14.0358,
+          "process_high_water_rss_kib_at_phase_end": 430240,
+          "seconds": 14.0358
+        },
+        "health": {
+          "calls": 731,
+          "exclusive_seconds": 0.1099,
+          "process_high_water_rss_kib_at_phase_end": 204304,
+          "seconds": 0.1099
+        },
+        "input_and_artifact_file_hashes": {
+          "calls": 104,
+          "exclusive_seconds": 0.0124,
+          "process_high_water_rss_kib_at_phase_end": 430240,
+          "seconds": 0.0124
+        },
+        "journal_period_index": {
+          "calls": 1470,
+          "exclusive_seconds": 1.1445,
+          "process_high_water_rss_kib_at_phase_end": 415216,
+          "seconds": 3.264
+        },
+        "journal_posting": {
+          "calls": 1470,
+          "exclusive_seconds": 12.9534,
+          "process_high_water_rss_kib_at_phase_end": 415216,
+          "seconds": 12.9534
+        },
+        "operations_stock_replay": {
+          "calls": 1,
+          "exclusive_seconds": 0.6163,
+          "process_high_water_rss_kib_at_phase_end": 253200,
+          "seconds": 0.6163
+        },
+        "parquet_file_hashes": {
+          "calls": 1446,
+          "exclusive_seconds": 0.419,
+          "process_high_water_rss_kib_at_phase_end": 425612,
+          "seconds": 0.419
+        },
+        "parquet_serialization": {
+          "calls": 1770,
+          "exclusive_seconds": 17.0832,
+          "process_high_water_rss_kib_at_phase_end": 425456,
+          "seconds": 17.0832
+        },
+        "physical_validation": {
+          "calls": 1,
+          "exclusive_seconds": 8.7839,
+          "process_high_water_rss_kib_at_phase_end": 426980,
+          "seconds": 8.7839
+        },
+        "procurement": {
+          "calls": 731,
+          "exclusive_seconds": 0.069,
+          "process_high_water_rss_kib_at_phase_end": 204304,
+          "seconds": 0.2336
+        },
+        "report_diagnostics": {
+          "calls": 1,
+          "exclusive_seconds": 5.6322,
+          "process_high_water_rss_kib_at_phase_end": 430240,
+          "seconds": 5.6322
+        },
+        "validation": {
+          "calls": 1,
+          "exclusive_seconds": 2.2228,
+          "process_high_water_rss_kib_at_phase_end": 430240,
+          "seconds": 25.0425
+        },
+        "warehouse_replay": {
+          "calls": 1,
+          "exclusive_seconds": 5.1212,
+          "process_high_water_rss_kib_at_phase_end": 253200,
+          "seconds": 5.1212
+        }
+      },
+      "realized_sale_dof": {
+        "max": 202.3125,
+        "mean": 184.0058,
+        "median": 180.2708,
+        "min": 156.2708,
+        "n": 25,
+        "p05": 157.2792,
+        "p25": 176.5,
+        "p75": 199.2708,
+        "p95": 202.0458
+      },
+      "run_id": "SYN-STAGE6-RUN-d84845c1f9b0592ac0c51f82",
+      "schema_version": "stage6a.1",
+      "seed": 42,
+      "stock_reporting": {
+        "final_simulation_date": "2025-12-31",
+        "final_simulation_soh": 5,
+        "periods": [
+          {
+            "period_end": "2024-01-31",
+            "period_end_soh": 6,
+            "period_start": "2024-01-01"
+          },
+          {
+            "period_end": "2024-02-29",
+            "period_end_soh": 6,
+            "period_start": "2024-02-01"
+          },
+          {
+            "period_end": "2024-03-31",
+            "period_end_soh": 6,
+            "period_start": "2024-03-01"
+          },
+          {
+            "period_end": "2024-04-30",
+            "period_end_soh": 7,
+            "period_start": "2024-04-01"
+          },
+          {
+            "period_end": "2024-05-31",
+            "period_end_soh": 6,
+            "period_start": "2024-05-01"
+          },
+          {
+            "period_end": "2024-06-30",
+            "period_end_soh": 7,
+            "period_start": "2024-06-01"
+          },
+          {
+            "period_end": "2024-07-31",
+            "period_end_soh": 6,
+            "period_start": "2024-07-01"
+          },
+          {
+            "period_end": "2024-08-31",
+            "period_end_soh": 6,
+            "period_start": "2024-08-01"
+          },
+          {
+            "period_end": "2024-09-30",
+            "period_end_soh": 6,
+            "period_start": "2024-09-01"
+          },
+          {
+            "period_end": "2024-10-31",
+            "period_end_soh": 5,
+            "period_start": "2024-10-01"
+          },
+          {
+            "period_end": "2024-11-30",
+            "period_end_soh": 6,
+            "period_start": "2024-11-01"
+          },
+          {
+            "period_end": "2024-12-31",
+            "period_end_soh": 6,
+            "period_start": "2024-12-01"
+          },
+          {
+            "period_end": "2025-01-31",
+            "period_end_soh": 7,
+            "period_start": "2025-01-01"
+          },
+          {
+            "period_end": "2025-02-28",
+            "period_end_soh": 7,
+            "period_start": "2025-02-01"
+          },
+          {
+            "period_end": "2025-03-31",
+            "period_end_soh": 6,
+            "period_start": "2025-03-01"
+          },
+          {
+            "period_end": "2025-04-30",
+            "period_end_soh": 5,
+            "period_start": "2025-04-01"
+          },
+          {
+            "period_end": "2025-05-31",
+            "period_end_soh": 6,
+            "period_start": "2025-05-01"
+          },
+          {
+            "period_end": "2025-06-30",
+            "period_end_soh": 7,
+            "period_start": "2025-06-01"
+          },
+          {
+            "period_end": "2025-07-31",
+            "period_end_soh": 7,
+            "period_start": "2025-07-01"
+          },
+          {
+            "period_end": "2025-08-31",
+            "period_end_soh": 7,
+            "period_start": "2025-08-01"
+          },
+          {
+            "period_end": "2025-09-30",
+            "period_end_soh": 6,
+            "period_start": "2025-09-01"
+          },
+          {
+            "period_end": "2025-10-31",
+            "period_end_soh": 6,
+            "period_start": "2025-10-01"
+          },
+          {
+            "period_end": "2025-11-30",
+            "period_end_soh": 7,
+            "period_start": "2025-11-01"
+          },
+          {
+            "period_end": "2025-12-31",
+            "period_end_soh": 5,
+            "period_start": "2025-12-01"
+          }
+        ]
+      },
+      "validation": {
+        "assertion_count": 1885165,
+        "gate_category_count": 59,
+        "gates": {
+          "allocation_conservation": {
+            "assertions": 5801,
+            "passed": true
+          },
+          "animal_days": {
+            "assertions": 731,
+            "passed": true
+          },
+          "balanced_paired_entries": {
+            "assertions": 146552,
+            "passed": true
+          },
+          "balanced_two_line_journal": {
+            "assertions": 146578,
+            "passed": true
+          },
+          "biological_reserve_balance": {
+            "assertions": 165822,
+            "passed": true
+          },
+          "books_close_counts": {
+            "assertions": 48,
+            "passed": true
+          },
+          "bunk_conservation": {
+            "assertions": 5801,
+            "passed": true
+          },
+          "carcass_consistency": {
+            "assertions": 25,
+            "passed": true
+          },
+          "carcass_scale_link": {
+            "assertions": 19,
+            "passed": true
+          },
+          "delivery_conservation": {
+            "assertions": 5801,
+            "passed": true
+          },
+          "dispatch_time": {
+            "assertions": 5801,
+            "passed": true
+          },
+          "feed_eligibility": {
+            "assertions": 45670,
+            "passed": true
+          },
+          "feed_to_biology": {
+            "assertions": 48,
+            "passed": true
+          },
+          "fifo_issue_to_mix": {
+            "assertions": 18007,
+            "passed": true
+          },
+          "final_simulation_stock_reporting": {
+            "assertions": 1,
+            "passed": true
+          },
+          "finance_source_timing": {
+            "assertions": 173318,
+            "passed": true
+          },
+          "foreign_keys": {
+            "assertions": 88,
+            "passed": true
+          },
+          "frozen_feed_input": {
+            "assertions": 45670,
+            "passed": true
+          },
+          "growth_time": {
+            "assertions": 165822,
+            "passed": true
+          },
+          "health_episode_link": {
+            "assertions": 238,
+            "passed": true
+          },
+          "health_event_time": {
+            "assertions": 275,
+            "passed": true
+          },
+          "health_movement_link": {
+            "assertions": 6,
+            "passed": true
+          },
+          "immutable_scale_revision": {
+            "assertions": 1,
+            "passed": true
+          },
+          "journal_partition_order": {
+            "assertions": 146554,
+            "passed": true
+          },
+          "journal_source_foreign_key": {
+            "assertions": 146552,
+            "passed": true
+          },
+          "measured_vs_latent": {
+            "assertions": 285,
+            "passed": true
+          },
+          "mix_conservation": {
+            "assertions": 5801,
+            "passed": true
+          },
+          "monthly_close_continuity": {
+            "assertions": 46,
+            "passed": true
+          },
+          "monthly_trial_continuity": {
+            "assertions": 46,
+            "passed": true
+          },
+          "movement_replay": {
+            "assertions": 1,
+            "passed": true
+          },
+          "no_double_charged_feed": {
+            "assertions": 5801,
+            "passed": true
+          },
+          "no_future_estimates": {
+            "assertions": 9159,
+            "passed": true
+          },
+          "no_future_health": {
+            "assertions": 3861,
+            "passed": true
+          },
+          "no_future_weather": {
+            "assertions": 7310,
+            "passed": true
+          },
+          "opening_wip_sources": {
+            "assertions": 1,
+            "passed": true
+          },
+          "original_close_lock": {
+            "assertions": 24,
+            "passed": true
+          },
+          "outcome_release": {
+            "assertions": 53,
+            "passed": true
+          },
+          "outcomes": {
+            "assertions": 2,
+            "passed": true
+          },
+          "period_end_stock_reporting": {
+            "assertions": 1,
+            "passed": true
+          },
+          "placement_disposition": {
+            "assertions": 1,
+            "passed": true
+          },
+          "primary_keys": {
+            "assertions": 482373,
+            "passed": true
+          },
+          "ration_and_plan": {
+            "assertions": 5801,
+            "passed": true
+          },
+          "restatement_close_lock": {
+            "assertions": 24,
+            "passed": true
+          },
+          "sale_disposition": {
+            "assertions": 26,
+            "passed": true
+          },
+          "scale_attempt_link": {
+            "assertions": 332,
+            "passed": true
+          },
+          "schema_version": {
+            "assertions": 1446,
+            "passed": true
+          },
+          "settlement_trace": {
+            "assertions": 5801,
+            "passed": true
+          },
+          "snapshot_publication": {
+            "assertions": 49,
+            "passed": true
+          },
+          "stable_original_snapshot": {
+            "assertions": 24,
+            "passed": true
+          },
+          "stable_restated_snapshot": {
+            "assertions": 24,
+            "passed": true
+          },
+          "stock_equation": {
+            "assertions": 731,
+            "passed": true
+          },
+          "synthetic_grid_settlement": {
+            "assertions": 25,
+            "passed": true
+          },
+          "terminal_scale": {
+            "assertions": 19,
+            "passed": true
+          },
+          "timed_to_posting_allocation": {
+            "assertions": 54823,
+            "passed": true
+          },
+          "warehouse_af_value": {
+            "assertions": 60048,
+            "passed": true
+          },
+          "warehouse_dm": {
+            "assertions": 15594,
+            "passed": true
+          },
+          "weather_forecast_publication": {
+            "assertions": 1,
+            "passed": true
+          },
+          "weighing_chronology": {
+            "assertions": 286,
+            "passed": true
+          },
+          "yard_capacity": {
+            "assertions": 117,
+            "passed": true
+          }
+        },
+        "movement_checks": 10,
+        "stage4_controls": 432,
+        "status": "passed"
+      },
+      "wall_seconds_including_atomic_publish": 148.7471,
+      "weather": {
+        "operational_seconds": {
+          "seasonal_fallback": 63158400.0
+        },
+        "retrospective_seconds": {
+          "archive_reanalysis": 60822000.0,
+          "seasonal_fallback": 2336400.0
+        }
+      }
+    },
+    {
+      "animal_days": 4652,
+      "book_view_profiles": {
+        "as_known": {
+          "close_count": 24,
+          "journal_posting_and_close_seconds": 13.2662,
+          "process_high_water_rss_kib_after_view": 401124
+        },
+        "restated": {
+          "close_count": 24,
+          "journal_posting_and_close_seconds": 12.1584,
+          "process_high_water_rss_kib_after_view": 415936
+        }
+      },
+      "calendar": {
+        "days": 731,
+        "end": "2025-12-31",
+        "start": "2024-01-01"
+      },
+      "closes": {
+        "as_known": {
+          "close_count": 24,
+          "closing_wip_cents": 1054881
+        },
+        "restated": {
+          "close_count": 24,
+          "closing_wip_cents": 1054881
+        }
+      },
+      "code_checkout_commit": "6629a55456d63d1202f8f4d1776e2963a04d8774",
+      "config_sha256": "92c81bdb21277d17925bba19747c6ff7c6441ec62255d2ec004ef76b84d4a025",
+      "counts_by_table": {
+        "accounting_feed_allocations": 9278,
+        "animal_outcomes": 31,
+        "animal_profiles": 31,
+        "animals": 31,
+        "bunk_settlements": 5933,
+        "bunk_tickets": 5933,
+        "carcasses": 26,
+        "close_deltas": 576,
+        "daily_soh": 30702,
+        "decision_snapshots": 1485,
+        "draft_decisions": 27,
+        "feed_access_snapshots": 5933,
+        "feed_allocations": 46416,
+        "feed_cost_bridge": 5933,
+        "feed_deliveries": 5933,
+        "feed_exposures": 9278,
+        "feed_plans": 5933,
+        "feed_releases": 29672,
+        "feeding_weight_inputs": 9278,
+        "finance_monthly": 48,
+        "finance_snapshots": 48,
+        "finance_soh": 2016,
+        "financial_approvals": 2,
+        "financial_source_links": 176570,
+        "financial_sources": 139796,
+        "formula_comparisons": 17799,
+        "growth_operational": 83532,
+        "growth_retrospective": 84999,
+        "health_events": 61,
+        "journal_lines": 149310,
+        "journals_as_known": 74655,
+        "journals_restated": 74655,
+        "locations": 10,
+        "lots": 31,
+        "mix_inputs": 18398,
+        "mix_issue_links": 17799,
+        "mix_orders": 5933,
+        "mixes": 5933,
+        "monthly_soh": 1008,
+        "movement_events": 82,
+        "opening_cattle": 6,
+        "packer_settlements": 26,
+        "physical_contexts": 15016,
+        "physical_intervals": 56,
+        "placement_requests": 25,
+        "posting_allocation_links": 46416,
+        "ration_ingredients": 12,
+        "ration_versions": 4,
+        "scale_samples_diagnostic": 288,
+        "shipment_lines": 26,
+        "trial_balance": 1152,
+        "truck_tickets": 5933,
+        "warehouse_af_bridge": 30024,
+        "warehouse_assays": 627,
+        "warehouse_balances": 28,
+        "warehouse_batches": 627,
+        "warehouse_bins": 6,
+        "warehouse_close": 31188,
+        "warehouse_dm_bridge": 15594,
+        "warehouse_entries": 20274,
+        "warehouse_equipment": 2,
+        "warehouse_finance": 20274,
+        "warehouse_ingredients": 3,
+        "warehouse_layers": 627,
+        "warehouse_orders": 315,
+        "warehouse_po_status": 315,
+        "warehouse_prices": 3,
+        "warehouse_receipts": 624,
+        "warehouse_suppliers": 1,
+        "warehouse_transactions": 19051,
+        "warehouse_warehouses": 2,
+        "weather_exposure": 14848,
+        "weigh_attempts": 335,
+        "weight_estimates": 9305,
+        "weight_observations": 289,
+        "wip": 932,
+        "wip_components": 5765,
+        "yardage": 4652
+      },
+      "dataset": "stage6b1-baseline-25-42",
+      "feeding_windows": 1462,
+      "hashes_sha256": "918070d2a691c824634d9b8d8ccd00f0f8ec2efa2eda314f663f9def658bfd5c",
+      "head": {
+        "carry_out": 5,
+        "death": 0,
+        "opening": 6,
+        "placements": 25,
+        "sale": 26
+      },
+      "operating_exceptions": {},
+      "peak_concurrent_inventory": 7,
+      "performance": {
+        "accounting_and_close_seconds": 60.744,
+        "cross_domain_validation_seconds": 21.028,
+        "diagnostics_and_manifest_seconds": 5.111,
+        "largest_partition_bytes": 3343597,
+        "operations_seconds": 53.81,
+        "parquet_bytes": 69270021,
+        "parquet_partitions": 1433,
+        "peak_rss_kib_linux": 426044,
+        "snapshot_parquet_bytes": 1062441,
+        "source_and_fact_counts": {
+          "accounting_feed_allocations": 9278,
+          "feed_allocations": 46416,
+          "financial_sources": 139796,
+          "health_events": 61,
+          "journal_lines": 149310,
+          "movement_events": 82,
+          "packer_settlements": 26,
+          "warehouse_transactions": 19051,
+          "weight_observations": 289
+        },
+        "wall_seconds_before_atomic_rename": 143.761
+      },
+      "performance_phases": {
+        "animal_ledger_finalize": {
+          "calls": 1,
+          "exclusive_seconds": 0.0038,
+          "process_high_water_rss_kib_at_phase_end": 201048,
+          "seconds": 0.0038
+        },
+        "animal_scheduling_and_replay": {
+          "calls": 1,
+          "exclusive_seconds": 2.9613,
+          "process_high_water_rss_kib_at_phase_end": 250200,
+          "seconds": 53.3823
+        },
+        "biology": {
+          "calls": 14620,
+          "exclusive_seconds": 14.6485,
+          "process_high_water_rss_kib_at_phase_end": 200920,
+          "seconds": 14.6485
+        },
+        "close_journal_fingerprints": {
+          "calls": 1470,
+          "exclusive_seconds": 2.1096,
+          "process_high_water_rss_kib_at_phase_end": 411968,
+          "seconds": 2.1096
+        },
+        "close_stock_replay": {
+          "calls": 48,
+          "exclusive_seconds": 1.3546,
+          "process_high_water_rss_kib_at_phase_end": 415680,
+          "seconds": 1.3546
+        },
+        "close_warehouse_checkpoints": {
+          "calls": 1,
+          "exclusive_seconds": 0.047,
+          "process_high_water_rss_kib_at_phase_end": 382512,
+          "seconds": 0.047
+        },
+        "feeding": {
+          "calls": 1462,
+          "exclusive_seconds": 17.4184,
+          "process_high_water_rss_kib_at_phase_end": 200792,
+          "seconds": 19.8237
+        },
+        "fifo_dm_selection": {
+          "calls": 17799,
+          "exclusive_seconds": 0.467,
+          "process_high_water_rss_kib_at_phase_end": 200792,
+          "seconds": 0.467
+        },
+        "fifo_transactions": {
+          "calls": 19051,
+          "exclusive_seconds": 2.1027,
+          "process_high_water_rss_kib_at_phase_end": 200792,
+          "seconds": 2.1027
+        },
+        "financial_close": {
+          "calls": 48,
+          "exclusive_seconds": 3.3187,
+          "process_high_water_rss_kib_at_phase_end": 415936,
+          "seconds": 4.6733
+        },
+        "financial_source_expansion": {
+          "calls": 1,
+          "exclusive_seconds": 33.4964,
+          "process_high_water_rss_kib_at_phase_end": 382512,
+          "seconds": 35.2754
+        },
+        "financial_validation": {
+          "calls": 1,
+          "exclusive_seconds": 10.7657,
+          "process_high_water_rss_kib_at_phase_end": 426044,
+          "seconds": 10.7657
+        },
+        "health": {
+          "calls": 731,
+          "exclusive_seconds": 0.0944,
+          "process_high_water_rss_kib_at_phase_end": 200536,
+          "seconds": 0.0944
+        },
+        "input_and_artifact_file_hashes": {
+          "calls": 105,
+          "exclusive_seconds": 0.0118,
+          "process_high_water_rss_kib_at_phase_end": 426044,
+          "seconds": 0.0118
+        },
+        "journal_period_index": {
+          "calls": 1470,
+          "exclusive_seconds": 1.1255,
+          "process_high_water_rss_kib_at_phase_end": 411968,
+          "seconds": 3.2351
+        },
+        "journal_posting": {
+          "calls": 1470,
+          "exclusive_seconds": 12.147,
+          "process_high_water_rss_kib_at_phase_end": 411968,
+          "seconds": 12.147
+        },
+        "operations_stock_replay": {
+          "calls": 1,
+          "exclusive_seconds": 0.636,
+          "process_high_water_rss_kib_at_phase_end": 250200,
+          "seconds": 0.636
+        },
+        "parquet_file_hashes": {
+          "calls": 1433,
+          "exclusive_seconds": 0.3632,
+          "process_high_water_rss_kib_at_phase_end": 421824,
+          "seconds": 0.3632
+        },
+        "parquet_serialization": {
+          "calls": 1753,
+          "exclusive_seconds": 16.7593,
+          "process_high_water_rss_kib_at_phase_end": 421824,
+          "seconds": 16.7593
+        },
+        "physical_validation": {
+          "calls": 1,
+          "exclusive_seconds": 8.255,
+          "process_high_water_rss_kib_at_phase_end": 421824,
+          "seconds": 8.255
+        },
+        "procurement": {
+          "calls": 731,
+          "exclusive_seconds": 0.0714,
+          "process_high_water_rss_kib_at_phase_end": 200536,
+          "seconds": 0.2346
+        },
+        "report_diagnostics": {
+          "calls": 1,
+          "exclusive_seconds": 5.083,
+          "process_high_water_rss_kib_at_phase_end": 426044,
+          "seconds": 5.083
+        },
+        "validation": {
+          "calls": 1,
+          "exclusive_seconds": 2.0069,
+          "process_high_water_rss_kib_at_phase_end": 426044,
+          "seconds": 21.0276
+        },
+        "warehouse_replay": {
+          "calls": 1,
+          "exclusive_seconds": 5.4646,
+          "process_high_water_rss_kib_at_phase_end": 250200,
+          "seconds": 5.4646
+        }
+      },
+      "realized_sale_dof": {
+        "max": 202.3125,
+        "mean": 181.9022,
+        "median": 179.9062,
+        "min": 156.2708,
+        "n": 26,
+        "p05": 156.7344,
+        "p25": 175.5781,
+        "p75": 198.9792,
+        "p95": 201.1094
+      },
+      "run_id": "SYN-STAGE6-RUN-4400a2f4f4d7b190bd96bb07",
+      "schema_version": "stage6a.1",
+      "seed": 42,
+      "stock_reporting": {
+        "final_simulation_date": "2025-12-31",
+        "final_simulation_soh": 5,
+        "periods": [
+          {
+            "period_end": "2024-01-31",
+            "period_end_soh": 6,
+            "period_start": "2024-01-01"
+          },
+          {
+            "period_end": "2024-02-29",
+            "period_end_soh": 6,
+            "period_start": "2024-02-01"
+          },
+          {
+            "period_end": "2024-03-31",
+            "period_end_soh": 6,
+            "period_start": "2024-03-01"
+          },
+          {
+            "period_end": "2024-04-30",
+            "period_end_soh": 7,
+            "period_start": "2024-04-01"
+          },
+          {
+            "period_end": "2024-05-31",
+            "period_end_soh": 6,
+            "period_start": "2024-05-01"
+          },
+          {
+            "period_end": "2024-06-30",
+            "period_end_soh": 7,
+            "period_start": "2024-06-01"
+          },
+          {
+            "period_end": "2024-07-31",
+            "period_end_soh": 6,
+            "period_start": "2024-07-01"
+          },
+          {
+            "period_end": "2024-08-31",
+            "period_end_soh": 7,
+            "period_start": "2024-08-01"
+          },
+          {
+            "period_end": "2024-09-30",
+            "period_end_soh": 7,
+            "period_start": "2024-09-01"
+          },
+          {
+            "period_end": "2024-10-31",
+            "period_end_soh": 6,
+            "period_start": "2024-10-01"
+          },
+          {
+            "period_end": "2024-11-30",
+            "period_end_soh": 7,
+            "period_start": "2024-11-01"
+          },
+          {
+            "period_end": "2024-12-31",
+            "period_end_soh": 6,
+            "period_start": "2024-12-01"
+          },
+          {
+            "period_end": "2025-01-31",
+            "period_end_soh": 7,
+            "period_start": "2025-01-01"
+          },
+          {
+            "period_end": "2025-02-28",
+            "period_end_soh": 7,
+            "period_start": "2025-02-01"
+          },
+          {
+            "period_end": "2025-03-31",
+            "period_end_soh": 6,
+            "period_start": "2025-03-01"
+          },
+          {
+            "period_end": "2025-04-30",
+            "period_end_soh": 5,
+            "period_start": "2025-04-01"
+          },
+          {
+            "period_end": "2025-05-31",
+            "period_end_soh": 6,
+            "period_start": "2025-05-01"
+          },
+          {
+            "period_end": "2025-06-30",
+            "period_end_soh": 7,
+            "period_start": "2025-06-01"
+          },
+          {
+            "period_end": "2025-07-31",
+            "period_end_soh": 7,
+            "period_start": "2025-07-01"
+          },
+          {
+            "period_end": "2025-08-31",
+            "period_end_soh": 6,
+            "period_start": "2025-08-01"
+          },
+          {
+            "period_end": "2025-09-30",
+            "period_end_soh": 6,
+            "period_start": "2025-09-01"
+          },
+          {
+            "period_end": "2025-10-31",
+            "period_end_soh": 6,
+            "period_start": "2025-10-01"
+          },
+          {
+            "period_end": "2025-11-30",
+            "period_end_soh": 7,
+            "period_start": "2025-11-01"
+          },
+          {
+            "period_end": "2025-12-31",
+            "period_end_soh": 5,
+            "period_start": "2025-12-01"
+          }
+        ]
+      },
+      "validation": {
+        "assertion_count": 1914323,
+        "gate_category_count": 58,
+        "gates": {
+          "allocation_conservation": {
+            "assertions": 5933,
+            "passed": true
+          },
+          "animal_days": {
+            "assertions": 731,
+            "passed": true
+          },
+          "balanced_paired_entries": {
+            "assertions": 149310,
+            "passed": true
+          },
+          "balanced_two_line_journal": {
+            "assertions": 149336,
+            "passed": true
+          },
+          "biological_reserve_balance": {
+            "assertions": 168531,
+            "passed": true
+          },
+          "books_close_counts": {
+            "assertions": 48,
+            "passed": true
+          },
+          "bunk_conservation": {
+            "assertions": 5933,
+            "passed": true
+          },
+          "carcass_consistency": {
+            "assertions": 26,
+            "passed": true
+          },
+          "carcass_scale_link": {
+            "assertions": 20,
+            "passed": true
+          },
+          "delivery_conservation": {
+            "assertions": 5933,
+            "passed": true
+          },
+          "dispatch_time": {
+            "assertions": 5933,
+            "passed": true
+          },
+          "feed_eligibility": {
+            "assertions": 46416,
+            "passed": true
+          },
+          "feed_to_biology": {
+            "assertions": 48,
+            "passed": true
+          },
+          "fifo_issue_to_mix": {
+            "assertions": 18422,
+            "passed": true
+          },
+          "final_simulation_stock_reporting": {
+            "assertions": 1,
+            "passed": true
+          },
+          "finance_source_timing": {
+            "assertions": 176570,
+            "passed": true
+          },
+          "foreign_keys": {
+            "assertions": 83,
+            "passed": true
+          },
+          "frozen_feed_input": {
+            "assertions": 46416,
+            "passed": true
+          },
+          "growth_time": {
+            "assertions": 168531,
+            "passed": true
+          },
+          "health_episode_link": {
+            "assertions": 49,
+            "passed": true
+          },
+          "health_event_time": {
+            "assertions": 61,
+            "passed": true
+          },
+          "immutable_scale_revision": {
+            "assertions": 1,
+            "passed": true
+          },
+          "journal_partition_order": {
+            "assertions": 149312,
+            "passed": true
+          },
+          "journal_source_foreign_key": {
+            "assertions": 149310,
+            "passed": true
+          },
+          "measured_vs_latent": {
+            "assertions": 288,
+            "passed": true
+          },
+          "mix_conservation": {
+            "assertions": 5933,
+            "passed": true
+          },
+          "monthly_close_continuity": {
+            "assertions": 46,
+            "passed": true
+          },
+          "monthly_trial_continuity": {
+            "assertions": 46,
+            "passed": true
+          },
+          "movement_replay": {
+            "assertions": 1,
+            "passed": true
+          },
+          "no_double_charged_feed": {
+            "assertions": 5933,
+            "passed": true
+          },
+          "no_future_estimates": {
+            "assertions": 9305,
+            "passed": true
+          },
+          "no_future_health": {
+            "assertions": 1521,
+            "passed": true
+          },
+          "no_future_weather": {
+            "assertions": 7310,
+            "passed": true
+          },
+          "opening_wip_sources": {
+            "assertions": 1,
+            "passed": true
+          },
+          "original_close_lock": {
+            "assertions": 24,
+            "passed": true
+          },
+          "outcome_release": {
+            "assertions": 53,
+            "passed": true
+          },
+          "outcomes": {
+            "assertions": 2,
+            "passed": true
+          },
+          "period_end_stock_reporting": {
+            "assertions": 1,
+            "passed": true
+          },
+          "placement_disposition": {
+            "assertions": 1,
+            "passed": true
+          },
+          "primary_keys": {
+            "assertions": 490588,
+            "passed": true
+          },
+          "ration_and_plan": {
+            "assertions": 5933,
+            "passed": true
+          },
+          "restatement_close_lock": {
+            "assertions": 24,
+            "passed": true
+          },
+          "sale_disposition": {
+            "assertions": 27,
+            "passed": true
+          },
+          "scale_attempt_link": {
+            "assertions": 335,
+            "passed": true
+          },
+          "schema_version": {
+            "assertions": 1433,
+            "passed": true
+          },
+          "settlement_trace": {
+            "assertions": 5933,
+            "passed": true
+          },
+          "snapshot_publication": {
+            "assertions": 49,
+            "passed": true
+          },
+          "stable_original_snapshot": {
+            "assertions": 24,
+            "passed": true
+          },
+          "stable_restated_snapshot": {
+            "assertions": 24,
+            "passed": true
+          },
+          "stock_equation": {
+            "assertions": 731,
+            "passed": true
+          },
+          "synthetic_grid_settlement": {
+            "assertions": 26,
+            "passed": true
+          },
+          "terminal_scale": {
+            "assertions": 20,
+            "passed": true
+          },
+          "timed_to_posting_allocation": {
+            "assertions": 55718,
+            "passed": true
+          },
+          "warehouse_af_value": {
+            "assertions": 60048,
+            "passed": true
+          },
+          "warehouse_dm": {
+            "assertions": 15594,
+            "passed": true
+          },
+          "weather_forecast_publication": {
+            "assertions": 1,
+            "passed": true
+          },
+          "weighing_chronology": {
+            "assertions": 289,
+            "passed": true
+          },
+          "yard_capacity": {
+            "assertions": 107,
+            "passed": true
+          }
+        },
+        "movement_checks": 10,
+        "stage4_controls": 432,
+        "status": "passed"
+      },
+      "wall_seconds_including_atomic_publish": 143.8536,
+      "weather": {
+        "operational_seconds": {
+          "seasonal_fallback": 63158400.0
+        },
+        "retrospective_seconds": {
+          "archive_reanalysis": 60822000.0,
+          "seasonal_fallback": 2336400.0
+        }
+      }
+    },
+    {
+      "animal_days": 18132,
+      "book_view_profiles": {
+        "as_known": {
+          "close_count": 24,
+          "journal_posting_and_close_seconds": 35.3653,
+          "process_high_water_rss_kib_after_view": 528672
+        },
+        "restated": {
+          "close_count": 24,
+          "journal_posting_and_close_seconds": 33.0646,
+          "process_high_water_rss_kib_after_view": 539552
+        }
+      },
+      "calendar": {
+        "days": 731,
+        "end": "2025-12-31",
+        "start": "2024-01-01"
+      },
+      "closes": {
+        "as_known": {
+          "close_count": 24,
+          "closing_wip_cents": 4790058
+        },
+        "restated": {
+          "close_count": 24,
+          "closing_wip_cents": 4790058
+        }
+      },
+      "code_checkout_commit": "6629a55456d63d1202f8f4d1776e2963a04d8774",
+      "config_sha256": "ef1a34f07994639d4a1a4ee233530901c732d08f96fd309d03bae82a9bb316d0",
+      "counts_by_table": {
+        "accounting_feed_allocations": 36162,
+        "animal_outcomes": 123,
+        "animal_profiles": 123,
+        "animals": 123,
+        "bunk_settlements": 9191,
+        "bunk_tickets": 9191,
+        "carcasses": 100,
+        "close_deltas": 576,
+        "daily_soh": 62135,
+        "decision_snapshots": 1529,
+        "draft_decisions": 136,
+        "feed_access_snapshots": 9191,
+        "feed_allocations": 180910,
+        "feed_cost_bridge": 9191,
+        "feed_deliveries": 9191,
+        "feed_exposures": 36162,
+        "feed_plans": 9191,
+        "feed_releases": 45962,
+        "feeding_weight_inputs": 36162,
+        "finance_monthly": 48,
+        "finance_snapshots": 48,
+        "finance_soh": 4080,
+        "financial_approvals": 2,
+        "financial_source_links": 501905,
+        "financial_sources": 342529,
+        "formula_comparisons": 27573,
+        "growth_operational": 325567,
+        "growth_retrospective": 331240,
+        "health_events": 303,
+        "journal_lines": 401834,
+        "journals_as_known": 200917,
+        "journals_restated": 200917,
+        "locations": 10,
+        "lots": 74,
+        "mix_inputs": 28190,
+        "mix_issue_links": 27573,
+        "mix_orders": 9191,
+        "mixes": 9191,
+        "monthly_soh": 2040,
+        "movement_events": 384,
+        "opening_cattle": 23,
+        "packer_settlements": 100,
+        "physical_contexts": 16234,
+        "physical_intervals": 283,
+        "placement_requests": 100,
+        "posting_allocation_links": 180910,
+        "ration_ingredients": 12,
+        "ration_versions": 4,
+        "scale_samples_diagnostic": 1125,
+        "shipment_lines": 100,
+        "trial_balance": 1152,
+        "truck_tickets": 9191,
+        "warehouse_af_bridge": 30408,
+        "warehouse_assays": 635,
+        "warehouse_balances": 18,
+        "warehouse_batches": 635,
+        "warehouse_bins": 6,
+        "warehouse_close": 31404,
+        "warehouse_dm_bridge": 15702,
+        "warehouse_entries": 30090,
+        "warehouse_equipment": 2,
+        "warehouse_finance": 30090,
+        "warehouse_ingredients": 3,
+        "warehouse_layers": 635,
+        "warehouse_orders": 320,
+        "warehouse_po_status": 320,
+        "warehouse_prices": 3,
+        "warehouse_receipts": 632,
+        "warehouse_suppliers": 1,
+        "warehouse_transactions": 28841,
+        "warehouse_warehouses": 2,
+        "weather_exposure": 14848,
+        "weigh_attempts": 1311,
+        "weight_estimates": 36298,
+        "weight_observations": 1126,
+        "wip": 3672,
+        "wip_components": 22869,
+        "yardage": 18132
+      },
+      "dataset": "stage6b1-baseline-100-42",
+      "feeding_windows": 1462,
+      "hashes_sha256": "642c7b77d4ca9ff6d3ee4c265aef3efe110dba46e531cad7b3826544695e5720",
+      "head": {
+        "carry_out": 22,
+        "death": 1,
+        "opening": 23,
+        "placements": 100,
+        "sale": 100
+      },
+      "operating_exceptions": {},
+      "peak_concurrent_inventory": 28,
+      "performance": {
+        "accounting_and_close_seconds": 161.252,
+        "cross_domain_validation_seconds": 52.745,
+        "diagnostics_and_manifest_seconds": 9.4,
+        "largest_partition_bytes": 8031608,
+        "operations_seconds": 138.451,
+        "parquet_bytes": 186425668,
+        "parquet_partitions": 1477,
+        "peak_rss_kib_linux": 551024,
+        "snapshot_parquet_bytes": 1317070,
+        "source_and_fact_counts": {
+          "accounting_feed_allocations": 36162,
+          "feed_allocations": 180910,
+          "financial_sources": 342529,
+          "health_events": 303,
+          "journal_lines": 401834,
+          "movement_events": 384,
+          "packer_settlements": 100,
+          "warehouse_transactions": 28841,
+          "weight_observations": 1126
+        },
+        "wall_seconds_before_atomic_rename": 365.325
+      },
+      "performance_phases": {
+        "animal_ledger_finalize": {
+          "calls": 1,
+          "exclusive_seconds": 0.0156,
+          "process_high_water_rss_kib_at_phase_end": 255504,
+          "seconds": 0.0156
+        },
+        "animal_scheduling_and_replay": {
+          "calls": 1,
+          "exclusive_seconds": 4.6685,
+          "process_high_water_rss_kib_at_phase_end": 323056,
+          "seconds": 138.0576
+        },
+        "biology": {
+          "calls": 14620,
+          "exclusive_seconds": 55.8541,
+          "process_high_water_rss_kib_at_phase_end": 255504,
+          "seconds": 64.992
+        },
+        "close_journal_fingerprints": {
+          "calls": 1472,
+          "exclusive_seconds": 6.136,
+          "process_high_water_rss_kib_at_phase_end": 536096,
+          "seconds": 6.136
+        },
+        "close_stock_replay": {
+          "calls": 48,
+          "exclusive_seconds": 2.2433,
+          "process_high_water_rss_kib_at_phase_end": 539168,
+          "seconds": 2.2433
+        },
+        "close_warehouse_checkpoints": {
+          "calls": 1,
+          "exclusive_seconds": 0.0678,
+          "process_high_water_rss_kib_at_phase_end": 503072,
+          "seconds": 0.0678
+        },
+        "feeding": {
+          "calls": 1462,
+          "exclusive_seconds": 38.8417,
+          "process_high_water_rss_kib_at_phase_end": 255504,
+          "seconds": 46.1126
+        },
+        "fifo_dm_selection": {
+          "calls": 27573,
+          "exclusive_seconds": 0.6633,
+          "process_high_water_rss_kib_at_phase_end": 255504,
+          "seconds": 0.6633
+        },
+        "fifo_transactions": {
+          "calls": 28841,
+          "exclusive_seconds": 3.0965,
+          "process_high_water_rss_kib_at_phase_end": 255504,
+          "seconds": 3.3433
+        },
+        "financial_close": {
+          "calls": 48,
+          "exclusive_seconds": 4.5017,
+          "process_high_water_rss_kib_at_phase_end": 539424,
+          "seconds": 6.745
+        },
+        "financial_source_expansion": {
+          "calls": 1,
+          "exclusive_seconds": 88.1726,
+          "process_high_water_rss_kib_at_phase_end": 503072,
+          "seconds": 92.7231
+        },
+        "financial_validation": {
+          "calls": 1,
+          "exclusive_seconds": 29.2561,
+          "process_high_water_rss_kib_at_phase_end": 551024,
+          "seconds": 29.2561
+        },
+        "health": {
+          "calls": 731,
+          "exclusive_seconds": 0.3125,
+          "process_high_water_rss_kib_at_phase_end": 255504,
+          "seconds": 0.3125
+        },
+        "input_and_artifact_file_hashes": {
+          "calls": 105,
+          "exclusive_seconds": 0.0103,
+          "process_high_water_rss_kib_at_phase_end": 551024,
+          "seconds": 0.0103
+        },
+        "journal_period_index": {
+          "calls": 1472,
+          "exclusive_seconds": 3.8631,
+          "process_high_water_rss_kib_at_phase_end": 536096,
+          "seconds": 9.9992
+        },
+        "journal_posting": {
+          "calls": 1472,
+          "exclusive_seconds": 37.7602,
+          "process_high_water_rss_kib_at_phase_end": 536096,
+          "seconds": 37.7602
+        },
+        "operations_stock_replay": {
+          "calls": 1,
+          "exclusive_seconds": 1.1545,
+          "process_high_water_rss_kib_at_phase_end": 323056,
+          "seconds": 1.1545
+        },
+        "parquet_file_hashes": {
+          "calls": 1477,
+          "exclusive_seconds": 0.7687,
+          "process_high_water_rss_kib_at_phase_end": 544544,
+          "seconds": 0.7687
+        },
+        "parquet_serialization": {
+          "calls": 2371,
+          "exclusive_seconds": 40.9057,
+          "process_high_water_rss_kib_at_phase_end": 544544,
+          "seconds": 40.9057
+        },
+        "physical_validation": {
+          "calls": 1,
+          "exclusive_seconds": 20.8613,
+          "process_high_water_rss_kib_at_phase_end": 551024,
+          "seconds": 20.8613
+        },
+        "procurement": {
+          "calls": 731,
+          "exclusive_seconds": 0.0764,
+          "process_high_water_rss_kib_at_phase_end": 255504,
+          "seconds": 0.2466
+        },
+        "report_diagnostics": {
+          "calls": 1,
+          "exclusive_seconds": 9.3721,
+          "process_high_water_rss_kib_at_phase_end": 551024,
+          "seconds": 9.3721
+        },
+        "validation": {
+          "calls": 1,
+          "exclusive_seconds": 2.6278,
+          "process_high_water_rss_kib_at_phase_end": 551024,
+          "seconds": 52.7451
+        },
+        "warehouse_replay": {
+          "calls": 1,
+          "exclusive_seconds": 8.3586,
+          "process_high_water_rss_kib_at_phase_end": 323056,
+          "seconds": 8.3727
+        }
+      },
+      "realized_sale_dof": {
+        "max": 210.2708,
+        "mean": 180.6556,
+        "median": 178.8854,
+        "min": 155.2292,
+        "n": 100,
+        "p05": 156.3104,
+        "p25": 161.2604,
+        "p75": 198.3594,
+        "p95": 201.324
+      },
+      "run_id": "SYN-STAGE6-RUN-87a44b9e68d9987c9c871394",
+      "schema_version": "stage6a.1",
+      "seed": 42,
+      "stock_reporting": {
+        "final_simulation_date": "2025-12-31",
+        "final_simulation_soh": 22,
+        "periods": [
+          {
+            "period_end": "2024-01-31",
+            "period_end_soh": 25,
+            "period_start": "2024-01-01"
+          },
+          {
+            "period_end": "2024-02-29",
+            "period_end_soh": 23,
+            "period_start": "2024-02-01"
+          },
+          {
+            "period_end": "2024-03-31",
+            "period_end_soh": 24,
+            "period_start": "2024-03-01"
+          },
+          {
+            "period_end": "2024-04-30",
+            "period_end_soh": 25,
+            "period_start": "2024-04-01"
+          },
+          {
+            "period_end": "2024-05-31",
+            "period_end_soh": 25,
+            "period_start": "2024-05-01"
+          },
+          {
+            "period_end": "2024-06-30",
+            "period_end_soh": 25,
+            "period_start": "2024-06-01"
+          },
+          {
+            "period_end": "2024-07-31",
+            "period_end_soh": 25,
+            "period_start": "2024-07-01"
+          },
+          {
+            "period_end": "2024-08-31",
+            "period_end_soh": 25,
+            "period_start": "2024-08-01"
+          },
+          {
+            "period_end": "2024-09-30",
+            "period_end_soh": 23,
+            "period_start": "2024-09-01"
+          },
+          {
+            "period_end": "2024-10-31",
+            "period_end_soh": 23,
+            "period_start": "2024-10-01"
+          },
+          {
+            "period_end": "2024-11-30",
+            "period_end_soh": 25,
+            "period_start": "2024-11-01"
+          },
+          {
+            "period_end": "2024-12-31",
+            "period_end_soh": 25,
+            "period_start": "2024-12-01"
+          },
+          {
+            "period_end": "2025-01-31",
+            "period_end_soh": 28,
+            "period_start": "2025-01-01"
+          },
+          {
+            "period_end": "2025-02-28",
+            "period_end_soh": 26,
+            "period_start": "2025-02-01"
+          },
+          {
+            "period_end": "2025-03-31",
+            "period_end_soh": 22,
+            "period_start": "2025-03-01"
+          },
+          {
+            "period_end": "2025-04-30",
+            "period_end_soh": 23,
+            "period_start": "2025-04-01"
+          },
+          {
+            "period_end": "2025-05-31",
+            "period_end_soh": 24,
+            "period_start": "2025-05-01"
+          },
+          {
+            "period_end": "2025-06-30",
+            "period_end_soh": 26,
+            "period_start": "2025-06-01"
+          },
+          {
+            "period_end": "2025-07-31",
+            "period_end_soh": 26,
+            "period_start": "2025-07-01"
+          },
+          {
+            "period_end": "2025-08-31",
+            "period_end_soh": 25,
+            "period_start": "2025-08-01"
+          },
+          {
+            "period_end": "2025-09-30",
+            "period_end_soh": 26,
+            "period_start": "2025-09-01"
+          },
+          {
+            "period_end": "2025-10-31",
+            "period_end_soh": 25,
+            "period_start": "2025-10-01"
+          },
+          {
+            "period_end": "2025-11-30",
+            "period_end_soh": 25,
+            "period_start": "2025-11-01"
+          },
+          {
+            "period_end": "2025-12-31",
+            "period_end_soh": 22,
+            "period_start": "2025-12-01"
+          }
+        ]
+      },
+      "validation": {
+        "assertion_count": 5595897,
+        "gate_category_count": 59,
+        "gates": {
+          "allocation_conservation": {
+            "assertions": 9191,
+            "passed": true
+          },
+          "animal_days": {
+            "assertions": 731,
+            "passed": true
+          },
+          "balanced_paired_entries": {
+            "assertions": 401834,
+            "passed": true
+          },
+          "balanced_two_line_journal": {
+            "assertions": 401860,
+            "passed": true
+          },
+          "biological_reserve_balance": {
+            "assertions": 656807,
+            "passed": true
+          },
+          "books_close_counts": {
+            "assertions": 48,
+            "passed": true
+          },
+          "bunk_conservation": {
+            "assertions": 9191,
+            "passed": true
+          },
+          "carcass_consistency": {
+            "assertions": 100,
+            "passed": true
+          },
+          "carcass_scale_link": {
+            "assertions": 82,
+            "passed": true
+          },
+          "delivery_conservation": {
+            "assertions": 9191,
+            "passed": true
+          },
+          "dispatch_time": {
+            "assertions": 9191,
+            "passed": true
+          },
+          "feed_eligibility": {
+            "assertions": 180910,
+            "passed": true
+          },
+          "feed_to_biology": {
+            "assertions": 48,
+            "passed": true
+          },
+          "fifo_issue_to_mix": {
+            "assertions": 28214,
+            "passed": true
+          },
+          "final_simulation_stock_reporting": {
+            "assertions": 1,
+            "passed": true
+          },
+          "finance_source_timing": {
+            "assertions": 501905,
+            "passed": true
+          },
+          "foreign_keys": {
+            "assertions": 385,
+            "passed": true
+          },
+          "frozen_feed_input": {
+            "assertions": 180910,
+            "passed": true
+          },
+          "growth_time": {
+            "assertions": 656807,
+            "passed": true
+          },
+          "health_episode_link": {
+            "assertions": 254,
+            "passed": true
+          },
+          "health_event_time": {
+            "assertions": 303,
+            "passed": true
+          },
+          "health_movement_link": {
+            "assertions": 11,
+            "passed": true
+          },
+          "immutable_scale_revision": {
+            "assertions": 1,
+            "passed": true
+          },
+          "journal_partition_order": {
+            "assertions": 401836,
+            "passed": true
+          },
+          "journal_source_foreign_key": {
+            "assertions": 401834,
+            "passed": true
+          },
+          "measured_vs_latent": {
+            "assertions": 1125,
+            "passed": true
+          },
+          "mix_conservation": {
+            "assertions": 9191,
+            "passed": true
+          },
+          "monthly_close_continuity": {
+            "assertions": 46,
+            "passed": true
+          },
+          "monthly_trial_continuity": {
+            "assertions": 46,
+            "passed": true
+          },
+          "movement_replay": {
+            "assertions": 1,
+            "passed": true
+          },
+          "no_double_charged_feed": {
+            "assertions": 9191,
+            "passed": true
+          },
+          "no_future_estimates": {
+            "assertions": 36298,
+            "passed": true
+          },
+          "no_future_health": {
+            "assertions": 7266,
+            "passed": true
+          },
+          "no_future_weather": {
+            "assertions": 7310,
+            "passed": true
+          },
+          "opening_wip_sources": {
+            "assertions": 1,
+            "passed": true
+          },
+          "original_close_lock": {
+            "assertions": 24,
+            "passed": true
+          },
+          "outcome_release": {
+            "assertions": 203,
+            "passed": true
+          },
+          "outcomes": {
+            "assertions": 2,
+            "passed": true
+          },
+          "period_end_stock_reporting": {
+            "assertions": 1,
+            "passed": true
+          },
+          "placement_disposition": {
+            "assertions": 1,
+            "passed": true
+          },
+          "primary_keys": {
+            "assertions": 1355956,
+            "passed": true
+          },
+          "ration_and_plan": {
+            "assertions": 9191,
+            "passed": true
+          },
+          "restatement_close_lock": {
+            "assertions": 24,
+            "passed": true
+          },
+          "sale_disposition": {
+            "assertions": 101,
+            "passed": true
+          },
+          "scale_attempt_link": {
+            "assertions": 1311,
+            "passed": true
+          },
+          "schema_version": {
+            "assertions": 1477,
+            "passed": true
+          },
+          "settlement_trace": {
+            "assertions": 9191,
+            "passed": true
+          },
+          "snapshot_publication": {
+            "assertions": 49,
+            "passed": true
+          },
+          "stable_original_snapshot": {
+            "assertions": 24,
+            "passed": true
+          },
+          "stable_restated_snapshot": {
+            "assertions": 24,
+            "passed": true
+          },
+          "stock_equation": {
+            "assertions": 731,
+            "passed": true
+          },
+          "synthetic_grid_settlement": {
+            "assertions": 100,
+            "passed": true
+          },
+          "terminal_scale": {
+            "assertions": 82,
+            "passed": true
+          },
+          "timed_to_posting_allocation": {
+            "assertions": 217096,
+            "passed": true
+          },
+          "warehouse_af_value": {
+            "assertions": 60816,
+            "passed": true
+          },
+          "warehouse_dm": {
+            "assertions": 15702,
+            "passed": true
+          },
+          "weather_forecast_publication": {
+            "assertions": 1,
+            "passed": true
+          },
+          "weighing_chronology": {
+            "assertions": 1126,
+            "passed": true
+          },
+          "yard_capacity": {
+            "assertions": 544,
+            "passed": true
+          }
+        },
+        "movement_checks": 10,
+        "stage4_controls": 432,
+        "status": "passed"
+      },
+      "wall_seconds_including_atomic_publish": 365.514,
+      "weather": {
+        "operational_seconds": {
+          "seasonal_fallback": 63158400.0
+        },
+        "retrospective_seconds": {
+          "archive_reanalysis": 60822000.0,
+          "seasonal_fallback": 2336400.0
+        }
+      }
+    }
+  ]
+}

@@ -68,13 +68,82 @@ def benchmark_config(placements, seed=None):
     return config
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("placements", type=int, choices=SIZES)
-    parser.add_argument("--seed", type=int)
-    parser.add_argument("--output", type=Path, required=True)
-    args = parser.parse_args()
-    config = benchmark_config(args.placements, args.seed)
+STAGE6B1_BASELINE_HEALTH = {
+    "scenario_version": "stage6b1-baseline-health.1",
+    "recovery_basis": "daily_compounded",
+    "onset_daily": 0.0022,
+    "receiving_multiplier": 3.5,
+    "post_recovery_multiplier": 2.0,
+    "severity_weights": [0.60, 0.30, 0.10],
+    "detection_daily": [0.40, 0.70, 0.90],
+    "untreated_death_daily": [0.0002, 0.0025, 0.025],
+    "detected_death_daily": [0.0001, 0.0010, 0.010],
+    "chronic_death_daily": 0.0015,
+    "background_death_daily": 0.00004,
+    "recovery_daily": [0.38, 0.24, 0.14],
+    "treatment_probability": 0.85,
+    "repeat_probability": 0.35,
+    "chronic_probability": 0.30,
+    "reassess_days": 2,
+    "chronic_after_days": 9,
+}
+
+STAGE6B1_HEALTH_SENSITIVITY_RANGES = {
+    "onset_daily": [0.0015, 0.0040],
+    "receiving_multiplier": [2.5, 4.5],
+    "detected_death_daily_severe": [0.005, 0.020],
+    "untreated_death_daily_severe": [0.015, 0.045],
+    "chronic_death_daily": [0.0008, 0.0030],
+    "background_death_daily": [0.00002, 0.00007],
+}
+
+MATERIAL_SPECIFIC_SUPPLY = {
+    "SILAGE": {
+        "opening_grams_per_design_head": 115000,
+        "ordered_grams_per_design_head": 130000,
+        "reorder_grams_per_design_head": 95000,
+        "bin_grams_per_design_head": 180000,
+    },
+    "BARLEY": {
+        "opening_grams_per_design_head": 70000,
+        "ordered_grams_per_design_head": 80000,
+        "reorder_grams_per_design_head": 58000,
+        "bin_grams_per_design_head": 115000,
+    },
+    "OATS": {
+        "opening_grams_per_design_head": 22000,
+        "ordered_grams_per_design_head": 26000,
+        "reorder_grams_per_design_head": 18000,
+        "bin_grams_per_design_head": 45000,
+    },
+}
+
+
+def stage6b1_config(placements, seed=None, *, health_scenario="baseline", supply_policy="material_specific"):
+    """Build a Stage 6B.1 benchmark config with versioned health and supply policies."""
+    config = benchmark_config(placements, seed)
+    if health_scenario == "baseline":
+        config["health"] = dict(STAGE6B1_BASELINE_HEALTH)
+    elif health_scenario == "adverse":
+        config["health"] = {
+            **config["health"],
+            "scenario_version": "stage6b-adverse-health.1",
+            "recovery_basis": "per_reassessment",
+        }
+    else:
+        raise ValueError(f"unknown health_scenario: {health_scenario}")
+    if supply_policy == "material_specific":
+        for ing in config["warehouse"]["ingredients"]:
+            ing.update(MATERIAL_SPECIFIC_SUPPLY[ing["code"]])
+    elif supply_policy != "uniform":
+        raise ValueError(f"unknown supply_policy: {supply_policy}")
+    label = f"{health_scenario}" if supply_policy == "material_specific" else f"{health_scenario}-{supply_policy}"
+    config["version"] = f"stage6b1-{label}-{placements}.1"
+    validate(config)
+    return config
+
+
+def format_config_json(config):
     # Each placement and opening cohort stays on one line for review.
     text = json.dumps(config, indent=2)
     for key in ("placements", "carry_in"):
@@ -82,7 +151,23 @@ def main():
         end = text.index("\n  ],", start)
         cohorts = ",\n".join("    " + json.dumps(row) for row in config[key])
         text = text[:start] + f'  "{key}": [\n{cohorts}' + text[end:]
-    args.output.write_text(text + "\n")
+    return text + "\n"
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("placements", type=int, choices=SIZES)
+    parser.add_argument("--seed", type=int)
+    parser.add_argument("--profile", choices=("stage6b", "stage6b1-baseline", "stage6b1-adverse"), default="stage6b")
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args()
+    if args.profile == "stage6b":
+        config = benchmark_config(args.placements, args.seed)
+    elif args.profile == "stage6b1-baseline":
+        config = stage6b1_config(args.placements, args.seed, health_scenario="baseline", supply_policy="material_specific")
+    else:
+        config = stage6b1_config(args.placements, args.seed, health_scenario="adverse", supply_policy="material_specific")
+    args.output.write_text(format_config_json(config))
 
 
 if __name__ == "__main__":

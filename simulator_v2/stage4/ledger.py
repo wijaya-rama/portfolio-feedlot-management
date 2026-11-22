@@ -79,19 +79,27 @@ class Sources:
             raise ValueError(f"invalid source identity or clocks: {document}/{line}")
         key = stable_id("FIN-SOURCE", [system, document, line])
         parents = set(parents)
-        if not parents <= self.rows.keys() or key in parents:
+        if key in parents:
             raise ValueError(f"missing or cyclic source lineage: {line}")
-        if any(self.rows[parent].available_at > available for parent in parents):
-            raise ValueError(f"future source lineage: {line}")
+        rows = self.rows
+        parent_rows = []
+        for parent in parents:
+            try:
+                prow = rows[parent]
+            except KeyError:
+                raise ValueError(f"missing or cyclic source lineage: {line}") from None
+            if prow.available_at > available:
+                raise ValueError(f"future source lineage: {line}")
+            parent_rows.append(prow)
         digest = sha256(canonical(payload))
         vintage = stable_id("FIN-VINTAGE", [key, digest, effective, posted, available,
-                                             sorted(self.rows[parent].source_snapshot_id for parent in parents)])
+                                             sorted(prow.source_snapshot_id for prow in parent_rows)])
         row = Source(key, system, document, line, effective, posted, available, digest, vintage, event_kind)
-        if key in self.rows:
-            if self.rows[key] != row or parents != self.parents[key]:
+        if key in rows:
+            if rows[key] != row or parents != self.parents[key]:
                 raise ValueError(f"conflicting source retry: {line}")
         else:
-            self.rows[key] = row
+            rows[key] = row
             self.parents[key] = parents
             self.links.update(Link(key, parent) for parent in parents)
         return key
@@ -189,10 +197,13 @@ class Book:
     def __init__(self, sources, calendar, *, version, policy, yard, restatement=None):
         self.sources = sources
         self.calendar = calendar
+        self._lock_by_month = {row.month: row.locked_at for row in calendar}
+        self._first_start = calendar[0].start
         self.version = version
         self.policy = policy
         self.yard = yard
         self.restatement = restatement
+        self._restatement_verified_at = None
         self._actions = {}
         self._journals = {}
         self._wip = Counter()
@@ -201,39 +212,59 @@ class Book:
         self._reversed = set()
         self._watermark = None
 
+    def _accounting_month(self, effective_at, posted_at):
+        service = max(business_date(effective_at), self._first_start).isoformat()[:7]
+        lock = self._lock_by_month.get(service)
+        if lock is None or posted_at <= lock:
+            return service
+        current = business_date(posted_at).isoformat()[:7]
+        if current == service:
+            raise ValueError(f"posting after partial-period lock requires a successor period: {service}")
+        posting_lock = self._lock_by_month.get(current)
+        if posting_lock is not None and posted_at > posting_lock:
+            raise ValueError(f"posting month already locked: {current}")
+        return current
+
     def run(self, actions, cutoff):
         if not is_utc(cutoff):
             raise ValueError("journal cutoff requires UTC")
-        if self.restatement and not any(
-            row.system == "stage4/approvals" and row.document_id == self.restatement
-            and row.available_at <= cutoff for row in self.sources.rows.values()
-        ):
-            raise ValueError("restatement requires an available controller approval")
+        if self.restatement and (self._restatement_verified_at is None or cutoff < self._restatement_verified_at):
+            has_approval = getattr(self.sources, "has_approval", None)
+            ok = (has_approval(self.restatement, cutoff) if has_approval is not None else any(
+                row.system == "stage4/approvals" and row.document_id == self.restatement
+                and row.available_at <= cutoff for row in self.sources.rows.values()
+            ))
+            if not ok:
+                raise ValueError("restatement requires an available controller approval")
+            self._restatement_verified_at = cutoff
         ready = {}
         for action in actions:
             if ready.setdefault(action.key, action) != action:
                 raise ValueError(f"conflicting journal retry: {action.key}")
-        visible = (action for action in ready.values()
-                   if self.sources.rows[action.source_id].available_at <= cutoff)
-        def order(action):
-            source = self.sources.rows[action.source_id]
-            when = action.restate_at if self.restatement and action.restate_at else source.available_at
-            priority = 0 if action.component in {"opening_wip", "acquisition"} else 2 if action.release else 1
-            return when, priority, action.effective_at, action.key
-        for action in sorted(visible, key=order):
-            stamp = order(action)
+        rows = self.sources.rows
+        restatement = self.restatement
+        ordered = []
+        for action in ready.values():
+            source = rows[action.source_id]
+            if source.available_at <= cutoff:
+                when = action.restate_at if restatement and action.restate_at else source.available_at
+                priority = 0 if action.component in {"opening_wip", "acquisition"} else 2 if action.release else 1
+                ordered.append(((when, priority, action.effective_at, action.key), action, source))
+        ordered.sort(key=lambda item: item[0])
+        for stamp, action, source in ordered:
             if action.key in self._actions:
                 if self._actions[action.key] != action:
                     raise ValueError(f"conflicting journal retry: {action.key}")
                 continue
             if self._watermark is not None and stamp < self._watermark:
                 raise ValueError("append requires a source available after the journal frontier")
-            self._post(action, stamp[0])
+            self._post(action, stamp[0], source=source)
             self._watermark = stamp
         return tuple(self._journals.values())
 
-    def _post(self, action, routing_at):
-        source = self.sources.rows[action.source_id]
+    def _post(self, action, routing_at, *, source=None):
+        if source is None:
+            source = self.sources.rows[action.source_id]
         if (not action.key or not action.component or type(action.cents) is not int
                 or not is_utc(action.effective_at)
                 or action.effective_at > source.available_at
@@ -292,7 +323,7 @@ class Book:
                         original.component, original.pool_id, original.effective_at,
                         original.lot_id, original.location_id, original.route_cost)):
                 raise ValueError(f"invalid reversal: {action.key}")
-        month = accounting_month(action.effective_at, routing_at, self.calendar)
+        month = self._accounting_month(action.effective_at, routing_at)
         if acquiring:
             self._entries.add(animal)
         if action.release:

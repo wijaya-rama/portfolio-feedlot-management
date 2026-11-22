@@ -2,12 +2,148 @@
 
 from bisect import bisect_left
 from collections import Counter
+from datetime import date, datetime, timedelta
 from hashlib import sha256
+from json.encoder import encode_basestring as _quote
 
-from ..stage1.model import business_date
+from ..stage1.model import UTC, business_date
 from ..stage1.provenance import canonical
 from ..stage3.warehouse import Balance
 from ..stage4.close import JournalSummary
+from ..stage4.ledger import Journal
+
+_EPOCH_DATE = date(1970, 1, 1)
+_EPOCH_DT = datetime(1970, 1, 1, tzinfo=UTC)
+_DT_ISO_CACHE = {}
+_US_ISO_CACHE = {}
+_DATE_ISO_CACHE = {}
+_DAYS_ISO_CACHE = {}
+
+
+def _fmt_dt(value):
+    cached = _DT_ISO_CACHE.get(value)
+    if cached is not None:
+        return cached
+    text = (value.isoformat()[:-6] + "Z") if value.tzinfo is UTC else value.astimezone(UTC).isoformat().replace("+00:00", "Z")
+    quoted = f'"{text}"'
+    if len(_DT_ISO_CACHE) > 65536:
+        _DT_ISO_CACHE.clear()
+    _DT_ISO_CACHE[value] = quoted
+    return quoted
+
+
+def _fmt_date(value):
+    cached = _DATE_ISO_CACHE.get(value)
+    if cached is not None:
+        return cached
+    quoted = f'"{value.isoformat()}"'
+    if len(_DATE_ISO_CACHE) > 4096:
+        _DATE_ISO_CACHE.clear()
+    _DATE_ISO_CACHE[value] = quoted
+    return quoted
+
+
+def _fmt_us(us):
+    cached = _US_ISO_CACHE.get(us)
+    if cached is not None:
+        return cached
+    dt = _EPOCH_DT + timedelta(microseconds=us)
+    quoted = f'"{dt.isoformat()[:-6]}Z"'
+    if len(_US_ISO_CACHE) > 65536:
+        _US_ISO_CACHE.clear()
+    _US_ISO_CACHE[us] = quoted
+    return quoted
+
+
+def _fmt_days(days):
+    cached = _DAYS_ISO_CACHE.get(days)
+    if cached is not None:
+        return cached
+    quoted = f'"{(_EPOCH_DATE + timedelta(days=days)).isoformat()}"'
+    if len(_DAYS_ISO_CACHE) > 4096:
+        _DAYS_ISO_CACHE.clear()
+    _DAYS_ISO_CACHE[days] = quoted
+    return quoted
+
+
+def _qopt(value):
+    return "null" if value is None else _quote(value)
+
+
+def canonical_journal_bytes(row):
+    """Exact byte-identical equivalent of canonical(vars(row))[:-1] for Stage 4 Journal rows."""
+    return (
+        f'{{"accounting_month":{_quote(row.accounting_month)},'
+        f'"amount_cents":{row.amount_cents},'
+        f'"animal_id":{_qopt(row.animal_id)},'
+        f'"approval_id":{_qopt(row.approval_id)},'
+        f'"available_at":{_fmt_dt(row.available_at)},'
+        f'"component":{_quote(row.component)},'
+        f'"credit_account":{_quote(row.credit_account)},'
+        f'"debit_account":{_quote(row.debit_account)},'
+        f'"document_id":{_quote(row.document_id)},'
+        f'"effective_at":{_fmt_dt(row.effective_at)},'
+        f'"journal_id":{_quote(row.journal_id)},'
+        f'"ledger_version":{_quote(row.ledger_version)},'
+        f'"line_id":{_quote(row.line_id)},'
+        f'"location_id":{_qopt(row.location_id)},'
+        f'"lot_id":{_qopt(row.lot_id)},'
+        f'"outcome_event_id":{_qopt(row.outcome_event_id)},'
+        f'"period_routing_at":{_fmt_dt(row.period_routing_at)},'
+        f'"policy_version":{_quote(row.policy_version)},'
+        f'"pool_id":{_qopt(row.pool_id)},'
+        f'"posted_at":{_fmt_dt(row.posted_at)},'
+        f'"principal_release":{"true" if row.principal_release else "false"},'
+        f'"restatement_approval_id":{_qopt(row.restatement_approval_id)},'
+        f'"reverses_journal_id":{_qopt(row.reverses_journal_id)},'
+        f'"service_date":{_fmt_date(row.service_date)},'
+        f'"source_id":{_quote(row.source_id)},'
+        f'"source_posted_at":{_fmt_dt(row.source_posted_at)},'
+        f'"source_snapshot_id":{_quote(row.source_snapshot_id)},'
+        f'"source_system":{_quote(row.source_system)},'
+        f'"yard_id":{_quote(row.yard_id)}}}'
+    ).encode("utf-8")
+
+
+def canonical_journal_from_columns(
+    accounting_month, amount_cents, animal_id, approval_id, available_us, component,
+    credit_account, debit_account, document_id, effective_us, journal_id, ledger_version,
+    line_id, location_id, lot_id, outcome_event_id, period_routing_us, policy_version,
+    pool_id, posted_us, principal_release, restatement_approval_id, reverses_journal_id,
+    service_days, source_id, source_posted_us, source_snapshot_id, source_system, yard_id,
+):
+    """Exact byte-identical canonical Journal JSON from Parquet columnar values (UTC us / epoch days)."""
+    return (
+        f'{{"accounting_month":{_quote(accounting_month)},'
+        f'"amount_cents":{amount_cents},'
+        f'"animal_id":{_qopt(animal_id)},'
+        f'"approval_id":{_qopt(approval_id)},'
+        f'"available_at":{_fmt_us(available_us)},'
+        f'"component":{_quote(component)},'
+        f'"credit_account":{_quote(credit_account)},'
+        f'"debit_account":{_quote(debit_account)},'
+        f'"document_id":{_quote(document_id)},'
+        f'"effective_at":{_fmt_us(effective_us)},'
+        f'"journal_id":{_quote(journal_id)},'
+        f'"ledger_version":{_quote(ledger_version)},'
+        f'"line_id":{_quote(line_id)},'
+        f'"location_id":{_qopt(location_id)},'
+        f'"lot_id":{_qopt(lot_id)},'
+        f'"outcome_event_id":{_qopt(outcome_event_id)},'
+        f'"period_routing_at":{_fmt_us(period_routing_us)},'
+        f'"policy_version":{_quote(policy_version)},'
+        f'"pool_id":{_qopt(pool_id)},'
+        f'"posted_at":{_fmt_us(posted_us)},'
+        f'"principal_release":{"true" if principal_release else "false"},'
+        f'"restatement_approval_id":{_qopt(restatement_approval_id)},'
+        f'"reverses_journal_id":{_qopt(reverses_journal_id)},'
+        f'"service_date":{_fmt_days(service_days)},'
+        f'"source_id":{_quote(source_id)},'
+        f'"source_posted_at":{_fmt_us(source_posted_us)},'
+        f'"source_snapshot_id":{_quote(source_snapshot_id)},'
+        f'"source_system":{_quote(source_system)},'
+        f'"yard_id":{_quote(yard_id)}}}'
+    ).encode("utf-8")
 
 
 class JournalVisibility:
@@ -68,7 +204,8 @@ class CloseIndex:
 
     def add_fingerprints(self, visible):
         for first, row in visible:
-            self.fingerprints.add(first, canonical(vars(row))[:-1])
+            encoded = canonical_journal_bytes(row) if isinstance(row, Journal) else canonical(vars(row))[:-1]
+            self.fingerprints.add(first, encoded)
 
     def checkpoints(self):
         rolling = JournalSummary()

@@ -1,11 +1,14 @@
 """Distributional diagnostics from the published diagnostic dataset."""
 
 from collections import Counter, defaultdict
-from datetime import timedelta
+from datetime import datetime, timedelta
 from math import floor, ceil
 from statistics import mean
 
-from ..stage1.model import business_date, midnight
+import pyarrow as pa
+import pyarrow.compute as pc
+
+from ..stage1.model import UTC, business_date, midnight
 from .reporting import stock_reporting
 from .validation import Audit
 
@@ -69,18 +72,31 @@ def summarize(root, tables, runner, daily, monthly, closes):
     adg, dmi, pct, conversion = {}, {}, {}, {}
     grams, by_phase, stage_days = Counter(), Counter(), Counter()
     day_dm, day_exposure, day_weight_hours = Counter(), Counter(), Counter()
-    for row in data.rows("growth_operational", columns=["animal_id", "start_at", "elapsed_days",
-                         "start_weight_kg", "end_weight_kg", "production_stage", "consumed_g_dm"]):
-        key = row["animal_id"]
-        day = business_date(row["start_at"])
-        dm = row["consumed_g_dm"]
-        elapsed = row["elapsed_days"]
-        grams[key] += dm
-        day_dm[key, day] += dm
-        day_exposure[key, day] += elapsed
-        day_weight_hours[key, day] += elapsed * (row["start_weight_kg"] + row["end_weight_kg"]) / 2
-        by_phase[row["production_stage"]] += dm
-        stage_days[row["production_stage"]] += elapsed
+    us_day_cache = {}
+    epoch = midnight(runner.first) - (midnight(runner.first) - datetime(1970, 1, 1, tzinfo=UTC))
+    for batch in data.batches("growth_operational", columns=[
+        "animal_id", "start_at", "elapsed_days", "start_weight_kg", "end_weight_kg",
+        "production_stage", "consumed_g_dm",
+    ]):
+        for key, st_us, elapsed, sw, ew, stage, dm in zip(
+            batch.column(0).to_pylist(),
+            pc.cast(batch.column(1), pa.int64()).to_pylist(),
+            batch.column(2).to_pylist(),
+            batch.column(3).to_pylist(),
+            batch.column(4).to_pylist(),
+            batch.column(5).to_pylist(),
+            batch.column(6).to_pylist(),
+        ):
+            day = us_day_cache.get(st_us)
+            if day is None:
+                day = business_date(epoch + timedelta(microseconds=st_us))
+                us_day_cache[st_us] = day
+            grams[key] += dm
+            day_dm[key, day] += dm
+            day_exposure[key, day] += elapsed
+            day_weight_hours[key, day] += elapsed * (sw + ew) / 2
+            by_phase[stage] += dm
+            stage_days[stage] += elapsed
     for key, row in outcomes.items():
         time = row["simulated_days"]
         gain = row["latent_weight_kg"] - row["entry_weight_kg"]
@@ -105,8 +121,11 @@ def summarize(root, tables, runner, daily, monthly, closes):
     for row in scale:
         by_kind[row["kind"]][row["status"]] += 1
     correction_ids = {key for key, row in observations.items() if row["corrects_observation_id"]}
-    revised_uses = sum(row["last_observation_id"] in correction_ids for row in data.rows(
-        "weight_estimates", columns=["last_observation_id"]))
+    revised_uses = sum(
+        val in correction_ids
+        for batch in data.batches("weight_estimates", columns=["last_observation_id"])
+        for val in batch.column(0).to_pylist()
+    )
     error = defaultdict(list)
     for row in samples:
         ticket = observations[row["observation_id"]]
@@ -117,10 +136,11 @@ def summarize(root, tables, runner, daily, monthly, closes):
     mix_loss, distribution, refusals = [], [], []
     for row in data.rows("mixes"):
         mix_loss.append(100 * row["loss"]["g_af"] / row["input"]["g_af"])
-    for row in data.rows("feed_deliveries"):
+    delivered = {}
+    for row in data.rows("feed_deliveries", columns=["delivery_id", "loaded", "delivered", "delivery_loss"]):
         distribution.append(100 * row["delivery_loss"]["g_af"] / row["loaded"]["g_af"])
-    delivered = {row["delivery_id"]: row["delivered"]["g_af"] for row in data.rows("feed_deliveries")}
-    for row in data.rows("bunk_settlements"):
+        delivered[row["delivery_id"]] = row["delivered"]["g_af"]
+    for row in data.rows("bunk_settlements", columns=["delivery_id", "refusal"]):
         if grams_af := delivered[row["delivery_id"]]:
             refusals.append(100 * row["refusal"]["g_af"] / grams_af)
     lots_sold = defaultdict(set)

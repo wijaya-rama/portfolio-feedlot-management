@@ -1,0 +1,86 @@
+{
+  "cold_determinism_adversarial_shortage": {
+    "deterministic_match": true,
+    "hashes_sha256": "9a5a1984d47ba50d3cb9dfb33b4d9c8687571af256efc0934a5a35f999b8cd95",
+    "python_hash_seeds": [
+      107,
+      218
+    ]
+  },
+  "machine": {
+    "cpu_model": "Intel(R) Xeon(R) CPU @ 2.30GHz",
+    "effective_cpuset": "0-1",
+    "logical_cpus_visible": 2,
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.39",
+    "python": "3.12.16"
+  },
+  "regression": {
+    "part1_command": "pytest -q tests simulator_v2/stage{1,2,3,3_5}/tests",
+    "part1_summary": "188 passed, 62 subtests passed in 551.99s",
+    "part2_command": "pytest -q simulator_v2/stage{4,5,6}/tests",
+    "part2_summary": "61 passed in 91.46s",
+    "total_failed": 0,
+    "total_passed": 249,
+    "total_subtests_passed": 62
+  },
+  "stage1_to_4_baseline_hashes": {
+    "stage1": {
+      "hashes_json_exact_match": true,
+      "indexed_entries": 36
+    },
+    "stage2": {
+      "hashes_json_exact_match": true,
+      "indexed_entries": 14
+    },
+    "stage3": {
+      "hashes_json_exact_match": true,
+      "indexed_entries": 70
+    },
+    "stage3_5": {
+      "hashes_json_exact_match": true,
+      "indexed_entries": 86
+    },
+    "stage4": {
+      "hashes_json_exact_match": true,
+      "indexed_entries": 35
+    }
+  },
+  "validation_modes": {
+    "diagnostic_4m": {
+      "changed_months": [
+        "2026-02"
+      ],
+      "dependent_months": [
+        "2026-02"
+      ],
+      "full_assertions": 1003469,
+      "full_complete_independent_audit": true,
+      "full_gate_categories": 59,
+      "full_seconds": 9.3297,
+      "incremental_assertions": 389670,
+      "incremental_complete_independent_audit": false,
+      "incremental_gate_categories": 60,
+      "incremental_seconds": 6.5438,
+      "speedup_ratio": 1.43,
+      "verified_unchanged_partitions": 186
+    },
+    "stage6b1_baseline_25_24m": {
+      "changed_months": [
+        "2025-12"
+      ],
+      "dependent_months": [
+        "2025-12"
+      ],
+      "full_assertions": 1914323,
+      "full_complete_independent_audit": true,
+      "full_gate_categories": 58,
+      "full_seconds": 22.4477,
+      "incremental_assertions": 498195,
+      "incremental_complete_independent_audit": false,
+      "incremental_gate_categories": 59,
+      "incremental_seconds": 12.3026,
+      "speedup_ratio": 1.82,
+      "verified_unchanged_partitions": 1357
+    }
+  }
+}

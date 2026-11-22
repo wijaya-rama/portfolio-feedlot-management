@@ -84,7 +84,10 @@ class Health:
                 ep = self.start(live, day, int(value >= a) + int(value >= a + b), when)
 
             i = ep.severity
-            hazard = p["detected_death_daily" if ep.detected else "untreated_death_daily"][i]
+            if ep.chronic and "chronic_death_daily" in p:
+                hazard = p["chronic_death_daily"]
+            else:
+                hazard = p["detected_death_daily" if ep.detected else "untreated_death_daily"][i]
             if draw("health/episode-death", key, day) < hazard:
                 self.death(live, ep, when)
                 continue
@@ -108,7 +111,10 @@ class Health:
                 continue
             ep.last_review = day
             self.record(live, ep, Action.REASSESS, when)
-            if draw("health/recovery", key, day) < p["recovery_daily"][i]:
+            recovery_prob = p["recovery_daily"][i]
+            if p.get("recovery_basis", "per_reassessment") == "daily_compounded":
+                recovery_prob = 1.0 - (1.0 - recovery_prob) ** p["reassess_days"]
+            if draw("health/recovery", key, day) < recovery_prob:
                 ep.recovered = True
                 live.last_recovery = day
                 self.record(live, ep, Action.RECOVER, when)

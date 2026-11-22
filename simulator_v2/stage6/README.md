@@ -1,5 +1,9 @@
 # Simulator V2 · Stage 6
 
+## Stage 6B.1
+
+[Laporan Stage 6B.1](STAGE6B1.md) memuat analisis akar masalah mortalitas dan jembatan epidemiologi, skenario kesehatan berversi (`stage6b1-baseline-health.1`), optimasi audit lintas domain dan posting, kontrak validasi `full` vs `incremental`, perencanaan stok spesifik bahan, serta bukti ringkas di [evidence/stage6b1/](evidence/stage6b1/).
+
 ## Stage 6B
 
 [Preflight 24 bulan](STAGE6B.md) memuat pengukuran, konfigurasi skala, ekuivalensi dan rekonsiliasi. [Keputusan kesiapan pilot](PILOT_READINESS.md) menjelaskan gerbang untuk skala 1.500 placement. Baseline Stage 6A berada di [commit 8dfbaa3](https://github.com/wijaya-rama/portfolio-feedlot-management/commit/8dfbaa3160dc88a9b673cd0772a2d7813866e5ee).

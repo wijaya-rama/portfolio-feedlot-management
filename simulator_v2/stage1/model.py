@@ -3,9 +3,11 @@
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta, timezone
 from enum import StrEnum
+from functools import lru_cache
 from zoneinfo import ZoneInfo
 
 UTC = timezone.utc
+_ZERO = timedelta(0)
 CALENDAR = "America/Edmonton"
 EDMONTON = ZoneInfo(CALENDAR)
 SCHEMA_VERSION = "stage1.1"
@@ -13,15 +15,27 @@ POLICY_VERSION = "livestock.1"
 
 
 def is_utc(value):
-    return isinstance(value, datetime) and value.utcoffset() == timedelta(0)
+    if type(value) is datetime:
+        if value.tzinfo is UTC:
+            return True
+        return value.utcoffset() == _ZERO
+    return isinstance(value, datetime) and value.utcoffset() == _ZERO
+
+
+@lru_cache(maxsize=16384)
+def _business_date_utc(instant):
+    return instant.astimezone(EDMONTON).date()
 
 
 def business_date(instant):
+    if type(instant) is datetime and instant.tzinfo is UTC:
+        return _business_date_utc(instant)
     if not is_utc(instant):
         raise ValueError("business_date requires a UTC timestamp")
     return instant.astimezone(EDMONTON).date()
 
 
+@lru_cache(maxsize=4096)
 def midnight(day):
     return datetime.combine(day, time.min, EDMONTON).astimezone(UTC)
 

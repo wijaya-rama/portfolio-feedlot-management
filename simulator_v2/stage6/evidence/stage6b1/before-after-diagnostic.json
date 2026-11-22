@@ -1,0 +1,86 @@
+{
+  "after": {
+    "accounting_and_close_seconds": 25.054,
+    "book_view_profiles": {
+      "as_known": {
+        "close_count": 4,
+        "journal_posting_and_close_seconds": 5.7493,
+        "process_high_water_rss_kib_after_view": 327776
+      },
+      "restated": {
+        "close_count": 4,
+        "journal_posting_and_close_seconds": 5.2274,
+        "process_high_water_rss_kib_after_view": 336096
+      }
+    },
+    "close_journal_fingerprints_seconds": 1.1269,
+    "cross_domain_validation_seconds": 8.881,
+    "diagnostics_and_manifest_seconds": 1.31,
+    "financial_source_expansion_seconds": 14.0612,
+    "financial_validation_seconds": 5.5019,
+    "journal_posting_seconds": 6.7737,
+    "operations_seconds": 20.069,
+    "parquet_bytes": 33215636,
+    "peak_rss_kib": 355244,
+    "physical_validation_seconds": 2.8022,
+    "wall_seconds": 56.928
+  },
+  "before": {
+    "accounting_and_close_seconds": 43.868,
+    "book_view_profiles": {
+      "as_known": {
+        "close_count": 4,
+        "journal_posting_and_close_seconds": 9.4946,
+        "process_high_water_rss_kib_after_view": 248556
+      },
+      "restated": {
+        "close_count": 4,
+        "journal_posting_and_close_seconds": 8.4556,
+        "process_high_water_rss_kib_after_view": 251804
+      }
+    },
+    "close_journal_fingerprints_seconds": 4.384,
+    "cross_domain_validation_seconds": 29.555,
+    "diagnostics_and_manifest_seconds": 2.366,
+    "financial_source_expansion_seconds": 25.8823,
+    "financial_validation_seconds": 16.5621,
+    "journal_posting_seconds": 8.4458,
+    "operations_seconds": 28.344,
+    "parquet_bytes": 33235233,
+    "peak_rss_kib": 271616,
+    "physical_validation_seconds": 12.4094,
+    "wall_seconds": 105.5001
+  },
+  "before_commit": "6629a55456d63d1202f8f4d1776e2963a04d8774",
+  "config": "configs/diagnostic.json",
+  "delta_pct": {
+    "accounting_and_close_seconds": -42.89,
+    "close_journal_fingerprints_seconds": -74.3,
+    "cross_domain_validation_seconds": -69.95,
+    "diagnostics_and_manifest_seconds": -44.63,
+    "financial_source_expansion_seconds": -45.67,
+    "financial_validation_seconds": -66.78,
+    "journal_posting_seconds": -19.8,
+    "operations_seconds": -29.19,
+    "physical_validation_seconds": -77.42,
+    "wall_seconds": -46.04
+  },
+  "equivalence": {
+    "byte_identical_partitions": 250,
+    "equal_existing_diagnostics": true,
+    "equal_historical_as_known_and_restated_snapshots": true,
+    "equal_monthly_financial_summary": true,
+    "passed": true,
+    "run_id_held_constant": "SYN-STAGE6-RUN-c263b45e2384e95440cec095",
+    "tables_compared": 78,
+    "total_partitions": 263
+  },
+  "machine": {
+    "cpu_model": "Intel(R) Xeon(R) CPU @ 2.30GHz",
+    "effective_cpuset": "0-1",
+    "logical_cpus_visible": 2,
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.39",
+    "python": "3.12.16"
+  },
+  "seed": 42
+}

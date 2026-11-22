@@ -1,0 +1,223 @@
+{
+  "anchors": [
+    {
+      "measured_resources": {
+        "accounting_and_close_seconds": 60.744,
+        "accounting_and_validation_seconds": 81.77199999999999,
+        "close_journal_fingerprint_seconds": 2.1096,
+        "cross_domain_validation_seconds": 21.028,
+        "file_hash_seconds": 0.375,
+        "fingerprint_and_file_hash_seconds": 2.4846,
+        "operations_seconds": 53.81,
+        "parquet_bytes": 69270021,
+        "peak_rss_kib": 426044,
+        "wall_seconds": 143.8536
+      },
+      "placements": 25,
+      "workload": {
+        "animal_days": 4652,
+        "feeding_windows": 1462,
+        "journal_lines": 149310,
+        "journals": 149310,
+        "month_ends": 24,
+        "movements": 82,
+        "posting_allocations": 9278,
+        "published_audit_fact_rows": 662641,
+        "release_allocations": 46416,
+        "source_events": 139796
+      }
+    },
+    {
+      "measured_resources": {
+        "accounting_and_close_seconds": 161.252,
+        "accounting_and_validation_seconds": 213.997,
+        "close_journal_fingerprint_seconds": 6.136,
+        "cross_domain_validation_seconds": 52.745,
+        "file_hash_seconds": 0.779,
+        "fingerprint_and_file_hash_seconds": 6.915,
+        "operations_seconds": 138.451,
+        "parquet_bytes": 186425668,
+        "peak_rss_kib": 551024,
+        "wall_seconds": 365.514
+      },
+      "placements": 100,
+      "workload": {
+        "animal_days": 18132,
+        "feeding_windows": 1462,
+        "journal_lines": 401834,
+        "journals": 401834,
+        "month_ends": 24,
+        "movements": 384,
+        "posting_allocations": 36162,
+        "published_audit_fact_rows": 2020076,
+        "release_allocations": 180910,
+        "source_events": 342529
+      }
+    }
+  ],
+  "cases": [
+    {
+      "projected_resources": {
+        "accounting_and_close_seconds": 1842.733,
+        "accounting_and_validation_seconds": 2426.098,
+        "close_journal_fingerprint_seconds": 73.497,
+        "cross_domain_validation_seconds": 583.365,
+        "file_hash_seconds": 8.969,
+        "fingerprint_and_file_hash_seconds": 82.466,
+        "operations_seconds": 1554.48,
+        "parquet_bytes": 2146418794.942,
+        "peak_rss_kib": 2641917.16,
+        "wall_seconds": 4073.853
+      },
+      "projected_workload": {
+        "animal_days": 243650,
+        "feeding_windows": 1462,
+        "journal_lines": 4626516,
+        "journals": 4626516,
+        "month_ends": 24,
+        "movements": 5436,
+        "posting_allocations": 485927,
+        "published_audit_fact_rows": 24729722,
+        "release_allocations": 2430971,
+        "source_events": 3734216
+      },
+      "stay_days_stage5_capacity_scenario": 155
+    },
+    {
+      "projected_resources": {
+        "accounting_and_close_seconds": 2020.001,
+        "accounting_and_validation_seconds": 2659.306,
+        "close_journal_fingerprint_seconds": 80.598,
+        "cross_domain_validation_seconds": 639.305,
+        "file_hash_seconds": 9.832,
+        "fingerprint_and_file_hash_seconds": 90.43,
+        "operations_seconds": 1703.763,
+        "parquet_bytes": 2353049048.225,
+        "peak_rss_kib": 2862347.415,
+        "wall_seconds": 4464.801
+      },
+      "projected_workload": {
+        "animal_days": 267425,
+        "feeding_windows": 1462,
+        "journal_lines": 5071898,
+        "journals": 5071898,
+        "month_ends": 24,
+        "movements": 5969,
+        "posting_allocations": 533342,
+        "published_audit_fact_rows": 27123863,
+        "release_allocations": 2668181,
+        "source_events": 4091781
+      },
+      "stay_days_stage5_capacity_scenario": 175
+    },
+    {
+      "projected_resources": {
+        "accounting_and_close_seconds": 2191.119,
+        "accounting_and_validation_seconds": 2884.423,
+        "close_journal_fingerprint_seconds": 87.453,
+        "cross_domain_validation_seconds": 693.304,
+        "file_hash_seconds": 10.666,
+        "fingerprint_and_file_hash_seconds": 98.119,
+        "operations_seconds": 1847.866,
+        "parquet_bytes": 2552509118.889,
+        "peak_rss_kib": 3075128.619,
+        "wall_seconds": 4842.183
+      },
+      "projected_workload": {
+        "animal_days": 290375,
+        "feeding_windows": 1462,
+        "journal_lines": 5501826,
+        "journals": 5501826,
+        "month_ends": 24,
+        "movements": 6483,
+        "posting_allocations": 579113,
+        "published_audit_fact_rows": 29434926,
+        "release_allocations": 2897160,
+        "source_events": 4436939
+      },
+      "stay_days_stage5_capacity_scenario": 195
+    }
+  ],
+  "drivers": {
+    "accounting_and_close_seconds": "source_events",
+    "close_journal_fingerprint_seconds": "journals",
+    "cross_domain_validation_seconds": "published_audit_fact_rows",
+    "operations_seconds": "animal_days",
+    "parquet_bytes": "published_audit_fact_rows",
+    "peak_rss_kib": "published_audit_fact_rows",
+    "wall_seconds": "animal_days"
+  },
+  "epyc_reference_estimate_1500_not_measured": [
+    {
+      "estimated_accounting_and_validation_seconds_epyc_2vcpu": 797.3,
+      "estimated_fingerprint_and_hash_seconds_epyc_2vcpu": 27.1,
+      "estimated_validation_seconds_epyc_2vcpu": 191.7,
+      "estimated_wall_seconds_epyc_2vcpu": 1338.8,
+      "projected_parquet_gib": 1.999,
+      "projected_peak_rss_gib": 2.52,
+      "stay_days": 155
+    },
+    {
+      "estimated_accounting_and_validation_seconds_epyc_2vcpu": 873.9,
+      "estimated_fingerprint_and_hash_seconds_epyc_2vcpu": 29.7,
+      "estimated_validation_seconds_epyc_2vcpu": 210.1,
+      "estimated_wall_seconds_epyc_2vcpu": 1467.2,
+      "projected_parquet_gib": 2.191,
+      "projected_peak_rss_gib": 2.73,
+      "stay_days": 175
+    },
+    {
+      "estimated_accounting_and_validation_seconds_epyc_2vcpu": 947.9,
+      "estimated_fingerprint_and_hash_seconds_epyc_2vcpu": 32.2,
+      "estimated_validation_seconds_epyc_2vcpu": 227.8,
+      "estimated_wall_seconds_epyc_2vcpu": 1591.3,
+      "projected_parquet_gib": 2.377,
+      "projected_peak_rss_gib": 2.933,
+      "stay_days": 195
+    }
+  ],
+  "hardware_note": "Measured on Intel Xeon @ 2.30 GHz (2 vCPU, 7.8 GiB). Untouched Stage 6B diagnostic ran in 105.50s here vs 34.67s on Stage 6B AMD EPYC 9V74 (3.043x slower single-core).",
+  "measured_machine": {
+    "cpu_model": "Intel(R) Xeon(R) CPU @ 2.30GHz",
+    "effective_cpuset": "0-1",
+    "logical_cpus_visible": 2,
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.39",
+    "python": "3.12.16"
+  },
+  "method": "Same 24 months. Extend measured deltas at observed workload rates to Stage 5 animal-days.",
+  "pilot_budgets": {
+    "cold_lot_month_seconds": 10,
+    "machine_ram_gib": 16,
+    "machine_vcpu": 4,
+    "manifest_seconds": 45,
+    "parquet_gib": 2,
+    "peak_rss_gib": 6,
+    "reconciliation_seconds": 120,
+    "wall_seconds": 600,
+    "warm_lot_month_seconds": 3
+  },
+  "preflight_250_on_this_vm": {
+    "measured_animal_days": 45738,
+    "projected_full_wall_seconds_epyc_estimate": 269.3,
+    "projected_full_wall_seconds_this_vm": 819.5,
+    "projected_validation_seconds_epyc_estimate": 38.7,
+    "projected_validation_seconds_this_vm": 117.7,
+    "status": "operations_and_epidemiology_measured_full_build_deferred_by_600s_command_timeout"
+  },
+  "preflight_500": {
+    "placements": 500,
+    "projected_animal_days": [
+      81217,
+      89142,
+      96792
+    ],
+    "projected_wall_seconds": [
+      1402.856,
+      1533.172,
+      1658.966
+    ]
+  },
+  "release_target_placements": 15000,
+  "status": "projection_only",
+  "target_placements": 1500
+}

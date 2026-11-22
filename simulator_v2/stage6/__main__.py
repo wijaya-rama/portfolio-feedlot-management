@@ -55,7 +55,8 @@ def build(config, output):
         diagnostics_started = perf_counter()
         diagnostics = summarize(staging, tables, runner, daily, monthly, closes)
         artifacts = {"config.json": config, "diagnostics.json": diagnostics,
-                     "validation.json": {"hard_gates": hard_gates, "movement": movement_checks,
+                     "validation.json": {"mode": "full", "complete_independent_audit": True,
+                                         "hard_gates": hard_gates, "movement": movement_checks,
                                          "financial": [check for _, close in closes for check in close[7]]},
                      "monthly_summary.json": [close[6] for _, close in closes],
                      "weather.json": {"archive": runner.archive, "operational_seconds": runner.operational.weather_totals,

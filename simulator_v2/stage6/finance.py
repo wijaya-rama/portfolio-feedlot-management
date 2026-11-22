@@ -67,7 +67,6 @@ class Finance(Fixture):
         self._cattle()
         self.register_yardage(first)
         self._vet()
-        self.emit("financial_sources", self.sources.rows.values(), partition_by="effective_at")
         self.emit("financial_approvals", self.approvals, partition_by="approved_at")
         self.emit("warehouse_finance", self.warehouse, partition_by="effective_at")
 

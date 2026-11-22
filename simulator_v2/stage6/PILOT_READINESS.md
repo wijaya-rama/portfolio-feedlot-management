@@ -1,5 +1,14 @@
 # Keputusan pilot 1.500 placement
 
+## Stage 6B.1 · HOLD
+
+Stage 6B.1 menyelesaikan investigasi mortalitas berlebih, optimasi audit lintas domain dan posting, kontrak validasi dua mode (`full` vs `incremental`), serta perencanaan pasokan pakan berbasis bahan. Seluruh 249 tes regresi (termasuk 8 tes baru Stage 6B.1), 62 subtes, 241 hash baseline Stage 1–4, determinisme cold-run, dan ekuivalensi semantik 78 tabel lulus penuh. [Laporan lengkap Stage 6B.1](STAGE6B1.md) · [Bukti Stage 6B.1](evidence/stage6b1/)
+
+- **Perbaikan kebenaran dan pasokan terverifikasi.** Dua cacat struktural klinis (hazard akut tetap berlaku pada kasus kronis; `recovery_daily` hanya diuji per 2 hari tanpa compounding) diperbaiki secara backwards-compatible, skenario sintetis berversi `stage6b1-baseline-health.1` menurunkan mortalitas dari `44/308` (`37,25` kematian/100 animal-years) menjadi `5/308` (`4,01` kematian/100 animal-years) pada 250 placement dengan skenario adverse lama tetap dipertahankan, dan perencanaan stok spesifik bahan menghilangkan 2 pembatalan load silase menjadi `0` shortage melalui PO/receipt eksplisit.
+- **Performa meningkat signifikan namun anggaran 600 detik belum tercapai.** Pada mesin yang sama (`diagnostic`), wall clock turun `46,0%` (`105,50` → `56,93` dtk), audit lintas domain turun `70,0%` (`29,55` → `8,88` dtk), dan fingerprint jurnal turun `74,2%` (`4,38` → `1,13` dtk). Pada estimasi referensi EPYC untuk 1.500 placement (belum dieksekusi), fingerprint (`27–32` dtk) kini masuk anggaran `45` dtk dan Peak RSS (`2,5–2,9` GiB) aman di bawah `6` GiB, tetapi wall clock (`~1.339–1.591` dtk), audit penuh (`~192–228` dtk), dan Parquet (`2,00–2,38` GiB) masih melewati target perencanaan `600` dtk / `120` dtk / `2` GiB. Build 250 placement penuh juga belum dapat dijalankan dalam batas timeout perintah tunggal `600` dtk pada VM Intel Xeon 2,30 GHz ini (`~820` dtk terproyeksi).
+- **Keterbatasan pemodelan tetap terbuka.** Parameter kesehatan, pertumbuhan, asupan, karkas, dan harga tetap sintetis tanpa klaim kalibrasi lapangan; evaluasi estimator holdout 7/30/60 hari (5 seed) dan penerimaan operasional headroom/overflow 1.500 placement belum dijalankan.
+- **Rekomendasi terukur:** Pertahankan status **HOLD** sampai (1) build 250 dan 500 placement penuh diverifikasi pada runner tanpa batas 600 dtk, (2) disepakati apakah anggaran pilot perlu disesuaikan untuk build penuh ~25–30 menit atau audit bulanan diparalelkan lebih lanjut, dan (3) gerbang evaluasi Stage 5 terpenuhi.
+
 ## Stage 6B · HOLD
 
 Preflight membuktikan kalender penuh, carry-in dan carry-out ber-WIP, dua window pakan harian, serta 24 penutupan per view untuk ukuran yang diuji. Stage 4 menjalankan posting dan close. Nama periode serta snapshot original dan restated dapat direkonstruksi dari partisi kandidat. [Pengukuran dan hasil Stage 6B](STAGE6B.md)
