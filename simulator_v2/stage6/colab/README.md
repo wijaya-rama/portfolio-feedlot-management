@@ -2,6 +2,8 @@
 
 [Buka notebook di Colab](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-forecast-review/simulator_v2/stage6/colab/Feedlot_V2_Benchmark.ipynb)
 
+Untuk produksi 15.000 dengan tujuan rilis integritas data sintetis, gunakan [notebook produksi dan panduannya](README_PRODUKSI.md).
+
 ## Langkah berikutnya di iPhone
 
 1. Buka notebook di Safari dan masuk ke akun Google. Pilih **Minta Situs Web Desktop** jika menu Colab tersembunyi. Bila diperlukan, pilih **File → Save a copy in Drive**. Pilih **Runtime → Change runtime type → Hardware accelerator → None**.
@@ -30,4 +32,4 @@ Hasil berada di **My Drive → Feedlot_V2_Evaluation_Pilots → evaluation-1500-
 
 - Untuk memulihkan pilot, ulangi persiapan dengan ukuran **1500**. Masukkan nama folder lama di **Attempt_ID**, centang **Jalankan_pilot_evaluasi**, jalankan sel, dan ketik `LANJUT EVALUASI 1500`. Checkpoint `operations` melanjutkan ke keuangan. Checkpoint `finance` melanjutkan ke audit penuh. Fase yang belum tersegel diulang. Checkpoint harus berasal dari percobaan Anda sendiri dengan kode, konfigurasi dan runtime yang sesuai.
 - Bila hasil sudah lulus audit lokal dan transfer terputus, jalankan kembali **Save Results**. Jika runtime hilang, gunakan checkpoint Drive. `status=completed` dan `validation_status=passed` menandakan paket evaluasi sudah lolos audit dan verifikasi penyalinan.
-- Pilihan **15000** menyediakan preflight. Eksekusi produksi dikunci pada versi notebook ini. Pembukaan eksekusi memerlukan bukti holdout yang ditinjau, penerimaan operasi dari pilot yang diaudit, dan kapasitas runtime serta Drive yang memadai. Pilihan atau checkbox pengguna tidak mengubah status holdout. [Arsitektur dan gerbang produksi](../FINAL_DATASET_READINESS.md)
+- Pilihan **15000** menyediakan preflight di notebook evaluasi ini. Notebook produksi khusus memerlukan keputusan rilis integritas yang eksplisit. Status promosi forecast Stage 5 mengikuti protokol evaluasinya. [Arsitektur dan gerbang produksi](../FINAL_DATASET_READINESS.md)

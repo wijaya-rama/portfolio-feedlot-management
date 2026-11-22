@@ -26,7 +26,7 @@ Gunakan Python 3.11 atau lebih baru dari root repositori. PyArrow mengikuti pin 
 
 ```sh
 python -m venv work/stage6-venv
-work/stage6-venv/bin/python -m pip install -e . -r simulator_v2/stage1/requirements.txt pytest
+work/stage6-venv/bin/python -m pip install -e . -r simulator_v2/stage6/colab/requirements-production.txt pytest
 PYTHONHASHSEED=107 work/stage6-venv/bin/python -m simulator_v2.stage6 --output work/stage6-a
 PYTHONHASHSEED=218 work/stage6-venv/bin/python -m simulator_v2.stage6 --output work/stage6-b
 cmp work/stage6-a/hashes.json work/stage6-b/hashes.json

@@ -1,0 +1,5 @@
+numpy==2.3.5
+pyarrow==19.0.1
+tzdata==2025.2
+psutil==7.2.2
+google-api-python-client==2.202.0

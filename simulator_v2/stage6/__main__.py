@@ -166,11 +166,16 @@ def publish(checkpoints, output, run_id, state, closes, tables_by_phase, identit
             raise FileExistsError(output)
 
 
-def run_build(config, output, workspace, *, retain, stop_after):
+def build_identity(config):
     inputs = input_hashes(config)
     run_id = stable_id("STAGE6-RUN", [SCHEMA, config, inputs])
-    identity = {"run_id": run_id, "commit": git_commit(), "inputs": inputs, "runtime": runtime(),
-                "numpy": np.__version__, "config_sha256": sha256(canonical(config))}
+    return {"run_id": run_id, "commit": git_commit(), "inputs": inputs, "runtime": runtime(),
+            "numpy": np.__version__, "config_sha256": sha256(canonical(config))}
+
+
+def run_build(config, output, workspace, *, retain, stop_after):
+    identity = build_identity(config)
+    run_id = identity["run_id"]
     with Checkpoints(workspace, identity, retain) as checkpoints:
         if (checkpoints.root / "finance").exists() and not (checkpoints.root / "operations").exists():
             raise ValueError("finance checkpoint requires its operations checkpoint")
