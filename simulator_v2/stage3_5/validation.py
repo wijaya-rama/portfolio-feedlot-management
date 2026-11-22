@@ -113,7 +113,9 @@ def _decisions(fixture):
         reproduced = feed_plan(plan.pen_id, plan.window_start, plan.window_end,
                                snapshots[plan.decision_snapshot_id], weights_at[plan.decision_at],
                                fixture.formulas, ration.ration_id, planning,
-                               override_g_dm=overrides.get((plan.decision_at, plan.pen_id)))
+                               override_g_dm=overrides.get((plan.decision_at, plan.pen_id)),
+                               clinical_statuses={row.animal_id: row.clinical_status
+                                                  for row in estimates[plan.decision_snapshot_id]})
         if plan != reproduced:
             failures.append(plan.plan_id)
     for row in fixture.decision_sources:
@@ -141,9 +143,9 @@ def _releases(fixture):
         observed = partition(delivery.delivered, {
             "refusal": settlement.observed_refusal_g_af,
             "bunk_loss": settlement.bunk_loss.g_af,
-            "scheduled": delivery.delivered.g_af - settlement.observed_refusal_g_af - settlement.bunk_loss.g_af,
+            "consumption": delivery.delivered.g_af - settlement.observed_refusal_g_af - settlement.bunk_loss.g_af,
         })
-        scheduled = observed["scheduled"]
+        scheduled = observed["consumption"]
         duration = seconds(delivery.window_start, delivery.window_end)
         released_af = 0
         for row in result.allocations:

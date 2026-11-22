@@ -263,7 +263,7 @@ def sensitivity(fixture, journals, summaries):
                       cumulative_accounted_cost_cents=accumulated)
 
 
-def validation(fixture, journals, original, revised, feed, invoices, recovery):
+def validation(fixture, journals, original, revised, feed, invoices, recovery, *, expect_baseline=True):
     errors = []
     def check(label, expected, actual):
         errors.append(Check(label, "stage4/fixture", expected, actual, int(expected != actual)))
@@ -295,13 +295,14 @@ def validation(fixture, journals, original, revised, feed, invoices, recovery):
         b.gross_issue_cents != b.wip_and_released_feed_cents + b.recoverable_cents
         + b.abnormal_process_cents + b.pending_cents for b in feed))
     horizon = next(row for row in feed if row.period == "horizon")
-    check("STAGE35_INDEPENDENT_FEED_TOTALS", BASELINE, (
-        horizon.gross_issue_cents, horizon.mix_loss_cents, horizon.distribution_loss_cents,
-        horizon.refusal_cents, horizon.bunk_loss_cents, horizon.consumption_base_cents,
-        horizon.original_consumed_g_af, horizon.original_consumed_g_dm))
-    candidates = wip_candidates(fixture.operations)
-    check("SINGLE_ALLOCATION_METHOD_AND_INTAKE", (3336, 146240, 2924400), (
-        len(candidates), sum(row.provisional_cents for row in candidates), sum(row.g_dm for row in candidates)))
+    if expect_baseline:
+        check("STAGE35_INDEPENDENT_FEED_TOTALS", BASELINE, (
+            horizon.gross_issue_cents, horizon.mix_loss_cents, horizon.distribution_loss_cents,
+            horizon.refusal_cents, horizon.bunk_loss_cents, horizon.consumption_base_cents,
+            horizon.original_consumed_g_af, horizon.original_consumed_g_dm))
+        candidates = wip_candidates(fixture.operations)
+        check("SINGLE_ALLOCATION_METHOD_AND_INTAKE", (3336, 146240, 2924400), (
+            len(candidates), sum(row.provisional_cents for row in candidates), sum(row.g_dm for row in candidates)))
     recognized = sum(sum(balance((row,), account) for account in CATTLE_COST) for row in journals
                      if row.component in NORMAL_COMPONENTS | {CONSUMED})
     check("LEDGER_VERSUS_PHYSICAL_FEED_COST", horizon.wip_and_released_feed_cents, recognized)

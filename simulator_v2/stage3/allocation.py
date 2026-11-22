@@ -183,7 +183,7 @@ def freeze(estimator, cutoff, fallback_g):
 
 
 def feed_plan(pen, start, end, snapshot, weights, formulas, ration_id, policy,
-              *, override_g_dm=None):
+              *, override_g_dm=None, clinical_statuses=None):
     if not all(map(is_utc, (start, end))) or not start < end or (
             snapshot.effective_before != start or snapshot.knowledge_cutoff != start):
         raise ValueError("feeding plan needs an ordered UTC window and contemporaneous input")
@@ -191,9 +191,11 @@ def feed_plan(pen, start, end, snapshot, weights, formulas, ration_id, policy,
     recipe = formulas.at(ration_id, start)
     if any(row.production_stage not in recipe.eligible_stages.split(",") for row in roster):
         raise ValueError(f"ration is ineligible for the decision roster: {pen}")
+    modifiers = policy.get("clinical_intake_bps", {})
+    clinical_statuses = clinical_statuses or {}
     target = sum(min(policy["stage_dm_g_per_window"][row.production_stage],
                      row.score_weight_g * policy["intake_limit_bps_per_window"] // BPS)
-                 for row in roster)
+                 * modifiers.get(clinical_statuses.get(row.animal_id), BPS) // BPS for row in roster)
     if override_g_dm is not None:
         target = whole(override_g_dm, "scripted target DM", minimum=1)
         status = "scripted_dispatch"
@@ -316,7 +318,8 @@ def settle(ledger, delivery, plan, ticket, frozen, fallback_g, *,
     return Settled(settlement, access, tuple(exposures), tuple(weights.values()), allocations)
 
 
-def _allocate(settlement, delivery, plan, exposures, weights, *, pool=None, model_version=MODEL_VERSION):
+def _allocate(settlement, delivery, plan, exposures, weights, *, pool=None, model_version=MODEL_VERSION,
+              intake_bps=None):
     by_animal = defaultdict(list)
     for row in exposures:
         by_animal[row.animal_id].append(row)
@@ -324,6 +327,8 @@ def _allocate(settlement, delivery, plan, exposures, weights, *, pool=None, mode
         pool = settlement.modeled_consumption
     for method in Method:
         scores = _scores(weights, method)
+        if intake_bps:
+            scores = {key: value * intake_bps.get(key, BPS) for key, value in scores.items()}
         drivers = {key: scores[key] * sum(row.duration_seconds for row in rows)
                    for key, rows in by_animal.items()}
         dm_by_animal = split(pool.g_dm, drivers)

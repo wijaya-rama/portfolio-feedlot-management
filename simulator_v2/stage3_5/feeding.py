@@ -59,9 +59,15 @@ def _difference(after, before):
 
 
 class TimedAllocation:
-    def __init__(self, clock, version):
+    def __init__(self, clock, version, clinical_intake_bps=None):
         self.clock = clock
         self.version = version
+        self.clinical_intake_bps = clinical_intake_bps or {}
+        self.intake_bps = {}
+
+    def bind_clinical(self, estimates):
+        self.intake_bps = {row.animal_id: self.clinical_intake_bps[row.clinical_status]
+                           for row in estimates if row.clinical_status in self.clinical_intake_bps}
 
     def release(self, delivery, intervals, amounts):
         start, end = delivery.window_start, delivery.window_end
@@ -84,13 +90,14 @@ class TimedAllocation:
                 "refusal": add_amounts((amounts["refusal"], unused))}, tuple(slices)
 
     def allocate(self, settlement, delivery, plan, exposures, weights, slices):
+        intake_bps = None if plan.status == "scripted_dispatch" else self.intake_bps
         for first, last, eligible, pool in slices:
             if not eligible:
                 continue
             access = (replace(exposures[index], first_at=first, end_at=last,
                               duration_seconds=seconds(first, last)) for index in eligible)
             yield from _allocate(settlement, delivery, plan, access, weights, pool=pool,
-                                 model_version=self.version)
+                                 model_version=self.version, intake_bps=intake_bps)
 
     def evidence(self, settlement, delivery, ticket):
         amounts = partition(delivery.delivered, {

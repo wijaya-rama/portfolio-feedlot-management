@@ -1,0 +1,53 @@
+{
+  "version": "stage5-calibration.1",
+  "biology_version": "biology.2+chronological-me-ledger.1",
+  "observation_version": "latent-scale-as-known.2",
+  "scenario_version": "stage5-candidate.1",
+  "clinical_intake_bps": {"ill": 8000, "chronic": 9000},
+  "maintenance": {
+    "net_mcal_per_kg_shrunk_bw_075": 0.077,
+    "live_to_shrunk_bw": 0.96,
+    "mj_per_mcal": 4.184,
+    "maintenance_me_efficiency": 0.64,
+    "gain_me_efficiency": 0.40,
+    "net_gain_mj_per_kg_live": 16.0,
+    "deficit_kg_per_mj_me": 0.018,
+    "reserve_hours": 18,
+    "buffer_hours": 8,
+    "cp_maintenance_kg_at_400kg": 0.30,
+    "cp_per_kg_gain": 0.40
+  },
+  "stress": {
+    "cold_reference_c": 0,
+    "heat_reference_c": 25,
+    "cold_maintenance_per_c": 0.008,
+    "heat_gain_penalty_per_c": 0.015,
+    "max_cold_surcharge": 0.30,
+    "max_heat_gain_penalty": 0.18,
+    "fallback_c_by_month": [-9, -7, -1, 6, 11, 15, 19, 18, 13, 7, -1, -7]
+  },
+  "sensitivity": {
+    "normal_c": 10,
+    "cold_c": -25,
+    "ingredient_me_multiplier": 0.90,
+    "feed_target_multiplier": 0.80,
+    "elevated_mix_loss_bps": 300,
+    "elevated_distribution_loss_bps": 150,
+    "maintenance_me_efficiency_bounds": [0.59, 0.69],
+    "gain_me_efficiency_bounds": [0.35, 0.45],
+    "cold_maintenance_per_c_bounds": [0.004, 0.012]
+  },
+  "carcass": {
+    "dressing_fraction": [0.58, 0.64],
+    "forecast_grade": null,
+    "synthetic_base_cents_per_kg_hcw": [680, 800, 920],
+    "synthetic_grade_adjustment_cents_per_kg_hcw": {"Canada Prime": 30, "Canada AAA": 0, "Canada AA": -20, "Canada A": -40}
+  },
+  "financial_scenarios": {
+    "feeder_purchase_multiplier": [0.80, 1.00, 1.20],
+    "landed_feed_multiplier": [0.75, 1.00, 1.25],
+    "yardage_cents_per_animal_day": [90, 120, 150],
+    "vet_charge_multiplier": [0.75, 1.00, 1.25],
+    "packer_settlement_multiplier": [0.85, 1.00, 1.15]
+  }
+}

@@ -53,7 +53,7 @@ def load_scenario():
 
 
 def integrated_fixture(seed=42, *, scenario=None, ledger=None, clinical=None, weather=None,
-                       weigh_plans=None, config=None):
+                       weigh_plans=None, config=None, integration=None):
     scenario = load_scenario() if scenario is None else scenario
     ledger = livestock(seed) if ledger is None else ledger
     config = load_config() if config is None else config
@@ -72,9 +72,13 @@ def integrated_fixture(seed=42, *, scenario=None, ledger=None, clinical=None, we
     windows = tuple(window for day in calendar_days(START, END) for window in feeding_windows(day, config))
     policy = scenario["allocation_policy"]
     clock = growth_clock(windows, timeline, weather, health, config, policy["release_minutes"])
-    allocation_policy = TimedAllocation(clock, policy["version"])
+    allocation_policy = TimedAllocation(clock, policy["version"], scenario["planning"].get("clinical_intake_bps"))
     adapter = ChronologicalFeed(scenario["method"], len(config["feed_windows_local"]))
-    biology = ChronologicalBiology(timeline, profiles, health, weather, config, adapter=adapter, clock=clock)
+    if integration is None:
+        biology = ChronologicalBiology(timeline, profiles, health, weather, config, adapter=adapter, clock=clock)
+    else:
+        biology = integration.biology(ledger, timeline, profiles, health, config, adapter, windows,
+                                      policy, scenario["planning"].get("clinical_intake_bps"))
     if weigh_plans is None:
         standard = (replace(row, measured_at=timeline.exits[row.animal_id].effective_at)
                     if row.kind == ScaleKind.FINAL_SALE else row for row in weighing_plans(timeline))
@@ -97,6 +101,9 @@ def integrated_fixture(seed=42, *, scenario=None, ledger=None, clinical=None, we
         before = len(transactions)
         window = feeding_schedule(scenario, config, formulas, estimator, transactions,
                                   windows=((start, end),), issue_sequence_offset=len(aggregate["mix_issues"]))
+        allocation_policy.bind_clinical(window.estimates)
+        if integration is not None:
+            integration.allocation.bind_clinical(window.estimates)
         for field in fields(Schedule):
             if field.name != "frozen_weights":
                 aggregate[field.name].extend(getattr(window, field.name))
@@ -130,7 +137,11 @@ def integrated_fixture(seed=42, *, scenario=None, ledger=None, clinical=None, we
                     approvals.append(approval)
                     releases.extend(allocation_policy.evidence(active, delivery, ticket))
                 active_settlements.append(active)
-                adapter.add(active.allocations)
+                if integration is None:
+                    adapter.add(active.allocations)
+                else:
+                    adapter.add(integration.observation_allocations(ledger, delivery, plan, ticket,
+                                                                    frozen[start], fallback))
         biology.advance(end)
         scale.observe_through(end)
 

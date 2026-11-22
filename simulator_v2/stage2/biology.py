@@ -120,6 +120,17 @@ class Biology:
     def _additional_growth_points(self, windows):
         return ()
 
+    def _weather_points(self, day, first, last, weather_rows):
+        row = weather_rows.get(day)
+        return (row.observed_at,) if row and first < row.observed_at < last else ()
+
+    def _weather_at(self, day, start, weather_rows, config):
+        row = weather_rows.get(day)
+        if row and row.observed_at <= start:
+            return row, row.scenario, config["weather"][row.scenario]
+        key = season(day, config)
+        return None, key, config["weather"][key]
+
     def _validate_profile(self, profile, timeline, config):
         bio = config["biology"]
         if (profile.lot_id != timeline.animals[profile.animal_id].lot_id
@@ -149,11 +160,8 @@ class Biology:
             if first >= last:
                 continue
             windows = feeding_windows(day, config)
-            days_weather = weather_rows.get(day)
-            calendar_weather = season(day, config)
             points = {first, last}
-            if days_weather and first < days_weather.observed_at < last:
-                points.add(days_weather.observed_at)
+            points.update(self._weather_points(day, first, last, weather_rows))
             points.update(point for window in windows for point in window if first < point < last)
             points.update(point for point in self._additional_growth_points(windows) if first < point < last)
             if first < adaptation_end < last:
@@ -168,9 +176,7 @@ class Biology:
             ordered = sorted(points)
             for start, end in zip(ordered, ordered[1:]):
                 active_health = health_changes.get(start, active_health)
-                applied_weather = days_weather if days_weather and days_weather.observed_at <= start else None
-                weather_key = applied_weather.scenario if applied_weather else calendar_weather
-                weather = config["weather"][weather_key]
+                applied_weather, weather_key, weather = self._weather_at(day, start, weather_rows, config)
                 interval = timeline.location_at(animal_id, start)
                 stage = production_stage(timeline.kinds[interval.location_id], entered, start,
                                          bio["adaptation_days"])

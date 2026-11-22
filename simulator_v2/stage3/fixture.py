@@ -187,13 +187,14 @@ def feeding_schedule(scenario, stage2_config, formulas, estimator, transactions,
                    for window in feeding_windows(day, stage2_config))
     for start, end in windows:
         snapshot, rows, frozen[start] = freeze(estimator, start, policy["fallback_weight_g"])
+        clinical_statuses = {row.animal_id: row.clinical_status for row in rows}
         snapshots.append(snapshot)
         estimates.extend(rows)
         for pen in PENS:
             recipe, dm, mix_loss, truck_loss, refused, bunk_loss = scripts.get(
                 (start, pen), (YARD_RATION, None, None, None, None, 0))
             plan = feed_plan(pen, start, end, snapshot, frozen[start], formulas, recipe, policy,
-                             override_g_dm=dm)
+                             override_g_dm=dm, clinical_statuses=clinical_statuses)
             plans.append(plan)
             if not plan.planned_g_dm:
                 continue

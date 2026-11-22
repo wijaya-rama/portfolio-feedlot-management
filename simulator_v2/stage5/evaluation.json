@@ -1,0 +1,19 @@
+{
+  "version": "pilot-evaluation.1",
+  "frozen_before_pilot": true,
+  "timezone": "America/Edmonton",
+  "models": ["A_last_eligible_ticket", "B_stage_calendar_observed_health"],
+  "horizons_elapsed_days": [7, 30, 60],
+  "development_target_before_local": "2025-07-01T00:00:00",
+  "temporal_holdout_target_from_local": "2025-10-01T00:00:00",
+  "temporal_holdout_target_until_local_exclusive": "2026-01-01T00:00:00",
+  "evaluation_knowledge_cutoff_local": "2026-02-01T00:00:00",
+  "lot_holdout": {"field": "original_purchase_lot_id", "method": "unsigned first 8 hex characters of SHA-256(lot_id UTF-8), modulo 5 equals 0", "carry_in": "report separately and exclude from training and primary evaluation"},
+  "rolling_origin": {"frequency": "weekly at 08:00 local", "label": "first eligible non-entry ticket within ±3 elapsed days of target", "duplicate_labels": "per animal and horizon keep closest target, then earliest origin", "training_cutoff": "min(origin, development cutoff); training targets must be available by training cutoff"},
+  "interval": {"nominal": 0.90, "calibration": "horizon-specific empirical 5% and 95% signed residual quantiles from rolling development predictions only, equally weighted by lot", "preferred_coverage_range": [0.85, 0.95]},
+  "sufficiency": {"primary_pairs": 100, "primary_animals": 60, "primary_lots": 8, "stratum_pairs": 30, "stratum_animals": 20, "stratum_lots": 3, "calibration_pairs_per_horizon": 100, "min_prediction_coverage": 0.70},
+  "acceptance": {"min_relative_mae_improvement_pooled": 0.05, "max_horizon_mae_degradation": 0.05, "max_abs_horizon_bias_kg": {"7": 5, "30": 10, "60": 16}, "seeds_passing_primary": 4, "hard_gate_failures_allowed": 0},
+  "strata": ["purchase_lot", "sex", "class", "receiving_risk", "ration_phase", "season", "anchor_freshness", "clinical_status", "weather_source", "carry_in"],
+  "resampling": {"unit": "purchase_lot", "bootstrap_draws": 2000, "seed": 20251122},
+  "diagnostics_only": ["latent_weight", "simulated_carcass_grid", "fixture_health_rates"]
+}
