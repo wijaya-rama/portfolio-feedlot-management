@@ -21,25 +21,22 @@ import psutil
 
 from ...stage1.provenance import canonical
 from ...stage1.snapshots import publish_directory
-from ..__main__ import build_identity
 from ..config import HERE, load
 from ..export import digest
 from ..recovery import Checkpoints, PHASES, file_info
 from ..release_preflight import inspect as inspect_capacity
 from .drive_storage import blob_matches, checked_id, connect, require
-from .production_audit import POLICY, verify_dataset
+from .drive_status import (ARTIFACTS, POLICY, SIMULATOR_COMMIT, VERSION, archive_metadata,
+                           attempt_manifest, claim_chain, inspect_drive)
+from .production_audit import verify_dataset
 from .production_resources import LIVE_DISK_RESERVE, Resources
 
 CONFIG = HERE / "configs" / "stage7-production-15000.json"
 CONFIG_SHA256 = "0fc8340ceebf54756876bfba10ace3dc097c8d10a8464083011437b6615ff375"
 SOURCE = HERE.parents[1]
-VERSION = "feedlot-colab-production.1"
-ARTIFACTS = {
-    "operations": "checkpoint-operations.tar",
-    "finance": "checkpoint-finance.tar",
-    "dataset": "dataset-integrity-only.tar",
-}
 CONFIRMATIONS = {"start": "MULAI 15000", "resume": "LANJUT 15000", "recover": "PULIHKAN 15000"}
+FIRST_HEARTBEAT = 15
+HEARTBEAT_INTERVAL = 120
 
 
 def now():
@@ -58,11 +55,33 @@ def production_config():
     return config
 
 
+def verify_checkout(source, expected):
+    actual = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=source, text=True).strip()
+    require(actual == expected, f"Commit checkout berbeda ({source}).")
+    require(not subprocess.check_output(["git", "status", "--porcelain", "--untracked-files=no"], cwd=source),
+            f"Checkout sumber memiliki perubahan ({source}).")
+
+
+def simulator_identity(source, config_path):
+    verify_checkout(source, SIMULATOR_COMMIT)
+    return json.loads(subprocess.check_output([sys.executable, "-c", """
+import json
+from pathlib import Path
+import sys
+from simulator_v2.stage6.__main__ import build_identity, load
+print(json.dumps(build_identity(load(Path(sys.argv[1])))))
+""", str(config_path)], cwd=source))
+
+
+def folder_url(folder):
+    return f"https://drive.google.com/drive/folders/{folder}"
+
+
 def size_of(root):
     return sum(path.stat().st_size for path in root.rglob("*") if path.is_file())
 
 
-def pack(root, archive, resources):
+def pack(root, archive, resources, progress):
     files = sorted(path for path in root.rglob("*") if path.is_file())
     resources.staging(archive.parent, sum(path.stat().st_size + 4096 for path in files) + 1024**2)
 
@@ -77,9 +96,10 @@ def pack(root, archive, resources):
             require(not path.is_symlink(), f"Tautan simbolik di arsip {path.name}.")
             output.add(path, arcname=(Path(root.name) / path.relative_to(root)).as_posix(),
                        recursive=False, filter=portable)
+            progress()
 
 
-def unpack(archive, destination, top):
+def unpack(archive, destination, top, progress):
     with tarfile.open(archive, "r:") as stream:
         names = set()
         for member in stream:
@@ -89,53 +109,49 @@ def unpack(archive, destination, top):
                     "Arsip checkpoint berisi path atau tipe berkas yang tidak diizinkan.")
             names.add(member.name)
             stream.extract(member, destination, filter="data")
+            progress()
 
 
-def verify_release(dataset, config, identity):
-    receipt = verify_dataset(dataset, config, identity)
+def verify_release(dataset, config, identity, progress):
+    receipt = verify_dataset(dataset, config, identity, progress=progress)
     require(receipt["financial_closes"] == 48 and receipt["head"]["placements"] == 15_000,
             "Produksi memerlukan 48 close dan 15.000 placement baru.")
     return receipt
 
 
 class Attempt:
-    def __init__(self, drive, folder, manifest, local, identity, resources):
+    def __init__(self, drive, folder, manifest, local, identity, resources, simulator_source=SOURCE):
         self.drive, self.folder, self.manifest = drive, checked_id(folder), manifest
         self.work = local / folder
         self.checkpoints = Checkpoints(self.work / "checkpoints", identity, retain=True)
         self.dataset = self.work / "dataset"
         self.resources = resources
+        self.simulator_source = simulator_source
         self.slots = manifest["slots"]
         self.saved = {}
         self.claim_id = self.next_claim = None
-        self.phase, self.state, self.last_update = None, None, 0
+        self.phase = self.state = self.last_heartbeat = None
+        self.execution_started = self.phase_started = time.monotonic()
+        self.next_heartbeat = self.execution_started + FIRST_HEARTBEAT
 
     @classmethod
-    def create(cls, drive, local, identity, resources):
+    def create(cls, drive, local, identity, resources, simulator_source=SOURCE):
         folder = drive.folder(f"Feedlot_V2_Production_15000_{datetime.now(timezone.utc):%Y%m%d-%H%M%S}_{uuid4().hex[:8]}")
+        print(f"Folder Drive {folder_url(folder)}", flush=True)
         slots = dict(zip(("attempt", "status", "claim", *ARTIFACTS), drive.ids(6), strict=True))
         manifest = {"version": VERSION, "folder": folder, "created_at": now(), "identity": identity,
                     "release_policy": POLICY, "slots": slots}
         drive.write_json(slots["attempt"], manifest, folder=folder, name="attempt.json")
-        return cls(drive, folder, manifest, local, identity, resources)
+        return cls(drive, folder, manifest, local, identity, resources, simulator_source)
 
     @classmethod
-    def open(cls, drive, folder, local, identity, resources, *, read_only=False):
-        manifest_id = drive.find(folder, "attempt.json")
-        manifest = drive.read_json(manifest_id)
-        require(manifest and manifest["version"] == VERSION and manifest["folder"] == folder
-                and manifest["release_policy"] == POLICY,
-                "Manifest percobaan atau keputusan rilis berbeda.")
+    def open(cls, drive, folder, local, identity, resources, *, read_only=False, simulator_source=SOURCE):
+        manifest = attempt_manifest(drive, folder)
         saved_identity = manifest["identity"]
         required = ("commit", "config_sha256", "run_id") if read_only else identity.keys()
         require(all(saved_identity[key] == identity[key] for key in required),
                 "Manifest percobaan berbeda. Gunakan commit, konfigurasi, dan versi runtime semula.")
-        slots = manifest["slots"]
-        require(slots.keys() == {"attempt", "status", "claim", *ARTIFACTS} and slots["attempt"] == manifest_id
-                and len(set(slots.values())) == len(slots), "Slot manifest percobaan tidak valid.")
-        for file_id in slots.values():
-            checked_id(file_id)
-        return cls(drive, folder, manifest, local, saved_identity, resources)
+        return cls(drive, folder, manifest, local, saved_identity, resources, simulator_source)
 
     @contextmanager
     def lock(self, recover):
@@ -145,17 +161,8 @@ class Attempt:
                 flock(local_lock, LOCK_EX | LOCK_NB)
             except BlockingIOError:
                 raise RuntimeError("Percobaan masih berjalan di runtime ini.") from None
-            slot = self.slots["claim"]
-            visited = set()
-            previous = None
-            while (current := self.drive.get(slot)) is not None:
-                require(slot not in visited and not current.get("trashed") and current["parents"] == [self.folder],
-                        "Rantai penguncian Drive tidak valid.")
-                visited.add(slot)
-                previous = current
-                claim = self.drive.read_json(slot)
-                slot = checked_id(claim["next"])
-            if previous and previous.get("appProperties", {}).get("released") != "yes":
+            latest, slot = claim_chain(self.drive, self.folder, self.slots["claim"])
+            if latest["state"] == "unreleased":
                 require(recover, "Percobaan masih terkunci. Putuskan runtime lama, lalu gunakan STOP/RECOVER.")
             successor, = self.drive.ids(1)
             try:
@@ -179,14 +186,27 @@ class Attempt:
         require(self.claim_id and self.drive.get(self.next_claim) is None,
                 "Percobaan sudah diambil alih. Hentikan runtime ini.")
 
-    def status(self, state, **details):
+    def begin_phase(self, phase):
+        if self.phase != phase:
+            self.phase, self.phase_started = phase, time.monotonic()
+
+    def elapsed(self):
+        moment = time.monotonic()
+        return {"phase_elapsed_seconds": round(moment - self.phase_started),
+                "execution_elapsed_seconds": round(moment - self.execution_started)}
+
+    def latest_checkpoint(self):
+        return next((phase for phase in reversed(PHASES) if phase in self.saved), None)
+
+    def status(self, state, *, pulse=False, **details):
         self.state = state
-        self.last_update = time.monotonic()
+        self.next_heartbeat = time.monotonic() + (HEARTBEAT_INTERVAL if pulse else FIRST_HEARTBEAT)
         status = {"folder_id": self.folder, "run_id": self.checkpoints.identity["run_id"],
                   "code_sha": self.checkpoints.identity["commit"], "status": state, "phase": self.phase,
                   "updated_at": now(), "checkpoints": {phase: self.saved[phase] for phase in PHASES if phase in self.saved},
-                  "last_verified_checkpoint": next((phase for phase in reversed(PHASES) if phase in self.saved), None),
-                  "dataset": self.saved.get("dataset"), **POLICY, **details}
+                  "last_verified_checkpoint": self.latest_checkpoint(), "claim_id": self.claim_id,
+                  "last_heartbeat": self.last_heartbeat, "dataset": self.saved.get("dataset"),
+                  **self.elapsed(), **POLICY, **details}
         try:
             file_id = self.slots["status"]
             if self.drive.get(file_id) is None:
@@ -197,40 +217,40 @@ class Attempt:
             print(f"Status Drive sementara tidak dapat diperbarui ({error}).", flush=True)
 
     def heartbeat(self, **details):
-        if time.monotonic() - self.last_update >= 120:
+        if time.monotonic() >= self.next_heartbeat:
+            elapsed = self.elapsed()
+            self.last_heartbeat = {"at": now(), "phase": self.phase, "state": self.state, **elapsed, **details}
+            print(f"Heartbeat {self.last_heartbeat['at']} · {self.phase} · {self.state} · "
+                  f"fase {elapsed['phase_elapsed_seconds']} detik · eksekusi {elapsed['execution_elapsed_seconds']} detik · "
+                  f"checkpoint Drive terakhir {self.latest_checkpoint() or 'belum ada'}", flush=True)
             self.still_owner()
-            self.status(self.state, **details)
-            print(f"{self.phase} · {self.state} · {details}", flush=True)
+            self.status(self.state, pulse=True, **details)
 
     def artifact(self, phase, parent, *, promote=False):
         file_id = self.slots[phase]
         blob = self.drive.get(file_id)
         if blob is None:
             return None
-        name = ARTIFACTS[phase]
-        require(blob["parents"] == [self.folder] and not blob.get("trashed")
-                and blob["name"] in {name, f".{name}.partial"}, f"Slot arsip Drive berbeda ({phase}).")
-        props = blob["appProperties"]
-        require(props["phase"] == phase and props["parent"] == (parent or "none")
-                and all(re.fullmatch(r"[0-9a-f]{64}", props[key]) for key in ("sha256", "seal")),
-                f"Manifest transfer Drive berbeda ({phase}).")
-        size = int(props["bytes"])
-        if blob["name"] != name:
-            if not promote or not blob_matches(blob, size, props["sha256"]):
+        info, published, checksum = archive_metadata(blob, self.folder, file_id, phase, parent)
+        if not published:
+            if not promote or not checksum:
                 return None
             self.still_owner()
-            self.drive.rename(file_id, name)
+            self.drive.rename(file_id, info["file"])
             blob = self.drive.get(file_id)
-        require(blob_matches(blob, size, props["sha256"]) and blob["name"] == name and size > 0
-                and blob["appProperties"] == props and blob["parents"] == [self.folder],
+            require(blob is not None, f"Arsip Drive belum tersedia ({phase}).")
+            confirmed, published, checksum = archive_metadata(blob, self.folder, file_id, phase, parent)
+            require(confirmed == info, f"Metadata arsip Drive berubah setelah publikasi ({phase}).")
+        require(published and checksum,
                 f"SHA-256 atau ukuran arsip Drive berbeda ({phase}).")
-        return {"id": file_id, "file": name, "sha256": props["sha256"], "bytes": size, "seal": props["seal"]}
+        return info
 
     def save(self, phase, parent, root, seal):
+        print(f"Menyiapkan arsip {phase} untuk verifikasi Drive.", flush=True)
         self.status("uploading")
         with TemporaryDirectory(prefix=".transfer-", dir=self.work) as temporary:
             archive = Path(temporary) / ARTIFACTS[phase]
-            pack(root, archive, self.resources)
+            pack(root, archive, self.resources, self.heartbeat)
             info = file_info(archive)
             props = {**info, "bytes": str(info["bytes"]), "seal": seal, "phase": phase, "parent": parent or "none"}
             self.resources.upload(self.drive, info["bytes"])
@@ -255,6 +275,7 @@ class Attempt:
             meta = self.checkpoints.verify(phase, parent)
             require(digest(local / "checkpoint.json") == info["seal"], f"Checkpoint lokal berbeda dari Drive ({phase}).")
             return meta
+        print(f"Memulihkan checkpoint {phase} dari Drive.", flush=True)
         self.status("restoring")
         self.resources.staging(self.work, info["bytes"] * 2)
         with TemporaryDirectory(prefix=".restore-", dir=self.checkpoints.root) as temporary:
@@ -265,7 +286,7 @@ class Attempt:
                                     lambda fraction: self.heartbeat(percent=round(fraction * 100, 1)))
             require(file_info(archive) == {key: info[key] for key in ("bytes", "sha256")},
                     f"SHA-256 unduhan checkpoint Drive berbeda ({phase}).")
-            unpack(archive, temporary, phase)
+            unpack(archive, temporary, phase, self.heartbeat)
             meta = Checkpoints(temporary, self.checkpoints.identity, retain=True).verify(phase, parent)
             require(meta and digest(temporary / phase / "checkpoint.json") == info["seal"],
                     f"Marker checkpoint hasil unduhan berbeda ({phase}).")
@@ -277,21 +298,22 @@ class Attempt:
                                     drive_credit=sum(item["bytes"] for item in self.saved.values()), staging=staging)
 
     def worker(self, phase, config_path, lock_fd, staging=0):
+        print(f"Memeriksa sumber daya fase {phase}.", flush=True)
         available = self.check_resources(staging=staging)["available_ram_bytes"]
         self.still_owner()
-        self.status("running")
-        print(f"Fase {phase} dimulai.", flush=True)
         command = [sys.executable, "-u", "-m", "simulator_v2.stage6", "--config", str(config_path),
                    "--output", str(self.dataset), "--checkpoint-dir", str(self.checkpoints.root)]
         if phase in PHASES:
             command.extend(("--stop-after", phase))
         log = self.work / f"{phase}.log"
-        started = time.monotonic()
         with log.open("wb") as stream:
             # Retain the local lock if the notebook process dies before the worker exits.
-            with subprocess.Popen(command, cwd=SOURCE, stdout=stream, stderr=subprocess.STDOUT,
+            with subprocess.Popen(command, cwd=self.simulator_source, stdout=stream, stderr=subprocess.STDOUT,
                                   pass_fds=(lock_fd,)) as process:
                 try:
+                    started = time.monotonic()
+                    print(f"Fase {phase} dimulai.", flush=True)
+                    self.status("running")
                     monitor = psutil.Process(process.pid)
                     while True:
                         try:
@@ -319,7 +341,9 @@ class Attempt:
             raise RuntimeError(f"Fase {phase} berhenti dengan kode {code}. Log lokal {log}.")
 
     def run(self, config, config_path, *, recover=False):
-        print(f"Folder Drive https://drive.google.com/drive/folders/{self.folder}", flush=True)
+        self.execution_started = self.phase_started = time.monotonic()
+        self.last_heartbeat = None
+        print("Memeriksa klaim Drive dan checkpoint yang sudah ada.", flush=True)
         with self.lock(recover) as lock_fd:
             try:
                 self._run(config, config_path, lock_fd)
@@ -345,7 +369,7 @@ class Attempt:
         parent = None
         phases = tuple(ARTIFACTS)
         for index, phase in enumerate(phases):
-            self.phase = phase
+            self.begin_phase(phase)
             self.state = "checking"
             info = self.artifact(phase, parent, promote=True)
             if info is None:
@@ -364,8 +388,8 @@ class Attempt:
         parquet = 0
         tar_overhead = 1024**2
         for phase in PHASES:
-            self.phase = phase
-            self.state = "checking"
+            self.begin_phase(phase)
+            self.status("checking")
             if phase in self.saved:
                 meta = self.restore(phase, parent, self.saved[phase])
             else:
@@ -382,16 +406,17 @@ class Attempt:
             tar_overhead += 4096 * len(meta["partitions"])
             parent = self.saved[phase]["seal"]
 
-        self.phase = "audit"
+        self.begin_phase("audit")
         if not self.dataset.exists():
             self.resources.upload(self.drive, parquet + tar_overhead)
             self.worker("audit", config_path, lock_fd, 2 * parquet + tar_overhead + LIVE_DISK_RESERVE)
+        print("Memverifikasi inventaris hasil audit dan SHA-256 partisi.", flush=True)
         self.status("validating")
-        receipt = verify_release(self.dataset, config, self.checkpoints.identity)
+        receipt = verify_release(self.dataset, config, self.checkpoints.identity, self.heartbeat)
         release = {"version": VERSION, "folder_id": self.folder, **POLICY, **receipt,
                    "identity": self.checkpoints.identity, "checkpoints": self.saved}
         # Keep the audit receipt inside the reproducible archive without modifying the audited local dataset.
-        self.phase = "dataset"
+        self.begin_phase("dataset")
         with TemporaryDirectory(prefix=".release-", dir=self.work) as temporary:
             package_root = Path(temporary) / "dataset"
             shutil.copytree(self.dataset, package_root, copy_function=os.link)
@@ -410,33 +435,13 @@ class Attempt:
         return {key: status[key] for key in ("gate_count", "financial_closes", "head", "hashes_sha256") if key in status}
 
     def complete(self, **receipt):
-        self.phase = "dataset"
+        self.begin_phase("dataset")
         self.status("completed", validation_status="passed", complete_independent_audit=True, **{
             key: value for key, value in receipt.items() if key not in {"validation_status", "complete_independent_audit"}})
         print(f"Dataset integritas terverifikasi di Drive (SHA-256 {self.saved['dataset']['sha256']}).", flush=True)
 
     def inspect(self):
-        status = self.drive.read_json(self.slots["status"]) or {"status": "prepared"}
-        verified = {}
-        parent = None
-        for phase in ARTIFACTS:
-            info = self.artifact(phase, parent)
-            if info is None:
-                break
-            verified[phase] = info
-            parent = info["seal"]
-        if "dataset" in verified:
-            status.update(status="completed", validation_status="passed", complete_independent_audit=True)
-        elif status["status"] == "completed":
-            status.update(status="publication_unverified", validation_status="unverified",
-                          complete_independent_audit=False)
-        elif status["status"] in {"running", "restoring", "uploading", "validating", "checkpoint_verified"}:
-            age = datetime.now(timezone.utc) - datetime.fromisoformat(status["updated_at"])
-            if age.total_seconds() > 900:
-                status["status"] = "possibly_interrupted"
-        return {**status, "dataset": verified.get("dataset"),
-                "checkpoints": {phase: verified[phase] for phase in PHASES if phase in verified},
-                "last_verified_checkpoint": next((phase for phase in reversed(PHASES) if phase in verified), None)}
+        return inspect_drive(self.drive, self.folder, self.manifest)
 
 
 def probe_drive(drive):
@@ -469,7 +474,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=("preflight", "probe-drive", "status", *CONFIRMATIONS))
     parser.add_argument("--local", type=Path, required=True)
-    parser.add_argument("--commit", required=True, help="full reviewed Git commit")
+    parser.add_argument("--commit", required=True, help="full reviewed monitoring Git commit")
+    parser.add_argument("--simulator-source", required=True, type=Path, help="checkout of the original simulator commit")
     parser.add_argument("--folder", help="Google Drive attempt folder ID")
     parser.add_argument("--accept-integrity-only", action="store_true")
     parser.add_argument("--confirm")
@@ -480,13 +486,17 @@ def main():
                     "Diperlukan persetujuan rilis integritas dan otorisasi tindakan eksplisit.")
         if args.action in {"status", "resume", "recover"}:
             checked_id(args.folder)
+        if args.action in {"resume", "recover"}:
+            print(f"Folder Drive {folder_url(args.folder)}", flush=True)
+        print(f"{args.action.upper()} · memeriksa sumber dan koneksi Drive.", flush=True)
         config = production_config()
-        identity = build_identity(config)
-        require(re.fullmatch(r"[0-9a-f]{40}", args.commit) and identity["commit"] == args.commit,
-                "Commit simulator berbeda dari pin notebook.")
-        require(not subprocess.check_output(["git", "status", "--porcelain", "--untracked-files=no"], cwd=SOURCE),
-                "Checkout simulator memiliki perubahan. Gunakan sumber terpin yang bersih.")
-        drive = connect()
+        require(re.fullmatch(r"[0-9a-f]{40}", args.commit), "Pin commit monitoring tidak valid.")
+        verify_checkout(SOURCE, args.commit)
+        simulator_source = args.simulator_source.resolve()
+        config_path = simulator_source / CONFIG.relative_to(SOURCE)
+        require(digest(config_path) == CONFIG_SHA256, "SHA-256 konfigurasi simulator berbeda.")
+        identity = simulator_identity(simulator_source, config_path)
+        drive = connect(read_only=args.action in {"preflight", "status"})
         resources = Resources()
         args.local.mkdir(parents=True, exist_ok=True)
         if args.action == "probe-drive":
@@ -497,14 +507,14 @@ def main():
         elif args.action == "start":
             resources.check(args.local, drive)
             inspect_capacity(config)
-            Attempt.create(drive, args.local, identity, resources).run(config, CONFIG)
+            Attempt.create(drive, args.local, identity, resources, simulator_source).run(config, config_path)
         else:
             attempt = Attempt.open(drive, args.folder, args.local, identity, resources,
-                                   read_only=args.action == "status")
+                                   read_only=args.action == "status", simulator_source=simulator_source)
             if args.action == "status":
                 print(json.dumps(attempt.inspect(), indent=2))
             else:
-                attempt.run(config, CONFIG, recover=args.action == "recover")
+                attempt.run(config, config_path, recover=args.action == "recover")
     except (ValueError, KeyError, OSError, RuntimeError, HttpError) as error:
         parser.exit(1, f"{type(error).__name__}: {error}\n")
 

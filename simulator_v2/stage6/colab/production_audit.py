@@ -17,14 +17,11 @@ REQUIRED_GATES = {
     "snapshot_publication", "stable_original_snapshot", "stable_restated_snapshot",
     "exact_placements", "lot_segregation", "baseline_operating_capacity", "hospital_headroom",
 }
-POLICY = {"purpose": "integrity_only", "stage5_status": "not_promoted", "promotion_eligible": False}
-
-
 def read(path):
     return json.loads(path.read_bytes())
 
 
-def verify_dataset(root, config, identity, required_gates=REQUIRED_GATES):
+def verify_dataset(root, config, identity, required_gates=REQUIRED_GATES, *, progress=None):
     manifest, index = (read(root / name) for name in ("run_manifest.json", "hashes.json"))
     require(manifest["code_checkout_commit_at_build"] == identity["commit"] and manifest["synthetic"] is True
             and manifest["input_hashes"] == identity["inputs"] and manifest["runtime"] == identity["runtime"]
@@ -54,6 +51,8 @@ def verify_dataset(root, config, identity, required_gates=REQUIRED_GATES):
         path = root / name
         require(path.stat().st_size == item["bytes"] and digest(path) == item["sha256"],
                 f"Ukuran atau SHA-256 partisi berbeda ({name}).")
+        if progress is not None:
+            progress()
     for name, checksum in reports.items():
         require(digest(root / name) == checksum, f"SHA-256 laporan berbeda ({name}).")
 

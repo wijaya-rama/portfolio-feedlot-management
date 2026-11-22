@@ -1,6 +1,6 @@
 # Produksi Feedlot V2 di Google Colab
 
-[Buka notebook produksi di Colab](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-colab-drive-recovery/simulator_v2/stage6/colab/Feedlot_V2_Production.ipynb) · [Runbook satu halaman](RUNBOOK_PRODUKSI.md)
+[Buka notebook produksi di Colab](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-colab-live-monitoring/simulator_v2/stage6/colab/Feedlot_V2_Production.ipynb) · [Runbook satu halaman](RUNBOOK_PRODUKSI.md) · [Monitoring dan pemulihan](MONITORING_PRODUKSI.md)
 
 Notebook CPU High-RAM mematok seed 42 dan menjalankan tepat **15.000 placement baru selama 2024–2025**. Preflight rencana menunjukkan 3.500 carry-in dan, pada skenario keterlambatan penjualan 35 hari, puncak 4.591 ekor serentak, tujuh pen produksi cadangan, dan dua pen receiving cadangan. Angka kapasitas tersebut berasal dari skenario perencanaan. Audit hasil produksi memeriksa receipt aktual, kapasitas dan rekonsiliasi carry-in/carry-out. [Konfigurasi terpin](../configs/stage7-production-15000.json) · [Bukti perencanaan](../evidence/stage7/preflight-15000.json)
 
@@ -29,7 +29,7 @@ Gunakan akun Drive yang sama. Checkpoint berisi pickle state privat dan hanya bo
 
 1. Pastikan keputusan rilis integrity-only disetujui serta bukti pilot penuh 1.500 seed 42 dapat dirujuk. Pilih CPU High-RAM dan tinjau jendela sesi dari akun yang akan dipakai.
 2. Jalankan **Uji koneksi Drive** pada akun itu. Uji mengunggah dan mengunduh beberapa byte, mengecek SHA-256 server, memublikasikan nama final, membaca manifest dan memindahkan folder uji ke Sampah. Kemudian jalankan **Preflight** untuk kapasitas, RAM efektif, disk dan Drive. Uji unit menggunakan pengganti API Drive karena akun Colab pengguna tidak terhubung saat pengembangan.
-3. Jalankan START hanya ketika siap menggunakan runtime. Dari iPhone, buka folder Drive hasil atau buka Colab di Safari dan pilih **Minta Situs Web Desktop** untuk memakai sel Status.
+3. Jalankan **Uji tampilan progres** sebelum START atau RESUME. Setelah worker berjalan, pastikan URL folder dan heartbeat muncul di sel. Gunakan **Monitor Drive** di notebook terpisah untuk memeriksa snapshot Drive saat sel produksi sibuk. Dari iPhone, gunakan Safari dan pilih **Minta Situs Web Desktop** untuk mengakses kontrol Colab.
 
 Uji lokal terfokus menggunakan fixture kecil. Cakupannya meliputi putus/ulang transfer, hilangnya respons setelah unggah selesai, checkpoint rusak, lock duplikat, ketidakcocokan kode/config/runtime, perbandingan hash terhadap run mulus, guard sumber daya, dan penolakan publikasi saat verifikasi gagal. Uji Stage 7 lama juga mematikan subprocess saat finance lalu menguji pemulihan. Preflight kapasitas 15.000 menjalankan pemeriksaan jadwal serta pasokan. Tidak ada run produksi 15.000 atau pilot 1.500 baru.
 

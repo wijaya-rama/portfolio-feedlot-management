@@ -98,7 +98,8 @@ def attempt_setup(tmp_path, monkeypatch):
 
     monkeypatch.setattr(prod.Attempt, "worker", worker)
     monkeypatch.setattr(prod, "verify_release",
-                        lambda root, config, identity: verify_dataset(root, config, identity, {"exact_placements"}))
+                        lambda root, config, identity, progress: verify_dataset(
+                            root, config, identity, {"exact_placements"}, progress=progress))
     return attempt, path, config, drive
 
 

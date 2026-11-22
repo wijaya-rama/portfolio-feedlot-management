@@ -15,13 +15,14 @@ RETRIES = 3
 FOLDER = "application/vnd.google-apps.folder"
 
 
-def connect():
+def connect(*, read_only=False):
     import google.auth
     from google_auth_httplib2 import AuthorizedHttp
     from googleapiclient.discovery import build
     import httplib2
 
-    credentials, _ = google.auth.default(scopes=["https://www.googleapis.com/auth/drive"])
+    scope = "drive.readonly" if read_only else "drive"
+    credentials, _ = google.auth.default(scopes=[f"https://www.googleapis.com/auth/{scope}"])
     http = AuthorizedHttp(credentials, http=httplib2.Http(timeout=120))
     return Drive(build("drive", "v3", http=http, cache_discovery=False))
 
