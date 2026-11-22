@@ -1,13 +1,13 @@
 # Evaluasi holdout dan pilot Feedlot V2 di Colab
 
-[Buka notebook di Colab](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-holdout-evaluation/simulator_v2/stage6/colab/Feedlot_V2_Benchmark.ipynb)
+[Buka notebook di Colab](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-forecast-review/simulator_v2/stage6/colab/Feedlot_V2_Benchmark.ipynb)
 
 ## Langkah berikutnya di iPhone
 
 1. Buka notebook di Safari dan masuk ke akun Google. Pilih **Minta Situs Web Desktop** jika menu Colab tersembunyi. Bila diperlukan, pilih **File → Save a copy in Drive**. Pilih **Runtime → Change runtime type → Hardware accelerator → None**.
 2. Jalankan sel persiapan dari **Check Environment** sampai **Connect Google Drive**. Izinkan mount Drive ketika diminta.
-3. Centang **Evaluasi_arsip_tersimpan** dan jalankan **Evaluate Saved Dataset**. Path bawaan menunjuk paket 250 placement. Jika paket dipindah, isi `Arsip_di_My_Drive` dengan path relatif ke My Drive. Simpan `status.json` di folder yang sama dengan paket.
-4. Buka laporan JSON di **My Drive → Feedlot_V2_Holdout**. Lihat jumlah pasangan, sapi, lot dan cakupan per horizon, khususnya irisan holdout lot dan waktu. Sel ini membaca paket yang sudah ada dan tidak menjalankan simulator.
+3. Centang **Evaluasi_arsip_tersimpan** dan jalankan **Evaluate Saved Dataset**. Ganti nilai bawaan 250 di `Arsip_di_My_Drive` dengan path relatif arsip pilot 1.500, yaitu `Feedlot_V2_Evaluation_Pilots/evaluation-1500-…/dataset-evaluation-only.tar`. Biarkan `status.json` di folder yang sama dengan paket.
+4. Buka laporan baru `holdout-1500-seed-42-5221f92c9596-v2.json` di **My Drive → Feedlot_V2_Holdout**. Bandingkan `B` dengan `legacy_B` pada MAE dan bias, lalu periksa coverage dan jumlah pasangan berinterval. Sel ini membaca arsip yang sudah ada dan tidak menjalankan simulator. [Telaah laporan lama](../FORECAST_REVIEW.md)
 
 ## Bukti yang bisa diperoleh dari paket 250
 
@@ -16,9 +16,9 @@ Paket yang dilaporkan pengguna berasal dari commit `39770fb` dan memuat seed 42.
 Tiket timbang dan koreksinya, movement ledger, master hewan/lot/lokasi, saldo pembukaan dan kejadian klinis memungkinkan estimasi A/B melalui replay cutoff mingguan. Tabel `weight_estimates` Stage 6 berisi nowcast Model B pada waktu keputusan. Evaluator merekonstruksi kedua model dengan fitur yang tersedia pada origin untuk menilai bobot pada waktu timbang aktual. Pembacaan mengecek status audit penuh, hash arsip dan partisi input, serta jumlah receipt. Evaluasi menggunakan tabel observasi dan kejadian, termasuk koreksi tiket yang sudah tersedia pada cutoff yang relevan.
 
 - Origin dipatok pada Senin pukul 08.00 Edmonton. Horizon 7/30/60 hari dihitung sebagai waktu UTC berlalu. Pasangan memakai tiket non-entry pertama dalam jendela ±3 hari, untuk hewan yang aktif di origin. Tiket yang terpilih berulang pada horizon yang sama memakai origin terdekat dengan target nominal, lalu yang paling awal jika seri.
-- Outcome memakai vintage 1 Februari 2026. Estimasi hanya memakai fakta efektif sebelum origin dan sudah tersedia saat itu. Anchor stale diperiksa di origin. Forecast Model B yang mencapai batas proyeksi tetap dihitung dan jumlahnya ditampilkan, termasuk pada horizon 60 hari.
-- Laporan menampilkan MAE, bias, cakupan dan dukungan untuk holdout lot, waktu, irisan, carry-in, dan jenis tiket. Interval 90% memakai kuantil residual dari vintage development 1 Juli, dengan bobot sama per lot dan tanpa lot holdout atau carry-in. Interval dilaporkan hanya untuk origin pada atau setelah cutoff development dan hanya jika jumlah pasangan kalibrasi mencukupi. Coverage prediksi menggunakan pasangan dengan tiket yang memenuhi syarat.
-- Stage 5 mensyaratkan minimal **100 pasangan, 60 sapi, 8 lot, dan cakupan 70% per horizon**. Lima seed yang dipatok adalah 42, 171, 382, 901, dan 1009. Sedikitnya empat seed harus memenuhi metrik primer dan semua seed harus melewati hard gate. Laporan ini selalu menyatakan `stage5_status=incomplete`. Evaluasi promosi lengkap masih memerlukan seed lain, bootstrap per lot, kalibrasi rolling untuk origin awal, serta pemeriksaan ketahanan dan determinisme sesuai protokol. [Protokol Stage 5](../../stage5/EVALUATION.md)
+- Outcome memakai vintage 1 Februari 2026. Estimasi hanya memakai fakta efektif sebelum origin dan sudah tersedia saat itu. Anchor stale diperiksa di origin. Model B revisi menerapkan batas 35 hari pada nowcast hingga origin, lalu memakai ADG origin untuk waktu setelahnya. Laporan juga menghitung skor Model B lama dan jumlah pasangan yang terkena batas lama.
+- Laporan menampilkan MAE, bias, cakupan dan dukungan untuk holdout lot, waktu, irisan, carry-in, dan jenis tiket. Interval 90% memakai kuantil residual vintage development yang tersedia pada `min(origin, 1 Juli)`, dengan bobot sama per lot dan tanpa lot holdout atau carry-in. Interval dilaporkan jika fold memiliki minimal 100 pasangan kalibrasi. Dukungan primer dan strata tampil berdampingan; irisan lot–waktu memakai strata. Coverage prediksi menggunakan pasangan dengan tiket yang memenuhi syarat.
+- Stage 5 mensyaratkan minimal **100 pasangan, 60 sapi, 8 lot, dan cakupan 70% per horizon**. Lima seed yang dipatok adalah 42, 171, 382, 901, dan 1009. Sedikitnya empat seed harus memenuhi metrik primer dan semua seed harus melewati hard gate. Laporan ini selalu menyatakan `stage5_status=incomplete`. Evaluasi promosi lengkap masih memerlukan seed lain, bootstrap per lot, serta pemeriksaan ketahanan dan determinisme sesuai protokol. [Protokol Stage 5](../../stage5/EVALUATION.md)
 
 ## Otorisasi pilot 1.500 khusus evaluasi
 

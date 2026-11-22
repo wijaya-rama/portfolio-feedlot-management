@@ -4,7 +4,7 @@
 
 **Pilot 1.500 tersedia dengan otorisasi khusus evaluasi. Promosi menunggu bukti holdout Stage 5. Produksi 15.000 masih HOLD.** Jadwal memuat tepat 15.000 placement dalam 731 hari bisnis Edmonton. Kelayakan operasi didukung oleh preflight, sedangkan kebutuhan memori dan durasi fase terbesar belum terbukti pada skala produksi. Anggaran lama 600 detik adalah tolok ukur rekayasa. Build ini tidak memakai batas waktu 600 detik.
 
-Persiapan berangkat dari `d9143232d8cbeea7cabf9d3841eb906fb19606fd`. Commit `39770fb9e2867127f1ddac671ac694997e26b864` adalah sumber hasil 250 yang dilaporkan pengguna. Build 1.500 dan 15.000 belum dijalankan. Bukti lama tetap berada di jalur semula. [Panduan Colab untuk iPhone](colab/README.md)
+Persiapan berangkat dari `d9143232d8cbeea7cabf9d3841eb906fb19606fd`. Commit `39770fb9e2867127f1ddac671ac694997e26b864` adalah sumber hasil 250 yang dilaporkan pengguna. Pilot evaluasi 1.500 seed 42 telah selesai menurut laporan pengguna. Produksi 15.000 belum dijalankan. Bukti lama tetap berada di jalur semula. [Panduan Colab untuk iPhone](colab/README.md)
 
 ## Kapasitas operasional
 
@@ -68,6 +68,6 @@ Kolom proyeksi hanya mengalikan pengukuran dengan 6 atau 60. Pertumbuhan animal-
 
 ### Gerbang aktif
 
-1. **Holdout estimator Stage 5.** Bukti fixture Stage 5 hanya berisi 12 sapi. Jalankan Model A/B pada 7/30/60 hari dengan pemisahan lot dan waktu, cutoff label terkunci, kalibrasi interval dari development, lima seed dan ambang sampel yang dibekukan. Bukti ini belum tersedia. Audit temporal yang lulus menguji kebocoran waktu dan tidak mengukur akurasi holdout. [Protokol](../stage5/EVALUATION.md)
-2. **Penerimaan pilot.** Evaluasi arsip 250 yang tersimpan untuk memeriksa dukungan dan error per horizon. Pilot 1.500 seed 42 dapat dijalankan dengan otorisasi khusus evaluasi untuk mengumpulkan sampel dan bukti operasi. Catat RSS, durasi setiap fase, ruang staging dan ukuran checkpoint, peak hospital, backlog, shortage, serta 48 close. Paket evaluasi terverifikasi menjadi bukti operasi. Promosi juga memerlukan penyelesaian holdout lima seed. [Alur evaluasi dan status notebook](colab/README.md)
+1. **Holdout estimator Stage 5.** Bukti fixture Stage 5 hanya berisi 12 sapi. Jalankan Model A/B pada 7/30/60 hari dengan pemisahan lot dan waktu, cutoff label terkunci, kalibrasi interval dari development, lima seed dan ambang sampel yang dibekukan. Laporan pilot seed 42 memberi bukti diagnostik dan menunjukkan bias 60 hari melewati toleransi. Evaluasi lima seed masih terbuka. [Telaah forecast](FORECAST_REVIEW.md) [Protokol](../stage5/EVALUATION.md)
+2. **Penerimaan pilot.** Evaluasi ulang arsip pilot 1.500 seed 42 yang sudah tersimpan dengan evaluator revisi 2. Simpan bukti operasi dari run asal. Catat RSS, durasi setiap fase, ruang staging dan ukuran checkpoint, peak hospital, backlog, shortage, serta 48 close. Paket evaluasi terverifikasi menjadi bukti operasi. Promosi juga memerlukan penyelesaian holdout lima seed. [Alur evaluasi dan status notebook](colab/README.md)
 3. **Kapasitas produksi.** Cocokkan hasil pilot dengan runtime yang benar-benar tersedia. Jika RAM atau durasi fase masih tidak mencukupi, pindahkan indeks lineage dan audit yang tumbuh bersama volume ke disk dan pertimbangkan checkpoint lebih rapat. Jalankan ulang uji kesetaraan sebelum menggunakan perubahan itu untuk produksi. Angka 15.000 tetap menjadi target penerimaan aktual.

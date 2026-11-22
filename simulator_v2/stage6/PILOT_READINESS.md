@@ -1,8 +1,8 @@
 # Keputusan pilot 1.500 placement
 
-## Stage 7 · Arsip 250 dan pilot khusus evaluasi
+## Stage 7 · Evaluasi ulang arsip pilot
 
-Evaluasi terlebih dahulu arsip 250 yang sudah tersimpan. Analisis satu seed memberikan bukti awal Stage 5. Pilot 1.500 tersedia dengan otorisasi khusus evaluasi, dan audit penuh tetap berlaku. Promosi dan produksi 15.000 menunggu holdout lengkap, bukti penerimaan operasi, dan kapasitas runtime terverifikasi. [Keputusan terbaru dan bukti](FINAL_DATASET_READINESS.md) · [Panduan Colab](colab/README.md)
+Arsip pilot 1.500 seed 42 sudah tersimpan berdasarkan laporan pengguna. Jalankan evaluator revisi 2 pada arsip yang sama untuk membandingkan bias, MAE, dan coverage. [Telaah forecast](FORECAST_REVIEW.md) Promosi dan produksi 15.000 menunggu holdout lengkap, bukti penerimaan operasi, dan kapasitas runtime terverifikasi. [Keputusan terbaru dan bukti](FINAL_DATASET_READINESS.md) · [Panduan Colab](colab/README.md)
 
 ## Stage 6B.1 · HOLD
 
