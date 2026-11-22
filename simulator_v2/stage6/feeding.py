@@ -109,6 +109,9 @@ class Feeding:
         policy = SelectedAllocation({(start, end): clock}, ALLOCATION_VERSION, self.planning["clinical_intake_bps"])
         policy.bind_clinical(estimates.values())
         allocations = []
+        loads = 0
+        load_limit = ((end - start) // timedelta(minutes=self.p["equipment_cycle_minutes"])
+                      * self.p["equipment_pairs"]) if "equipment_pairs" in self.p else None
         for pen, frozen in sorted(pens.items()):
             stages = {row.production_stage for row in frozen.values()}
             stage = "adaptation" if "adaptation" in stages else next(iter(stages))
@@ -124,6 +127,9 @@ class Feeding:
                                      intervals=intervals)
             remaining, part = plan.planned_g_dm, 1
             while remaining:
+                loads += 1
+                if load_limit is not None and loads > load_limit:
+                    raise ValueError(f"equipment cycles exhausted in feeding window {start}: {load_limit}")
                 target = min(remaining, self.max_load_dm)
                 allocations.extend(self.load(plan, frozen, replay, policy, part, target))
                 remaining -= target
@@ -202,8 +208,12 @@ class Feeding:
         self.access_ids.clear()
 
     def read_checkpoints(self):
-        if not self.spool.exists():
-            return
-        with self.spool.open("rb") as stream:
-            while stream.peek(1):
-                yield Unpickler(stream).load()
+        yield from read_checkpoints(self.spool)
+
+
+def read_checkpoints(spool):
+    if not spool.exists():
+        return
+    with spool.open("rb") as stream:
+        while stream.peek(1):
+            yield Unpickler(stream).load()

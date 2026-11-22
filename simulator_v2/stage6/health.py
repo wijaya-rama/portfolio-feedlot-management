@@ -141,7 +141,7 @@ class Health:
     def return_to_production(self, live, ep, when):
         if self.yard.kinds[live.pen] != LocationKind.HOSPITAL:
             return
-        pen = self.yard.pick(LocationKind.PRODUCTION, pack=True)
+        pen = self.yard.pick(LocationKind.PRODUCTION, pack=True, lot=live.lot)
         if pen is None:
             self.yard.exception(when, "hospital_return_rescheduled", live.key)
             return

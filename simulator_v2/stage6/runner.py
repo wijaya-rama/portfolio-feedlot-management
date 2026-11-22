@@ -42,7 +42,7 @@ class Terminal:
 
 
 class Runner:
-    def __init__(self, config, run_id, writer):
+    def __init__(self, config, run_id, writer, *, retain_yardage=True):
         validate(config)
         self.config, self.writer = config, writer
         self.emit = writer.emit
@@ -54,7 +54,8 @@ class Runner:
         self.draw = Draw(config["seed"])
         self.yard = Yard(config, self.first, self.last, run_id, self.bio, self.draw, self.emit)
         self.weights = Weights(self.yard, self.emit, self.calendar[0].locked_at if len(self.calendar) > 1 else None)
-        self.supply = Supply(config, self.first, max(1, sum(self.yard.capacity.values())), self.draw, self.emit)
+        design_head = config["warehouse"].get("design_head", sum(self.yard.capacity.values()))
+        self.supply = Supply(config, self.first, design_head, self.draw, self.emit)
         self.health = Health(config, self.yard, self.emit, self.weights.weigh)
         self.sales = Sales(self.yard, self.weights, self.emit)
         self.feeding = Feeding(self.yard, self.supply, self.weights, config, self.calibration, self.emit,
@@ -62,7 +63,8 @@ class Runner:
         op, retro, self.archive = weather_inputs(config, self.calibration)
         self.operational = Growth(self.yard, self.bio, self.calibration, op, "operational", self.emit)
         self.retro = Growth(self.yard, self.bio, self.calibration, retro, "retrospective", self.emit) if retro else None
-        self.yardage, self.terminal = [], []
+        self.yardage = [] if retain_yardage else None
+        self.terminal = []
         self.daily_active = Counter()
 
     def growth(self, first, last, **kwargs):
@@ -138,7 +140,8 @@ class Runner:
                              exit_event.event_id if exit_event else live.interval.start_event_id,
                              exit_event.effective_at if exit_event else finish - TICK,
                              YARDAGE_TARIFF, self.config["finance"]["yardage_cents"])
-            self.yardage.append(row)
+            if self.yardage is not None:
+                self.yardage.append(row)
             self.emit("yardage", [row], day)
 
     def feeding_window(self, start, end):

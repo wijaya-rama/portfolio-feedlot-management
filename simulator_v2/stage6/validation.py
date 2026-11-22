@@ -139,11 +139,23 @@ def audit_movements(audit, runner, replay, daily, monthly):
     receipt_count = sum(row["kind"] == "receipt" for row in events.values())
     audit.check("placement_disposition", receipt_count + len(runner.yard.pending) == len(placements),
                 "each scheduled placement received or explicitly open")
+    required = runner.config.get("required_placements")
+    if required is not None:
+        audit.check("exact_placements", receipt_count == len(placements) == required and not runner.yard.pending)
+        blocked = {"receiving_full_rescheduled", "production_full_rescheduled", "hospital_return_rescheduled",
+                   "hospital_full_triaged_in_place", "ingredient_shortage_load_cancelled"}
+        audit.check("baseline_operating_capacity", all(row["reason"] not in blocked for row in audit.rows("exceptions")),
+                    "review baseline overflow or material shortage before publication")
     audit.check("outcomes", set(outcomes) == set(profiles) == set(states), "one terminal record per entry")
     audit.check("outcomes", all((row.status, row.location_id) == (outcomes[key]["status"], outcomes[key]["location_id"])
                                 for key, row in states.items()), "closing state")
     enter, exit_at = {}, {}
     pen = Counter()
+    pen_lots = {}
+    segregated = runner.config.get("lot_segregation", False)
+    hospital = {key for key, row in locations.items() if row["kind"] == "hospital"}
+    hospital_head = 0
+    hospital_limit = runner.config.get("hospital_planning_head")
     for event in sorted(events.values(), key=lambda row: (row["effective_at"], row["sequence"])):
         key, kind = event["animal_id"], event["kind"]
         audit.check("foreign_keys", key in animals, key)
@@ -151,10 +163,19 @@ def audit_movements(audit, runner, replay, daily, monthly):
         if origin:
             audit.check("yard_capacity", pen[origin] > 0, event["event_id"])
             pen[origin] -= 1
+            hospital_head -= origin in hospital
+            if not pen[origin]:
+                pen_lots.pop(origin, None)
         if destination:
             pen[destination] += 1
+            hospital_head += destination in hospital
             audit.check("yard_capacity", destination in locations and
                         pen[destination] <= locations[destination]["capacity_head"], event["event_id"])
+            if segregated and locations[destination]["kind"] != "hospital":
+                lot = animals[key]["lot_id"]
+                audit.check("lot_segregation", pen_lots.setdefault(destination, lot) == lot, event["event_id"])
+        if hospital_limit is not None:
+            audit.check("hospital_headroom", hospital_head <= hospital_limit, event["event_id"])
         if kind in {"receipt", "opening"}:
             enter[key] = event["effective_at"]
         if kind in {"sale", "death"}:

@@ -182,7 +182,11 @@ class Supply:
 
     def day(self, day):
         when = at(day, 5, 30)
-        for key, order, amount, part in self.inbound.pop(day, ()):
+        receipts = self.inbound.pop(day, ())
+        daily_limit = self.policy.get("max_supplier_daily_g_af")
+        if daily_limit is not None and sum(row[2] for row in receipts) > daily_limit:
+            raise ValueError(f"supplier inbound capacity exceeded on {day}: {daily_limit} g AF")
+        for key, order, amount, part in receipts:
             batch = self.batch(key, f"{order}-B{part}", when)
             self.apply(Kind.RECEIPT, when, self.dock[key], key, amount, batch_id=batch,
                        po_line_id=order, freight_cents=half_up(amount * 1500, 1000000))

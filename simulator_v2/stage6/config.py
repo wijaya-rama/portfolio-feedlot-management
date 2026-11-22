@@ -67,6 +67,36 @@ def validate(config):
     if any(type(row["minimum_dof"]) is not int or row["minimum_dof"] < 0
            for row in config["placements"] + config["carry_in"] if "minimum_dof" in row):
         raise ValueError("lot minimum DOF requires a nonnegative integer")
+    if type(config.get("lot_segregation", False)) is not bool:
+        raise ValueError("lot_segregation must be boolean")
+    if "hospital_planning_head" in config and (
+        type(config["hospital_planning_head"]) is not int
+        or not 0 < config["hospital_planning_head"] < sum(caps["hospital"])
+    ):
+        raise ValueError("hospital planning head must leave spare physical beds")
+    if config.get("lot_segregation"):
+        occupied = set()
+        for row in config["carry_in"]:
+            if row["location"] in occupied:
+                raise ValueError("segregated carry-in lots require separate opening pens")
+            occupied.add(row["location"])
+    if "late_draft_after_days" in sale and (
+        type(sale["late_draft_after_days"]) is not int or sale["late_draft_after_days"] < 1
+        or not 180 <= sale["late_threshold_kg"] <= sale["threshold_kg"]
+    ):
+        raise ValueError("invalid late-draft policy")
+    for field in ("design_head", "equipment_pairs", "equipment_cycle_minutes", "max_supplier_daily_g_af"):
+        value = config["warehouse"].get(field, 1)
+        if type(value) is not int or value < 1:
+            raise ValueError(f"invalid warehouse {field}")
+    equipment = config["warehouse"]
+    if ("equipment_pairs" in equipment) != ("equipment_cycle_minutes" in equipment):
+        raise ValueError("equipment count and cycle must be configured together")
+    if "required_placements" in config and (
+        type(config["required_placements"]) is not int or config["required_placements"] < 1
+        or sum(row["head"] for row in config["placements"]) != config["required_placements"]
+    ):
+        raise ValueError("placement schedule does not match its required count")
     health = config["health"]
     for field in ("severity_weights", "detection_daily", "untreated_death_daily",
                   "detected_death_daily", "recovery_daily"):

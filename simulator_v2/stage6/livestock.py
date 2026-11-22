@@ -140,6 +140,8 @@ class Yard:
         self.intervals = {}
         self.entry_costs = {}
         self.members = {pen: set() for pen in self.kinds}
+        self.segregate_lots = config.get("lot_segregation", False)
+        self.pen_lot = {}
         self.peak = Counter()
         self.sequence = 0
         self.seed = draw.seed
@@ -154,9 +156,11 @@ class Yard:
         event_id = stable_id("OPS-EXCEPTION", [self.run_id, at_time, reason, key])
         self.emit("exceptions", [ExceptionRow(event_id, at_time, "livestock", reason, key, qty, unit)], at_time)
 
-    def pick(self, kind, *, not_pen=None, pack=False):
+    def pick(self, kind, *, not_pen=None, pack=False, lot=None):
         choices = [pen for pen in self.kinds if self.kinds[pen] == kind and pen != not_pen
-                   and len(self.members[pen]) < self.capacity[pen]]
+                   and len(self.members[pen]) < self.capacity[pen]
+                   and (not self.segregate_lots or kind == LocationKind.HOSPITAL
+                        or self.pen_lot.get(pen, lot) == lot)]
         return min(choices, key=lambda pen: ((-1 if pack else 1) * len(self.members[pen]), pen), default=None)
 
     def move(self, key, kind, when, target=None, *, reason=None, document=None):
@@ -165,6 +169,10 @@ class Yard:
             raise ValueError("movement must begin from the correct active state")
         if target is not None and len(self.members[target]) >= self.capacity[target]:
             raise ValueError(f"destination full: {target}")
+        lot = self.animals[key].lot_id
+        if (self.segregate_lots and target is not None and self.kinds[target] != LocationKind.HOSPITAL
+                and self.pen_lot.get(target, lot) != lot):
+            raise ValueError(f"incompatible lot at {target}: {lot}")
         if kind == EventKind.TRANSFER and (origin == target or self.kinds[target] not in TRANSFERS[self.kinds[origin]]):
             raise ValueError("ineligible internal movement")
         self.sequence += 1
@@ -176,8 +184,12 @@ class Yard:
         if origin is not None:
             self.intervals[key] = replace(self.active[key].interval, end_at=when, end_event_id=event_id)
             self.members[origin].remove(key)
+            if not self.members[origin]:
+                self.pen_lot.pop(origin, None)
         if target:
             self.members[target].add(key)
+            if self.segregate_lots and self.kinds[target] != LocationKind.HOSPITAL:
+                self.pen_lot[target] = lot
             self.peak[target] = max(self.peak[target], len(self.members[target]))
             self.intervals[key] = LocationInterval(key, self.animals[key].lot_id, target, when,
                                                    row.sequence, event_id)
@@ -233,7 +245,7 @@ class Yard:
         while self.future and self.future[0].requested_date <= day:
             self.backlog.append(self.future.popleft())
         for row in self.backlog:
-            pen = self.pick(LocationKind.RECEIVING, pack=True)
+            pen = self.pick(LocationKind.RECEIVING, pack=True, lot=row.lot_id)
             if not pen:
                 wait.append(row)
                 blocked[row.lot_id] += 1
@@ -253,14 +265,14 @@ class Yard:
             live = self.active[key]
             if self.kinds[live.pen] != LocationKind.RECEIVING or day < live.receiving_until:
                 continue
-            pen = self.pick(LocationKind.PRODUCTION, pack=True)
+            pen = self.pick(LocationKind.PRODUCTION, pack=True, lot=live.lot)
             if pen:
                 self.move(key, EventKind.TRANSFER, when, pen, reason="receiving_complete")
             else:
                 self.exception(when, "production_full_rescheduled", key)
 
     def regroup(self, day, when):
-        if day.weekday() != self.config["regroup_weekday"]:
+        if self.segregate_lots or day.weekday() != self.config["regroup_weekday"]:
             return
         pens = [p for p in self.members if self.kinds[p] == LocationKind.PRODUCTION]
         heavy = max(pens, key=lambda p: (len(self.members[p]), p))

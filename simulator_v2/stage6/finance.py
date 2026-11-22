@@ -103,7 +103,7 @@ class Finance(Fixture):
                                   (self.refs[row.movement_event_id], tariff))
             self.actions.append(Action(key, service, row.service_at, "yardage", Account.WIP, Account.YARDAGE,
                                        row.cents, row.animal_id, row.lot_id, row.location_id, route_cost=True))
-            if row is selected and approval:
+            if approval and row == selected:
                 adjustment = self._dated(f"{key}/DELTA", "stage4/yardage_corrections", [row, delta], row.service_at,
                                          (service, approval), posted=arrival, available=arrival)
                 # Reapply at the original service boundary only in the approved restated book.

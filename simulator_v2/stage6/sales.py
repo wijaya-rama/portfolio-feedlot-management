@@ -94,7 +94,12 @@ class Sales:
             head[live.lot] += 1
         for live in sorted(due, key=lambda row: row.key):
             estimate = estimates[live.key]
-            draft = assess_draft(estimate, self.policy["threshold_kg"])
+            threshold = self.policy["threshold_kg"]
+            late = self.policy.get("late_draft_after_days")
+            if late is not None and ((when - live.production_age_origin) / DAY
+                                     >= self.yard.minimum_dof_by_lot[live.lot] + late):
+                threshold = self.policy["late_threshold_kg"]
+            draft = assess_draft(estimate, threshold)
             decisions.append(draft)
             if draft.status == "selected":
                 groups[live.lot].append((live, draft, estimate.estimated_liveweight_kg))
