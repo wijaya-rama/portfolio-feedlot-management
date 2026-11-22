@@ -1,0 +1,71 @@
+{
+  "version": "stage2-synthetic.1",
+  "biology_version": "biology.1",
+  "health_version": "clinical.1",
+  "feed_version": "temporary-dm.1",
+  "observation_version": "scale.1",
+  "estimator_version": "as-of.1",
+  "feed_windows_local": [[8, 10], [15, 17]],
+  "biology": {
+    "weight_bounds_kg": [180.0, 900.0],
+    "gain_bounds_kg_per_day": [-0.8, 2.4],
+    "reference_weight_kg": 400.0,
+    "reference_adg_kg": 1.9,
+    "maturity_age_days": 820,
+    "maturity_floor": 0.45,
+    "maintenance_mj_at_reference": 50.0,
+    "gain_mj_per_kg": 29.0,
+    "gain_cp_kg_per_kg": 0.40,
+    "cp_maintenance_kg_at_reference": 0.40,
+    "deficit_kg_per_mj": 0.013,
+    "intake_limit_bw_fraction": 0.029,
+    "adaptation_days": 14,
+    "individual_variation": 0.12,
+    "lot_variation": 0.08,
+    "breed_factor": {"Angus-cross": 1.0, "Charolais-cross": 1.10, "Hereford-cross": 0.94},
+    "sex_factor": {"steer": 1.0, "heifer": 0.87},
+    "frame_factor": {"medium": 1.0, "large": 1.08}
+  },
+  "rations": {
+    "receiving": {"dm_kg_per_day": 7.4, "energy_mj_per_kg_dm": 9.2, "protein_fraction_dm": 0.13, "potential_factor": 0.80},
+    "adaptation": {"dm_kg_per_day": 8.8, "energy_mj_per_kg_dm": 9.8, "protein_fraction_dm": 0.14, "potential_factor": 0.88},
+    "finishing": {"dm_kg_per_day": 10.4, "energy_mj_per_kg_dm": 10.6, "protein_fraction_dm": 0.14, "potential_factor": 1.0},
+    "hospital": {"dm_kg_per_day": 7.4, "energy_mj_per_kg_dm": 9.2, "protein_fraction_dm": 0.14, "potential_factor": 0.75}
+  },
+  "health": {
+    "severity": {"mild": 0.27, "moderate": 0.48, "severe": 0.72},
+    "treatment_relief": {"low": 0.04, "moderate": 0.12},
+    "chronic_burden": 0.23,
+    "intake_penalty": 0.58,
+    "gain_penalty": 0.70,
+    "maintenance_surcharge": 0.16
+  },
+  "weather": {
+    "cold": {"maintenance_factor": 1.12, "intake_factor": 0.99},
+    "neutral": {"maintenance_factor": 1.0, "intake_factor": 1.0},
+    "cold_snap": {"maintenance_factor": 1.30, "intake_factor": 0.87},
+    "hot": {"maintenance_factor": 1.08, "intake_factor": 0.84}
+  },
+  "calendar": {"cold_start_month_day": [11, 15], "cold_end_month_day": [3, 15]},
+  "weighing": {
+    "precision_kg": 0.1,
+    "scales": {
+      "SYN-SCALE-RECEIVING": {"bias_kg": 0.2, "error_half_width_kg": 1.4},
+      "SYN-SCALE-YARD": {"bias_kg": -0.5, "error_half_width_kg": 2.4},
+      "SYN-SCALE-HOSPITAL": {"bias_kg": 0.5, "error_half_width_kg": 1.8},
+      "SYN-SCALE-SHIP": {"bias_kg": -0.3, "error_half_width_kg": 1.6}
+    },
+    "default_missing_probability": {
+      "opening": 0.0, "receiving": 0.0, "follow_up": 0.15,
+      "hospital": 0.18, "drafting": 0.12, "final_sale": 0.20
+    }
+  },
+  "estimation": {
+    "fresh_days": 14, "stale_days": 35, "projection_limit_days": 35,
+    "stage_adg_kg": {"receiving": 0.0, "adaptation": 0.75, "finishing": 1.28, "hospital": 0.18},
+    "cold_adg_multiplier": 0.92,
+    "observed_illness_multiplier": 0.48,
+    "observed_chronic_multiplier": 0.71
+  },
+  "backtest": {"horizons_days": [7, 30, 60], "min_pairs": 30, "min_animals": 15, "min_lots": 3}
+}
