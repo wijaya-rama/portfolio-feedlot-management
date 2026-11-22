@@ -1,0 +1,120 @@
+{
+  "version": "stage3-synthetic.1",
+  "effective_from_local": "2023-12-30 00:00",
+  "method": "metabolic_bodyweight",
+  "operational_scale_reference": {
+    "version": "scripted-scale-reference.1",
+    "gain_g_per_day": 900
+  },
+  "feeding_windows_local": [[8, 11], [15, 17]],
+  "planning": {
+    "version": "stage-window-target.1",
+    "fallback_weight_g": 400000,
+    "stage_dm_g_per_window": {
+      "receiving": 3700,
+      "adaptation": 4400,
+      "finishing": 5200,
+      "hospital": 3700
+    },
+    "intake_limit_bps_per_window": 120,
+    "mix_loss_bps": 100,
+    "truck_loss_bps": 50,
+    "bunk_refusal_bps": 800
+  },
+  "warehouse": {
+    "ingredients": [
+      ["SYN-HAND-SILAGE", "Worked-example silage", 5000, 10000, 1200],
+      ["SYN-SILAGE", "Barley silage", 4300, 9200, 1100],
+      ["SYN-BARLEY", "Rolled barley", 8800, 12200, 1350],
+      ["SYN-OATS", "Rolled oats", 8900, 10800, 1500]
+    ],
+    "bins": [
+      ["SYN-DEMO-1", "SYN-YARD-WH", 100000],
+      ["SYN-DEMO-2", "SYN-YARD-WH", 100000],
+      ["SYN-SILAGE-BIN", "SYN-YARD-WH", 8500000],
+      ["SYN-GRAIN-BIN", "SYN-YARD-WH", 3500000]
+    ],
+    "batches": [
+      ["SYN-HAND-OLD", "SYN-HAND-SILAGE", "HAND-231230", 5000],
+      ["SYN-HAND-NEW", "SYN-HAND-SILAGE", "HAND-231231", 5000],
+      ["SYN-SILAGE-OLD", "SYN-SILAGE", "SIL-231230", 4300],
+      ["SYN-SILAGE-NEW", "SYN-SILAGE", "SIL-240110", 4600],
+      ["SYN-BARLEY-LOT", "SYN-BARLEY", "BRL-231230", 8800],
+      ["SYN-OATS-LOT", "SYN-OATS", "OAT-231230", 8900]
+    ],
+    "equipment": [
+      ["SYN-MIXER", "mixer", 100000],
+      ["SYN-TRUCK", "truck", 100000]
+    ],
+    "opening": [
+      ["SYN-HAND-OLD", "SYN-DEMO-1", 10000, 300],
+      ["SYN-SILAGE-OLD", "SYN-SILAGE-BIN", 300000, 7200],
+      ["SYN-BARLEY-LOT", "SYN-GRAIN-BIN", 3200000, 128000],
+      ["SYN-OATS-LOT", "SYN-GRAIN-BIN", 150000, 6900]
+    ],
+    "purchase_orders": [
+      ["SYN-HAND-PO", "SYN-HAND-SILAGE", 40, "kg", 5000],
+      ["SYN-SILAGE-PO", "SYN-SILAGE", 24000, "t", 6700000]
+    ],
+    "receipts": [
+      ["SYN-HAND-R1", "2023-12-31 06:00", "2023-12-31 06:00", "2023-12-31 06:00", "SYN-DEMO-1", "SYN-HAND-NEW", "SYN-HAND-PO", 5000, 0],
+      ["SYN-SILAGE-R1", "2023-12-31 06:00", "2023-12-31 06:00", "2023-12-31 06:00", "SYN-SILAGE-BIN", "SYN-SILAGE-OLD", "SYN-SILAGE-PO", 700000, 700],
+      ["SYN-SILAGE-R2", "2024-01-10 07:00", "2024-01-11 07:00", "2024-01-11 07:30", "SYN-SILAGE-BIN", "SYN-SILAGE-NEW", "SYN-SILAGE-PO", 6000000, 3000]
+    ],
+    "transfers": [
+      ["SYN-HAND-T1", "2023-12-31 07:00", "SYN-DEMO-1", "SYN-DEMO-2", "SYN-HAND-SILAGE", 4000]
+    ],
+    "counts": [
+      ["SYN-HAND-C1", "2024-01-02 10:00", "SYN-DEMO-2", "SYN-HAND-OLD", 3800]
+    ],
+    "adjustments": [
+      ["SYN-HAND-A1", "2024-01-02 10:01", "SYN-DEMO-2", "SYN-HAND-OLD", -200, null, "SYN-HAND-C1", "approved count variance"]
+    ],
+    "spoilage": [
+      ["SYN-HAND-S1", "2024-01-03 10:00", "SYN-DEMO-1", "SYN-HAND-NEW", 500, "visible heating"]
+    ],
+    "invoices": [
+      ["SYN-HAND-I1", "2024-01-04 09:00", "SYN-DEMO-1", "SYN-HAND-NEW", "SYN-HAND-R1", "2024-01-03", 25]
+    ],
+    "late_assay": ["SYN-SILAGE-NEW", "2024-01-10 07:00", "2024-01-11 14:00", "2024-01-15 07:00", 4550]
+  },
+  "recipes": [
+    {
+      "id": "SYN-HAND-RATION",
+      "version": 1,
+      "starts_local": "2023-12-30 00:00",
+      "target_kj_per_kg_dm": 10000,
+      "target_cp_bps_dm": 1200,
+      "components": [["SYN-HAND-SILAGE", 10000, 5000, null, 0]]
+    },
+    {
+      "id": "SYN-YARD-RATION",
+      "version": 1,
+      "starts_local": "2023-12-30 00:00",
+      "target_kj_per_kg_dm": 10400,
+      "target_cp_bps_dm": 1200,
+      "components": [
+        ["SYN-SILAGE", 6000, 4300, null, 0],
+        ["SYN-BARLEY", 4000, 8800, "SYN-OATS", 2500]
+      ]
+    },
+    {
+      "id": "SYN-YARD-RATION",
+      "version": 2,
+      "starts_local": "2024-01-15 00:00",
+      "target_kj_per_kg_dm": 10850,
+      "target_cp_bps_dm": 1240,
+      "components": [
+        ["SYN-SILAGE", 4500, 4550, null, 0],
+        ["SYN-BARLEY", 5500, 8800, "SYN-OATS", 2500]
+      ]
+    }
+  ],
+  "substitution": ["2024-01-16 08:00", "SYN-PEN-A", 2000],
+  "scripted_dispatch": [
+    ["2023-12-31 08:00", "SYN-PEN-A", "SYN-HAND-RATION", 4000, 0, 0, 2000, 0],
+    ["2024-01-01 08:00", "SYN-PEN-B", "SYN-YARD-RATION", 6500, 0, 0, 450, 0],
+    ["2024-01-06 08:00", "SYN-HOSPITAL", "SYN-YARD-RATION", 1000, 0, 100, 0, 0],
+    ["2024-02-29 08:00", "SYN-RECEIVING", "SYN-YARD-RATION", 8000, 100, 0, 0, 50]
+  ]
+}

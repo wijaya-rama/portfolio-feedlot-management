@@ -173,6 +173,12 @@ class Biology:
                 yield step
                 weight = step.end_weight_kg
 
+    def _consume_feed(self, animal_id, location_id, *, start, end, window, stage,
+                      start_weight_kg, health_burden, weather):
+        return self.adapter.consume(start=start, end=end, window=window, stage=stage,
+                                    start_weight_kg=start_weight_kg,
+                                    health_burden=health_burden, weather=weather)
+
     def _advance(self, profile, timeline, interval, start, end, entered, stage, window,
                  health, weather_row, weather_key, weather, weight, config):
         bio = config["biology"]
@@ -197,8 +203,9 @@ class Biology:
         share = energy = protein = 0.0
         demand = consumed = 0
         if window:
-            feed = self.adapter.consume(start=start, end=end, window=window, stage=stage,
-                                        start_weight_kg=weight, health_burden=burden, weather=weather)
+            feed = self._consume_feed(
+                profile.animal_id, interval.location_id, start=start, end=end, window=window,
+                stage=stage, start_weight_kg=weight, health_burden=burden, weather=weather)
             share, energy, protein = feed.access_fraction, feed.energy_mj, feed.protein_kg
             demand, consumed = feed.demand_g_dm, feed.consumed_g_dm
             if (not 0 <= consumed <= demand or not 0 < share <= 1
