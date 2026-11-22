@@ -226,7 +226,7 @@ def _scores(weights, method):
 
 
 def settle(ledger, delivery, plan, ticket, frozen, fallback_g, *,
-           parent=None, approval=None, replay=None):
+           parent=None, approval=None, replay=None, allocation_policy=None):
     if (ticket.delivery_id != delivery.delivery_id or plan.plan_id != delivery.plan_id
             or not delivery.window_end <= ticket.effective_at <= ticket.posted_at
             or not delivery.available_at <= ticket.available_at
@@ -261,10 +261,15 @@ def settle(ledger, delivery, plan, ticket, frozen, fallback_g, *,
     loss_g = whole(ticket.bunk_loss_g_af, "bunk loss")
     if refusal_g + loss_g > delivery.delivered.g_af:
         raise ValueError("refusal and bunk loss exceed delivery")
-    if not intervals:
+    if not intervals and allocation_policy is None:
         refusal_g = delivery.delivered.g_af - loss_g
     amounts = partition(delivery.delivered, {"refusal": refusal_g, "bunk_loss": loss_g,
                                              "consumption": delivery.delivered.g_af - refusal_g - loss_g})
+    allocation_version = MODEL_VERSION
+    if allocation_policy is not None:
+        allocation_version = allocation_policy.version
+        amounts, releases = allocation_policy.release(delivery, intervals, amounts)
+        refusal_g = amounts["refusal"].g_af
     actual_animals = {row[0] for row in intervals}
     planned_animals = {row.animal_id for row in frozen.values() if row.roster_pen_id == delivery.pen_id}
     if not intervals:
@@ -285,8 +290,11 @@ def settle(ledger, delivery, plan, ticket, frozen, fallback_g, *,
         weights[animal] = frozen.get(animal) or _weight(animal, plan.decision_at,
                                                        plan.decision_snapshot_id, fallback_g)
     parent_id = parent.row.settlement_id if parent else None
-    settlement_id = stable_id("BUNK-SETTLEMENT", [MODEL_VERSION, delivery, plan, ticket, access,
-                                                  parent_id, approval, amounts, list(weights.values())])
+    identity = [allocation_version, delivery, plan, ticket, access, parent_id, approval, amounts,
+                list(weights.values())]
+    if allocation_policy is not None:
+        identity.append(releases)
+    settlement_id = stable_id("BUNK-SETTLEMENT", identity)
     finalized = approval.approved_at if approval else ticket.posted_at
     settlement = Settlement(settlement_id, delivery.delivery_id, ticket.record_id, access.access_snapshot_id,
                             plan.decision_snapshot_id, parent_id, approval.approval_id if approval else None,
@@ -300,15 +308,20 @@ def settle(ledger, delivery, plan, ticket, frozen, fallback_g, *,
             stable_id("FEED-EXPOSURE", [settlement_id, animal, start, end]), settlement_id,
             delivery.delivery_id, animal, lot, delivery.pen_id, start, end, seconds(start, end),
             entered, exited, weights[animal].weight_input_id))
-    allocations = tuple(_allocate(settlement, delivery, plan, tuple(exposures), weights))
+    if allocation_policy is None:
+        allocations = tuple(_allocate(settlement, delivery, plan, exposures, weights))
+    else:
+        allocations = tuple(allocation_policy.allocate(settlement, delivery, plan, exposures,
+                                                       weights, releases))
     return Settled(settlement, access, tuple(exposures), tuple(weights.values()), allocations)
 
 
-def _allocate(settlement, delivery, plan, exposures, weights):
+def _allocate(settlement, delivery, plan, exposures, weights, *, pool=None, model_version=MODEL_VERSION):
     by_animal = defaultdict(list)
     for row in exposures:
         by_animal[row.animal_id].append(row)
-    pool = settlement.modeled_consumption
+    if pool is None:
+        pool = settlement.modeled_consumption
     for method in Method:
         scores = _scores(weights, method)
         drivers = {key: scores[key] * sum(row.duration_seconds for row in rows)
@@ -327,10 +340,13 @@ def _allocate(settlement, delivery, plan, exposures, weights):
             for row in rows:
                 key = row.exposure_id
                 weight = weights[animal]
+                identity = [key, method, model_version]
+                if model_version != MODEL_VERSION:
+                    identity.extend((row.first_at, row.end_at))
                 yield Allocation(
-                    stable_id("FEED-ALLOCATION", [key, method, MODEL_VERSION]), settlement.settlement_id,
+                    stable_id("FEED-ALLOCATION", identity), settlement.settlement_id,
                     key, delivery.delivery_id, delivery.mix_id, animal, row.lot_id, delivery.pen_id,
                     delivery.window_start, delivery.window_end, row.first_at, row.end_at,
                     row.duration_seconds, weight.weight_input_id, weight.estimate_id, plan.decision_at,
-                    method, f"{MODEL_VERSION}.{method}", scores[animal], dm[key], energy[key], protein[key],
+                    method, f"{model_version}.{method}", scores[animal], dm[key], energy[key], protein[key],
                     cents[key], settlement.finalized_at, settlement.available_at)

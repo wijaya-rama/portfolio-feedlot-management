@@ -171,7 +171,8 @@ class Schedule:
     bunk_tickets: tuple
 
 
-def feeding_schedule(scenario, stage2_config, formulas, estimator, transactions):
+def feeding_schedule(scenario, stage2_config, formulas, estimator, transactions, *, windows=None,
+                     issue_sequence_offset=0):
     policy = scenario["planning"]
     scripts = {(local(when), pen): (recipe, dm, mix_loss, truck_loss, refusal, bunk_loss)
                for when, pen, recipe, dm, mix_loss, truck_loss, refusal, bunk_loss
@@ -181,53 +182,55 @@ def feeding_schedule(scenario, stage2_config, formulas, estimator, transactions)
     bins = {"SYN-HAND-SILAGE": "SYN-DEMO-1", "SYN-SILAGE": "SYN-SILAGE-BIN",
             "SYN-BARLEY": "SYN-GRAIN-BIN", "SYN-OATS": "SYN-GRAIN-BIN"}
     plans, snapshots, estimates, frozen, orders, issues, trucks, bunks = [], [], [], {}, [], [], [], []
-    for day in calendar_days(START, END):
-        for start, end in feeding_windows(day, stage2_config):
-            snapshot, rows, frozen[start] = freeze(estimator, start, policy["fallback_weight_g"])
-            snapshots.append(snapshot)
-            estimates.extend(rows)
-            for pen in PENS:
-                recipe, dm, mix_loss, truck_loss, refused, bunk_loss = scripts.get(
-                    (start, pen), (YARD_RATION, None, None, None, None, 0))
-                plan = feed_plan(pen, start, end, snapshot, frozen[start], formulas, recipe, policy,
-                                 override_g_dm=dm)
-                plans.append(plan)
-                if not plan.planned_g_dm:
-                    continue
-                recipe_id = plan.ration_version_id
-                mix_id = f"SYN-MIX-{start:%Y%m%d%H%M}-{pen.removeprefix('SYN-')}"
-                delivery_id = mix_id.replace("SYN-MIX-", "SYN-DELIVERY-", 1)
-                targets = formulas.targets(recipe_id, plan.planned_g_dm)
-                gross = 0
-                for line in formulas.lines[recipe_id]:
-                    _, af = targets[line.component_id]
-                    substitute = 0
-                    if (start, pen) == (substitution_time, substitution_pen) and line.substitute_ingredient_id:
-                        substitute = af * substitution_bps // BPS
-                    for ingredient, grams, reason in (
-                            (line.ingredient_id, af - substitute, None),
-                            (line.substitute_ingredient_id, substitute, "scripted barley short load")):
-                        if not grams:
-                            continue
-                        key = f"{mix_id}-ISSUE-{len(issues) + 1}"
-                        transactions.append(Transaction(*same_day_meta(key, start), Kind.ISSUE,
-                                                        len(transactions), bins[ingredient], ingredient, grams))
-                        issues.append(MixIssue(key, mix_id, line.component_id, reason))
-                        gross += grams
-                if mix_loss is None:
-                    mix_loss = half_up(gross * policy["mix_loss_bps"], BPS)
-                orders.append(MixOrder(*same_day_meta(mix_id, start), recipe_id, "SYN-MIXER-V1",
-                                       plan.planned_g_dm, mix_loss))
-                loaded = gross - mix_loss
-                if truck_loss is None:
-                    truck_loss = half_up(loaded * policy["truck_loss_bps"], BPS)
-                trucks.append(TruckTicket(*same_day_meta(delivery_id, start), mix_id, plan.plan_id,
-                                          "SYN-TRUCK-V1", loaded, truck_loss))
-                if refused is None:
-                    refused = half_up((loaded - truck_loss) * policy["bunk_refusal_bps"], BPS)
-                key = f"{delivery_id}-BUNK"
-                bunks.append(BunkTicket(key, f"{key}-DOC", end, end + timedelta(minutes=15),
-                                        end + timedelta(minutes=30), delivery_id, refused, bunk_loss))
+    if windows is None:
+        windows = (window for day in calendar_days(START, END)
+                   for window in feeding_windows(day, stage2_config))
+    for start, end in windows:
+        snapshot, rows, frozen[start] = freeze(estimator, start, policy["fallback_weight_g"])
+        snapshots.append(snapshot)
+        estimates.extend(rows)
+        for pen in PENS:
+            recipe, dm, mix_loss, truck_loss, refused, bunk_loss = scripts.get(
+                (start, pen), (YARD_RATION, None, None, None, None, 0))
+            plan = feed_plan(pen, start, end, snapshot, frozen[start], formulas, recipe, policy,
+                             override_g_dm=dm)
+            plans.append(plan)
+            if not plan.planned_g_dm:
+                continue
+            recipe_id = plan.ration_version_id
+            mix_id = f"SYN-MIX-{start:%Y%m%d%H%M}-{pen.removeprefix('SYN-')}"
+            delivery_id = mix_id.replace("SYN-MIX-", "SYN-DELIVERY-", 1)
+            targets = formulas.targets(recipe_id, plan.planned_g_dm)
+            gross = 0
+            for line in formulas.lines[recipe_id]:
+                _, af = targets[line.component_id]
+                substitute = 0
+                if (start, pen) == (substitution_time, substitution_pen) and line.substitute_ingredient_id:
+                    substitute = af * substitution_bps // BPS
+                for ingredient, grams, reason in (
+                        (line.ingredient_id, af - substitute, None),
+                        (line.substitute_ingredient_id, substitute, "scripted barley short load")):
+                    if not grams:
+                        continue
+                    key = f"{mix_id}-ISSUE-{issue_sequence_offset + len(issues) + 1}"
+                    transactions.append(Transaction(*same_day_meta(key, start), Kind.ISSUE,
+                                                    len(transactions), bins[ingredient], ingredient, grams))
+                    issues.append(MixIssue(key, mix_id, line.component_id, reason))
+                    gross += grams
+            if mix_loss is None:
+                mix_loss = half_up(gross * policy["mix_loss_bps"], BPS)
+            orders.append(MixOrder(*same_day_meta(mix_id, start), recipe_id, "SYN-MIXER-V1",
+                                   plan.planned_g_dm, mix_loss))
+            loaded = gross - mix_loss
+            if truck_loss is None:
+                truck_loss = half_up(loaded * policy["truck_loss_bps"], BPS)
+            trucks.append(TruckTicket(*same_day_meta(delivery_id, start), mix_id, plan.plan_id,
+                                      "SYN-TRUCK-V1", loaded, truck_loss))
+            if refused is None:
+                refused = half_up((loaded - truck_loss) * policy["bunk_refusal_bps"], BPS)
+            key = f"{delivery_id}-BUNK"
+            bunks.append(BunkTicket(key, f"{key}-DOC", end, end + timedelta(minutes=15),
+                                    end + timedelta(minutes=30), delivery_id, refused, bunk_loss))
     return Schedule(tuple(plans), tuple(snapshots), tuple(estimates), frozen, tuple(orders),
                     tuple(issues), tuple(trucks), tuple(bunks))
 

@@ -89,6 +89,13 @@ def make_profile(timeline, config, animal_id, *, breed, sex, frame, entry_weight
 
 class Biology:
     def __init__(self, timeline, profiles, health, weather, config, *, adapter=None):
+        streams = self._growth_streams(timeline, profiles, health, weather, config, adapter)
+        self.steps_by_animal = {key: tuple(stream) for key, stream in streams.items()}
+        self.start_times = {key: tuple(row.start_at for row in steps)
+                            for key, steps in self.steps_by_animal.items()}
+        self.steps = tuple(row for rows in self.steps_by_animal.values() for row in rows)
+
+    def _growth_streams(self, timeline, profiles, health, weather, config, adapter):
         self.bounds = tuple(config["biology"]["weight_bounds_kg"])
         self.adapter = adapter if adapter is not None else TemporaryFeed(config)
         by_animal = defaultdict(list)
@@ -105,14 +112,13 @@ class Biology:
         self.profiles = {row.animal_id: row for row in profiles}
         if len(self.profiles) != len(profiles) or self.profiles.keys() != timeline.entries.keys():
             raise ValueError("one biological profile is required for every effective entry")
-        self.steps_by_animal = {}
-        self.start_times = {}
         for key, profile in sorted(self.profiles.items()):
             self._validate_profile(profile, timeline, config)
-            steps = tuple(self._grow(profile, timeline, by_animal[key], weather_by_day, config))
-            self.steps_by_animal[key] = steps
-            self.start_times[key] = tuple(row.start_at for row in steps)
-        self.steps = tuple(row for rows in self.steps_by_animal.values() for row in rows)
+        return {key: self._grow(self.profiles[key], timeline, by_animal[key], weather_by_day, config)
+                for key in sorted(self.profiles)}
+
+    def _additional_growth_points(self, windows):
+        return ()
 
     def _validate_profile(self, profile, timeline, config):
         bio = config["biology"]
@@ -149,6 +155,7 @@ class Biology:
             if days_weather and first < days_weather.observed_at < last:
                 points.add(days_weather.observed_at)
             points.update(point for window in windows for point in window if first < point < last)
+            points.update(point for point in self._additional_growth_points(windows) if first < point < last)
             if first < adaptation_end < last:
                 points.add(adaptation_end)
             points.update(row.start_at for row in timeline.intervals[animal_id]

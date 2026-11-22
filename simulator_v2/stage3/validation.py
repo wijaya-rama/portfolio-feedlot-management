@@ -19,10 +19,10 @@ def _check(check_id, expected, failures):
                  len(failures), failures[:10])
 
 
-def validate(fixture, feed_bridges):
+def validate(fixture, feed_bridges, *, timed=False):
     checks = list(livestock_checks(fixture.ledger))
     checks.extend(_warehouse_checks(fixture))
-    checks.extend(_feed_checks(fixture, feed_bridges))
+    checks.extend(_feed_checks(fixture, feed_bridges, timed=timed))
     checks.extend(_access_checks(fixture))
     checks.extend(_biology_checks(fixture))
     reject_failures(checks)
@@ -125,7 +125,7 @@ def _warehouse_checks(fixture):
     )
 
 
-def _feed_checks(fixture, bridges):
+def _feed_checks(fixture, bridges, *, timed=False):
     timeline = fixture.timeline
     plans = {row.plan_id: row for row in fixture.schedule.plans}
     snapshots = {row.snapshot_id: row for row in fixture.schedule.snapshots}
@@ -190,11 +190,13 @@ def _feed_checks(fixture, bridges):
             errors["bunk"].append(row.settlement_id)
         counts = Counter()
         amounts = defaultdict(lambda: [0, 0, 0, 0])
+        spans = defaultdict(list)
         for allocation in result.allocations:
             key = allocation.exposure_id
             exposure = exposures.get(key)
             weight = weights.get(allocation.weight_input_id)
             counts[allocation.method, key] += 1
+            spans[allocation.method, key].append((allocation.access_start, allocation.access_end))
             target = amounts[allocation.method]
             target[0] += allocation.g_dm
             target[1] += allocation.energy_kj
@@ -205,6 +207,8 @@ def _feed_checks(fixture, bridges):
                     or weight.cutoff != plan.decision_at or weight.estimate_snapshot_id != plan.decision_snapshot_id
                     or not delivery.window_start <= exposure.first_at < exposure.end_at <= delivery.window_end
                     or seconds(exposure.first_at, exposure.end_at) != exposure.duration_seconds
+                    or not exposure.first_at <= allocation.access_start < allocation.access_end <= exposure.end_at
+                    or seconds(allocation.access_start, allocation.access_end) != allocation.duration_seconds
                     or (weight.estimate_id is not None and (weight.estimate_id not in estimates
                         or frozen_by_id.get(weight.weight_input_id) != weight))
                     or (weight.anchor_available_at is not None and weight.anchor_available_at > plan.decision_at)):
@@ -212,8 +216,14 @@ def _feed_checks(fixture, bridges):
         pool = row.modeled_consumption
         for method in Method:
             if amounts[method] != [pool.g_dm, pool.kj, pool.cp_g, pool.cents] or any(
-                    counts[method, key] != 1 for key in exposures):
+                    not spans[method, key] for key in exposures):
                 errors["allocation"].append(f"{row.settlement_id}/{method}")
+            for key, exposure in exposures.items():
+                intervals = sorted(spans[method, key])
+                if (not intervals or (not timed and counts[method, key] != 1)
+                        or intervals[0][0] != exposure.first_at or intervals[-1][1] != exposure.end_at
+                        or any(left[1] != right[0] for left, right in pairwise(intervals))):
+                    errors["allocation"].append(f"{key}/{method}")
     for row in bridges:
         if (row.issue != add_amounts((row.mixed, row.mix_loss)) or row.mixed != row.loaded
                 or row.loaded != add_amounts((row.delivered, row.delivery_loss))
@@ -230,10 +240,19 @@ def _feed_checks(fixture, bridges):
     demo = next(result for result in fixture.active_settlements if result.row.delivery_id == key)
     manual_equal = {animal_id(1): (10_800, 1286, 83), animal_id(2): (7200, 857, 56),
                     animal_id(5): (7200, 857, 56)}
+    if timed:
+        manual_equal = {animal_id(1): (10_800, 1334, 88), animal_id(2): (7200, 834, 54),
+                        animal_id(5): (7200, 832, 53)}
+    by_animal = defaultdict(lambda: [0, 0, 0])
+    for row in demo.allocations:
+        if row.method == Method.EQUAL:
+            total = by_animal[row.animal_id]
+            total[0] += row.duration_seconds
+            total[1] += row.g_dm
+            total[2] += row.cents
     if (demo.row.modeled_consumption != FeedAmount(6000, 3000, 30_000, 360, 195)
             or demo.row.refusal != FeedAmount(2000, 1000, 10_000, 120, 65)
-            or {row.animal_id: (row.duration_seconds, row.g_dm, row.cents) for row in demo.allocations
-                if row.method == Method.EQUAL} != manual_equal):
+            or {key: tuple(value) for key, value in by_animal.items()} != manual_equal):
         errors["manual"].append(key)
     return tuple(_check(f"FEED_{key.upper()}", rule, errors[key]) for key, rule in (
         ("mix", "issues consumed exactly once and inputs equal output plus mixing loss"),

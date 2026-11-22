@@ -116,13 +116,20 @@ def tables(fixture, candidates, feed_totals):
 
 
 def build(output, seed=42):
-    output = Path(output)
-    if output.exists():
+    if Path(output).exists():
         raise FileExistsError(f"build directory already exists: {output}")
     fixture = stage3_fixture(seed)
     candidates = wip_candidates(fixture)
     totals = feed_bridges(fixture, candidates)
-    checks = validate(fixture, totals)
+    return publish(output, seed, fixture, candidates, totals, validate(fixture, totals))
+
+
+def publish(output, seed, fixture, candidates, totals, checks, *, schema=SCHEMA_VERSION,
+            run_prefix="STAGE3-RUN", stages=("stage1", "stage2", "stage3"),
+            extra_tables=(), artifacts=None, manifest=None, input_metadata=None, reconciliation=None):
+    output = Path(output)
+    if output.exists():
+        raise FileExistsError(f"build directory already exists: {output}")
     inputs = canonical({
         "synthetic": True, "scenario": fixture.scenario, "biology_config": fixture.biology_config,
         "stage1_config": fixture.ledger.config, "stage1_events_sha256": sha256(canonical(fixture.ledger.events)),
@@ -130,13 +137,14 @@ def build(output, seed=42):
         "scale_observation_sha256": sha256(canonical(fixture.observations)),
         "health_event_sha256": sha256(canonical(fixture.health)), "weather_sha256": sha256(canonical(fixture.weather)),
         "physical_snapshot_id": fixture.timeline.snapshot_id,
+        **(input_metadata or {}),
     })
-    run_id = stable_id("STAGE3-RUN", [SCHEMA_VERSION, FIFO_VERSION, fixture.timeline.run_id, sha256(inputs)])
+    run_id = stable_id(run_prefix, [schema, FIFO_VERSION, fixture.timeline.run_id, sha256(inputs)])
     output.parent.mkdir(parents=True, exist_ok=True)
     with TemporaryDirectory(prefix=".stage3-", dir=output.parent) as temp:
         stage = Path(temp) / "build"
         index = {}
-        for category, name, record_type, rows in tables(fixture, candidates, totals):
+        for category, name, record_type, rows in (*tables(fixture, candidates, totals), *extra_tables):
             folder = stage / category
             folder.mkdir(parents=True, exist_ok=True)
             index[f"{category}/{name}"] = _write_table(folder, name, record_type, rows, run_id)
@@ -146,21 +154,24 @@ def build(output, seed=42):
             "run_id": run_id, "synthetic": True, "feed_bridges": totals,
             "warehouse_snapshot_id": fixture.warehouse_snapshots[0].snapshot_id,
             "active_allocation_method": fixture.scenario["method"],
+            **(reconciliation or {}),
         }))
         (stage / "validation.json").write_bytes(canonical({
             "run_id": run_id, "synthetic": True, "status": "passed", "checks": checks,
         }))
+        for name, data in (artifacts or {}).items():
+            (stage / name).write_bytes(canonical(data))
         files = {str(path.relative_to(stage)): sha256(path.read_bytes())
                  for path in sorted(stage.rglob("*")) if path.is_file()}
         hashes = canonical({"run_id": run_id, "synthetic": True, "tables": index, "files": files})
         (stage / "hashes.json").write_bytes(hashes)
         repo = Path(__file__).resolve().parents[2]
-        sources = [source for stage_name in ("stage1", "stage2", "stage3")
+        sources = [source for stage_name in stages
                    for source in (repo / "simulator_v2" / stage_name).iterdir()
                    if source.suffix in {".py", ".json"}]
         code = {str(path.relative_to(repo)): sha256(path.read_bytes()) for path in sorted(sources)}
         (stage / "run_manifest.json").write_bytes(canonical({
-            "run_id": run_id, "schema_version": SCHEMA_VERSION, "scenario_version": fixture.scenario["version"],
+            "run_id": run_id, "schema_version": schema, "scenario_version": fixture.scenario["version"],
             "fifo_version": FIFO_VERSION, "biology_version": fixture.biology_config["biology_version"],
             "feed_adapter_version": fixture.biology.adapter.version, "default_allocation_method": fixture.scenario["method"],
             "stage1_run_id": fixture.timeline.run_id, "physical_snapshot_id": fixture.timeline.snapshot_id,
@@ -169,6 +180,7 @@ def build(output, seed=42):
             "seed": seed, "git_commit": git_commit(), "runtime": runtime(), "built_at": datetime.now(UTC),
             "generator_files": code, "generator_sha256": sha256(canonical(code)),
             "input_sha256": sha256(inputs), "hashes_sha256": sha256(hashes), "status": "passed", "synthetic": True,
+            **(manifest or {}),
         }))
         if not publish_directory(stage, output):
             raise FileExistsError(f"build directory already exists: {output}")

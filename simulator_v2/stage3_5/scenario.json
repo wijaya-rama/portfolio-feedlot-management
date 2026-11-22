@@ -1,0 +1,37 @@
+{
+  "base_scenario": "stage3-synthetic.1",
+  "version": "stage3.5-integrated.1",
+  "biology_version": "biology.1+chronological-ledger.1",
+  "observation_version": "latent-scale.1",
+  "allocation_policy": {
+    "version": "timed-access.1",
+    "release_minutes": 30
+  },
+  "weighing": {
+    "shrink_kg": 0.0
+  },
+  "extra_weighing_plans": [
+    {
+      "source_id": "SYN-SCALE-03-JAN10-IN-WINDOW",
+      "animal_id": "SYN-A03",
+      "kind": "follow_up",
+      "observed_local": "2024-01-10 09:45",
+      "posted_local": "2024-01-10 10:00",
+      "available_local": "2024-01-12 08:00",
+      "missing_probability": 0.0
+    }
+  ],
+  "scale_corrections": [
+    {
+      "parent_source_id": "SYN-SCALE-05-2024-01-14-follow_up",
+      "source_id": "SYN-SCALE-CORR-05-JAN14",
+      "posted_local": "2024-01-19 08:00",
+      "available_local": "2024-01-19 10:00",
+      "approval_id": "SYN-APPROVE-SCALE-05-JAN14",
+      "approved_by": "SYN-SCALE-SUPERVISOR",
+      "reason": "Synthetic scale ticket transcription correction",
+      "adjustment_kg": -1.6,
+      "restated_origin_local": "2024-01-18 15:00"
+    }
+  ]
+}

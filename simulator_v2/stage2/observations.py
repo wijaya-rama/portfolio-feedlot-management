@@ -71,11 +71,16 @@ class Observation:
     synthetic: bool = True
 
 
-def _context(timeline, animal_id, instant, kind, movement_id):
-    interval = timeline.location_at(animal_id, instant)
+def _context(timeline, animal_id, instant, kind, movement_id, *, sale_at_exit=False):
+    movement = timeline.events.get(movement_id)
+    lookup = instant
+    if (sale_at_exit and kind == Kind.FINAL_SALE and movement and movement.kind == EventKind.SALE
+            and instant == movement.effective_at):
+        # At the sale boundary, sample before the exit transition.
+        lookup -= timedelta(microseconds=1)
+    interval = timeline.location_at(animal_id, lookup)
     if interval is None:
         raise ValueError(f"live measurement outside active interval: {animal_id}")
-    movement = timeline.events.get(movement_id)
     if kind in {Kind.OPENING, Kind.RECEIVING}:
         expected = EventKind.OPENING if kind == Kind.OPENING else EventKind.RECEIPT
         if (movement is None or movement.kind != expected
@@ -92,7 +97,7 @@ def _context(timeline, animal_id, instant, kind, movement_id):
     return interval, movement
 
 
-def simulate_observations(timeline, biology, plans, config):
+def simulate_observations(timeline, biology, plans, config, *, on_sample=None):
     attempts = []
     records = []
     seen = set()
@@ -105,7 +110,7 @@ def simulate_observations(timeline, biology, plans, config):
             raise ValueError(f"invalid weighing plan: {plan.source_id}")
         seen.add(plan.source_id)
         interval, movement = _context(timeline, plan.animal_id, plan.measured_at, plan.kind,
-                                      plan.movement_event_id)
+                                      plan.movement_event_id, sale_at_exit=config.get("sale_at_exit", False))
         probability = plan.missing_probability
         if probability is None:
             probability = weighing["default_missing_probability"][plan.kind]
@@ -125,6 +130,9 @@ def simulate_observations(timeline, biology, plans, config):
             if movement and plan.kind == Kind.FINAL_SALE:
                 posted = max(posted, movement.effective_at, movement.available_at)
             observation_id = stable_id("WEIGHT", [version, plan.source_id])
+            if on_sample is not None:
+                on_sample(plan, observation_id, latent, scale["bias_kg"],
+                          random_error * scale["error_half_width_kg"], precision)
             records.append(Observation(
                 observation_id, plan.animal_id, interval.lot_id, plan.kind, kg,
                 plan.measured_at, posted, posted + plan.availability_lag, scale_id,
@@ -203,7 +211,7 @@ class Observations:
                 or not row.measured_at <= row.posted_at <= row.available_at):
             raise ValueError(f"invalid scale record: {row.observation_id}")
         interval, movement = _context(timeline, row.animal_id, row.measured_at, row.kind,
-                                      row.movement_event_id)
+                                      row.movement_event_id, sale_at_exit=config.get("sale_at_exit", False))
         if ((row.location_id, row.location_event_id, row.lot_id)
                 != (interval.location_id, interval.start_event_id, interval.lot_id)
                 or (movement and row.kind == Kind.FINAL_SALE
