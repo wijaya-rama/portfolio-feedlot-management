@@ -1,0 +1,59 @@
+{
+  "version": "stage6a-diagnostic.1",
+  "seed": 42,
+  "start": "2025-11-22",
+  "end": "2026-02-28",
+  "placements": [
+    {"date": "2025-11-22", "head": 18, "mean_kg": 375},
+    {"date": "2025-12-04", "head": 22, "mean_kg": 385},
+    {"date": "2025-12-18", "head": 20, "mean_kg": 364},
+    {"date": "2026-01-05", "head": 21, "mean_kg": 357},
+    {"date": "2026-02-11", "head": 19, "mean_kg": 350}
+  ],
+  "carry_in": [
+    {"head": 8, "location": "SYN-P01", "weight_kg": 454, "entry_age_days": 372,
+     "days_on_feed": 40, "wip_cents": 192500, "status": "active",
+     "source": "SYN-NOV21-OPENING-SUBLEDGER"}
+  ],
+  "capacities": {"receiving": [26], "production": [37, 37, 37], "hospital": [4]},
+  "receiving_days": [2, 4],
+  "regroup_weekday": 3,
+  "follow_up_days": 18,
+  "release_minutes": 60,
+  "health": {
+    "onset_daily": 0.007, "receiving_multiplier": 3.0, "post_recovery_multiplier": 2.2,
+    "severity_weights": [0.50, 0.32, 0.18],
+    "detection_daily": [0.36, 0.65, 0.85], "untreated_death_daily": [0.0005, 0.004, 0.085],
+    "detected_death_daily": [0.0005, 0.004, 0.085],
+    "background_death_daily": 0.00013, "recovery_daily": [0.42, 0.25, 0.12],
+    "treatment_probability": 0.85, "repeat_probability": 0.40, "chronic_probability": 0.38,
+    "reassess_days": 2, "chronic_after_days": 9
+  },
+  "shipment": {
+    "weekday": 1, "minimum_dof": 37, "threshold_kg": 421, "lot_fraction": 0.42,
+    "maximum_head": 26, "grade_missing_probability": 0.14, "settlement_lag_days": [2, 6],
+    "grid_cents_per_kg": 800, "freight_cents": 4250
+  },
+  "warehouse": {
+    "order_cycle_days": 7, "lead_days": 1, "split_receipt_delay_days": 2,
+    "opening_grams_per_design_head": 125000, "ordered_grams_per_design_head": 135000,
+    "bin_grams_per_design_head": 360000, "equipment_g_af": 5000000,
+    "opening_spoilage_g_af": 17500,
+    "ingredients": [
+      {"code": "SILAGE", "dm_bps": 4500, "kj_per_kg_dm": 9500, "cp_bps": 1370, "cents_per_tonne": 24500},
+      {"code": "BARLEY", "dm_bps": 8800, "kj_per_kg_dm": 12700, "cp_bps": 1220, "cents_per_tonne": 39500},
+      {"code": "OATS", "dm_bps": 8900, "kj_per_kg_dm": 11100, "cp_bps": 1400, "cents_per_tonne": 44000}
+    ],
+    "recipes": {
+      "receiving": [6350, 2000, 1650], "adaptation": [4950, 3700, 1350],
+      "finishing": [3100, 5900, 1000], "hospital": [7000, 1500, 1500]
+    },
+    "max_mix_loss_bps": 135, "max_distribution_loss_bps": 75,
+    "refusal_bps": [160, 680], "max_bunk_loss_bps": 15
+  },
+  "finance": {"purchase_cents_per_kg": 435, "yardage_cents": 125, "vet_cents": 5600,
+              "repeat_vet_cents": 3900, "late_yardage_delta_cents": 25},
+  "weather": {"retrospective": true, "forecasts": []},
+  "biology_overrides": {},
+  "calibration_overrides": {}
+}
