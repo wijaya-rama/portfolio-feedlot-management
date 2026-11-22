@@ -203,7 +203,6 @@ class Book:
         self.policy = policy
         self.yard = yard
         self.restatement = restatement
-        self._restatement_verified_at = None
         self._actions = {}
         self._journals = {}
         self._wip = Counter()
@@ -228,7 +227,7 @@ class Book:
     def run(self, actions, cutoff):
         if not is_utc(cutoff):
             raise ValueError("journal cutoff requires UTC")
-        if self.restatement and (self._restatement_verified_at is None or cutoff < self._restatement_verified_at):
+        if self.restatement:
             has_approval = getattr(self.sources, "has_approval", None)
             ok = (has_approval(self.restatement, cutoff) if has_approval is not None else any(
                 row.system == "stage4/approvals" and row.document_id == self.restatement
@@ -236,7 +235,6 @@ class Book:
             ))
             if not ok:
                 raise ValueError("restatement requires an available controller approval")
-            self._restatement_verified_at = cutoff
         ready = {}
         for action in actions:
             if ready.setdefault(action.key, action) != action:

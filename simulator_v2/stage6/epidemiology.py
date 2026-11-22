@@ -4,6 +4,7 @@ import argparse
 from collections import Counter, defaultdict
 from datetime import timedelta
 import json
+from math import inf, isfinite
 from pathlib import Path
 from statistics import median
 
@@ -33,53 +34,92 @@ def _read_table(root, name, columns=None):
     return rows
 
 
+def _review_cycle(death, days):
+    survival = 1.0 - death
+    exposure = sum(survival ** k for k in range(days))
+    return death * exposure, survival ** days, exposure
+
+
+def _detected_outcomes(health, severity, recovery):
+    days = health["reassess_days"]
+    chronic_after = health["chronic_after_days"]
+    chronic_prob = health["chronic_probability"]
+    acute_death = health["detected_death_daily"][severity]
+    chronic_death = health.get("chronic_death_daily", acute_death)
+    die, survive, exposure = _review_cycle(acute_death, days)
+    die_chronic, survive_chronic, exposure_chronic = _review_cycle(chronic_death, days)
+
+    chronic_exit = die_chronic + survive_chronic * recovery
+    acute_continue = survive * (1.0 - recovery)
+    to_chronic = acute_continue * chronic_prob
+    acute_exit = die + survive * recovery + to_chronic
+    if acute_exit:
+        die_after, days_after = die, exposure
+        if to_chronic:
+            die_after += to_chronic * (die_chronic / chronic_exit if chronic_exit else 0.0)
+            days_after += to_chronic * (exposure_chronic / chronic_exit if chronic_exit else inf)
+        die_after /= acute_exit
+        days_after /= acute_exit
+    else:
+        die_after, days_after = 0.0, inf
+
+    # Index by the number of reassessments before the episode can become chronic.
+    outcomes = [(die_after, days_after)]
+    for _ in range((chronic_after - 1) // days):
+        prior_die, prior_days = outcomes[-1]
+        if acute_continue:
+            outcomes.append((die + acute_continue * prior_die, exposure + acute_continue * prior_days))
+        else:
+            outcomes.append((die, exposure))
+    return outcomes
+
+
 def markov_expected_rates(health_policy):
-    """Exact theoretical episode CFR and annualized mortality rate (ignoring competing sale exits)."""
-    r = health_policy["reassess_days"]
+    """Exact episode CFR without competing sale exits, and approximate annualized rates."""
+    days = health_policy["reassess_days"]
     compounded = health_policy.get("recovery_basis", "per_reassessment") == "daily_compounded"
-    chronic_after = health_policy["chronic_after_days"]
-    chronic_prob = health_policy["chronic_probability"]
-    chronic_death = health_policy.get("chronic_death_daily")
+    first_stationary_detection_day = health_policy["chronic_after_days"] - days
 
     by_severity = {}
     weighted_cfr = 0.0
     for idx, sev in enumerate(SEVERITIES):
         h_u = health_policy["untreated_death_daily"][idx]
-        h_d = health_policy["detected_death_daily"][idx]
-        det = health_policy["detection_daily"][idx]
+        detect = (1.0 - h_u) * health_policy["detection_daily"][idx]
+        leave_undetected = h_u + detect
         rec_raw = health_policy["recovery_daily"][idx]
-        rec = 1.0 - (1.0 - rec_raw) ** r if compounded else rec_raw
+        rec = 1.0 - (1.0 - rec_raw) ** days if compounded else rec_raw
+        outcomes = _detected_outcomes(health_policy, idx, rec)
 
-        # Post-detection Markov chain (acute vs chronic when chronic_death_daily is distinct)
-        surv_r = (1.0 - h_d) ** r
-        if chronic_death is None or chronic_death == h_d:
-            p_die_d = (1.0 - surv_r) / (1.0 - surv_r * (1.0 - rec)) if (1.0 - surv_r * (1.0 - rec)) > 0 else 1.0
-            e_days_d = sum((1.0 - h_d) ** k for k in range(r)) / (1.0 - surv_r * (1.0 - rec))
-        else:
-            # Solve exact finite horizon before chronic_after then stationary chronic state
-            surv_c_r = (1.0 - chronic_death) ** r
-            p_die_c = (1.0 - surv_c_r) / (1.0 - surv_c_r * (1.0 - rec))
-            e_days_c = sum((1.0 - chronic_death) ** k for k in range(r)) / (1.0 - surv_c_r * (1.0 - rec))
-            # Stationary acute after chronic_after (may transition to chronic at each review)
-            p_stay_acute = surv_r * (1.0 - rec) * (1.0 - chronic_prob)
-            p_to_chronic = surv_r * (1.0 - rec) * chronic_prob
-            p_die_after = ((1.0 - surv_r) + p_to_chronic * p_die_c) / (1.0 - p_stay_acute)
-            e_days_after = (sum((1.0 - h_d) ** k for k in range(r)) + p_to_chronic * e_days_c) / (1.0 - p_stay_acute)
-            # Step backward from chronic_after to day 0 of detection
-            reviews_before = max(0, (chronic_after - 1) // r)
-            p_die_d = p_die_after
-            e_days_d = e_days_after
-            for _ in range(reviews_before):
-                p_die_d = (1.0 - surv_r) + surv_r * (1.0 - rec) * p_die_d
-                e_days_d = sum((1.0 - h_d) ** k for k in range(r)) + surv_r * (1.0 - rec) * e_days_d
+        post_detection_cfr, post_detection_days = None, None
+        overall_cfr = h_u / leave_undetected if leave_undetected else 0.0
+        if detect:
+            # Conditional on detection before death, detection lag is geometric.
+            survive_undetected = 1.0 - leave_undetected
+            post_detection_cfr, post_detection_days = 0.0, 0.0
+            for lag in range(first_stationary_detection_day):
+                weight = survive_undetected ** lag * leave_undetected
+                if weight:
+                    reviews_before = (health_policy["chronic_after_days"] - 1 - lag) // days
+                    cfr, duration = outcomes[reviews_before]
+                    post_detection_cfr += weight * cfr
+                    post_detection_days += weight * duration
+            tail = survive_undetected ** first_stationary_detection_day
+            if tail:
+                post_detection_cfr += tail * outcomes[0][0]
+                post_detection_days += tail * outcomes[0][1]
+            overall_cfr += detect / leave_undetected * post_detection_cfr
 
-        p_die_u = (h_u + (1.0 - h_u) * det * p_die_d) / (1.0 - (1.0 - h_u) * (1.0 - det))
-        weighted_cfr += health_policy["severity_weights"][idx] * p_die_u
+        weighted_cfr += health_policy["severity_weights"][idx] * overall_cfr
         by_severity[sev] = {
             "effective_review_recovery_prob": round(rec, 6),
-            "overall_cfr_pct": round(100.0 * p_die_u, 3),
-            "post_detection_cfr_pct": round(100.0 * p_die_d, 3),
-            "expected_post_detection_days": round(e_days_d, 2),
+            "overall_cfr_pct": round(100.0 * overall_cfr, 3),
+            "post_detection_cfr_pct": (
+                round(100.0 * post_detection_cfr, 3) if post_detection_cfr is not None else None
+            ),
+            "expected_post_detection_days": (
+                round(post_detection_days, 2)
+                if post_detection_days is not None and isfinite(post_detection_days) else None
+            ),
         }
 
     # Approximate average daily onset risk across a ~150-day stay (receiving + post-recovery multipliers)
@@ -94,7 +134,7 @@ def markov_expected_rates(health_policy):
     bg_deaths_100ay = health_policy["background_death_daily"] * 365.25 * 100.0
     return {
         "recovery_basis": health_policy.get("recovery_basis", "per_reassessment"),
-        "chronic_death_daily": chronic_death,
+        "chronic_death_daily": health_policy.get("chronic_death_daily"),
         "by_severity": by_severity,
         "weighted_episode_cfr_pct": round(100.0 * weighted_cfr, 3),
         "approx_episodes_per_100_animal_years": round(episodes_100ay, 2),

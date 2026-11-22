@@ -159,6 +159,7 @@ class Runner:
             self.yard.exception(self.end - TICK, "placement_unfulfilled_at_horizon", requested.animal_id)
         ledger = self.yard.finalize()
         warehouse, wh = self.supply.finish(self.end, self.cutoff)
+        self.warehouse_snapshot = wh
         timeline = PhysicalTimeline(ledger, self.end, self.cutoff)
         result, daily, monthly, checks = calculate_soh(ledger, self.first, self.last, self.cutoff)
         reject_failures(checks)
@@ -171,6 +172,7 @@ class Runner:
         operations.ledger, operations.timeline, operations.health = ledger, timeline, self.health.events
         operations.warehouse, operations.warehouse_snapshots = warehouse, (wh,)
         operations.stock_bridges, operations.approvals = stock_bridges, ()
+        self.warehouse_stock_bridges = stock_bridges
         self.emit("warehouse_af_bridge", stock_bridges, partition_by="period_start")
         self.emit("warehouse_dm_bridge", dm_bridges(operations), partition_by="period_start")
         return operations, result, daily, monthly, checks
@@ -179,6 +181,7 @@ class Runner:
         finance = Finance(self.yard, operations, self.sales, self.yardage, self.config, self.first, self.last,
                           self.cutoff, self.emit, self.feeding.read_checkpoints(),
                           self.writer.root.parent / "finance.sqlite")
+        self.financial_approvals = tuple(finance.approvals)
         try:
             return tuple(finance.books(self.cutoff))
         finally:

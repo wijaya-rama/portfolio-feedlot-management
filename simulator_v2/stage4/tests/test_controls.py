@@ -103,6 +103,15 @@ class JournalExamples(unittest.TestCase):
         self.assertEqual(next(row.amount_cents for row in restated if row.principal_release), 10_200)
         self.assertEqual(balance(restated, Account.COGS), 10_225)
 
+    def test_restatement_rechecks_the_current_approval(self):
+        self.source("approval", self.when, system="stage4/approvals")
+        book = Book(self.sources, self.calendar, version="restated", policy="manual.1", yard="yard",
+                    restatement="approval")
+        book.run((), self.when)
+        book.restatement = "unapproved"
+        with self.assertRaisesRegex(ValueError, "available controller approval"):
+            book.run((), self.after)
+
     def test_invalid_source_approval_attempt_and_conflicting_retry(self):
         rows = self.example(Account.COGS)
         with self.assertRaisesRegex(ValueError, "conflicting journal retry"):

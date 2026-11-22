@@ -49,6 +49,8 @@ All nine health RNG draws (`health/background-death`, `health/onset`, `health/se
 
 Full event bridges (including onset by pen kind, detection/recovery/death medians, chronic outcomes, censoring, and Markov expectations) are stored in [evidence/stage6b1/epidemiology-and-supply.json](evidence/stage6b1/epidemiology-and-supply.json) and reproducible via `python -m simulator_v2.stage6.epidemiology <dataset_dir>`.
 
+The stored Markov fields record the original calculation. The current calculator accounts for detection lag when determining when a case can first become chronic. This correction affects analytical estimates and leaves the observed event counts as recorded.
+
 ## 3. Profiled Cross-Domain Audit & Posting Optimizations
 
 `cProfile` profiling of untouched Stage 6B (`preflight-25`, seed 42) identified four dominant CPU hotspots:
@@ -64,8 +66,10 @@ Zero controls were removed; all 59 hard-gate categories and integer CAD cent rec
 
 Implemented in [`validation.py`](validation.py):
 
-- **Mode A (`reconcile` / `reconcile_with_mode(..., mode="full")`):** Complete independent disk-based audit over all partitions, both `as_known` and `restated` journal SHA-256 fingerprints, locks, approvals, lineage, FIFO, WIP, COGS, mortality releases, clearing, and conservation. Every published build runs Mode A and tags `validation.json` with `"mode": "full", "complete_independent_audit": true`.
-- **Mode B (`reconcile_incremental` / `reconcile_with_mode(..., mode="incremental", changed_months=..., prior_partition_digests=...)`):** Validates changed monthly partitions (`audit_feeding`), dependent monthly closes/balances (`month >= min(changed_months)`), cumulative fingerprints, global movement/outcome/observation/weather invariants, and verifies SHA-256 digests of unchanged immutable partitions. Explicitly tags `"mode": "incremental", "complete_independent_audit": false` and raises on tampering in either unchanged or changed partitions.
+- **Mode A (`reconcile` / `reconcile_with_mode(..., mode="full")`)** runs the cross-domain gates over every month before publication. It reads Parquet to check journal fingerprints in both views and compares published warehouse records and financial close balances with replay and close results from the same build. `validation.json` records `"mode": "full", "complete_independent_audit": true`. Running the audit requires the replay and close inputs.
+- **Mode B (`reconcile_incremental` / `reconcile_with_mode(..., mode="incremental", changed_months=..., prior_partition_digests=...)`)** requires the prior partition digest inventory. It checks membership and digests for months preceding the first change and repeats the physical checks and finance close checks from that month forward. Cumulative journal fingerprints and global invariants still run. The result records `"mode": "incremental", "complete_independent_audit": false`.
+
+The table below records the original Stage 6B.1 measurements. Audit coverage and timing after the independent review fixes need new measurements.
 
 | Benchmark Dataset | Mode A Full (s / assertions) | Mode B Incremental 1-Month (s / assertions) | Speedup | Unchanged Partitions Digest-Verified |
 |---|---:|---:|---:|---:|
@@ -137,7 +141,7 @@ Stage 6B.1 adds material-specific opening stock, order-up-to targets, bin capaci
 
 ### Separation of Failure Classes & Remaining Blockers
 
-1. **Correctness blockers:** **None** on tested scales (`25`, `100`, `diagnostic`, `adversarial-shortage`, plus `250` operations/epidemiology/supply). All 59 hard-gate categories, Stage 4 controls, and integer CAD cent reconciliations passed.
+1. **Correctness validation.** The original builds exercised the Stage 4 controls and Stage 6 gates. The independent review added coverage for the published warehouse and financial close outputs, earlier partition inventory, dependent physical months, and non-finite reserve balances. A full 250-placement build still needs to exercise those checks together.
 2. **Performance blockers (why pilot remains HOLD under current budgets):**
    - Single-process build wall clock (`~22–26 min` estimated on EPYC, `>65 min` on 2.30 GHz Xeon) still exceeds the `600s` target; full cross-domain audit (`~192–228s` EPYC estimate) exceeds the `120s` reconciliation target; Parquet output (`2.00–2.38 GiB`) is right above the `2 GiB` target due to higher survival (+5.5% animal-days).
    - Full end-to-end 250-placement and 500-placement builds have not yet been executed under Stage 6B.1 on an uninterrupted runner (blocked on this VM by the `600s` single-command limit).

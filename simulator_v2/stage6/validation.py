@@ -1,19 +1,18 @@
 """Independent hard gates over the published partition grain and source crosswalks.
 
 Supports two clearly identified validation modes:
-- ``full`` (via ``reconcile`` / ``reconcile_with_mode(..., mode="full")``):
-  Complete independent disk-based audit across all partitions, ledgers,
-  fingerprints, and cross-domain invariants. Required for all published candidates.
-- ``incremental`` (via ``reconcile_incremental`` / ``reconcile_with_mode(..., mode="incremental")``):
-  Targeted validation of changed monthly partitions and their dependent
-  cross-period balances/closes. Explicitly reports ``complete_independent_audit: False``
-  and must never be treated as a substitute for full independent validation.
+- ``full`` audits every month and reconciles published Parquet with the accepted
+  replay and close outputs. The build requires this mode before publication.
+- ``incremental`` audits from the first changed month forward and verifies all
+  earlier monthly partitions against the prior digest inventory. It reports
+  ``complete_independent_audit: False``.
 """
 
 from bisect import bisect_left
 from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta
-from math import isclose
+from itertools import zip_longest
+from pathlib import PurePosixPath
 
 import numpy as np
 import pyarrow as pa
@@ -225,6 +224,12 @@ def audit_observations(audit, events, enter, exit_at):
         audit.check("measured_vs_latent", simulated == ticket["measured_weight_kg"]
                     and sample["physical_snapshot_id"] == ticket["physical_snapshot_id"])
     return obs, anchors, health
+
+
+def _finite_balance(left, right, absolute_tolerance):
+    with np.errstate(invalid="ignore"):
+        tolerance = np.maximum(1e-9 * np.maximum(np.abs(left), np.abs(right)), absolute_tolerance)
+        return np.isfinite(left) & np.isfinite(right) & (np.abs(left - right) <= tolerance)
 
 
 def audit_feeding(audit, months, events, enter, exit_at, anchors, health, runner):
@@ -534,9 +539,8 @@ def audit_feeding(audit, months, events, enter, exit_at, anchors, health, runner
                 me_rhs = m_me + g_me + end_me + exc_me
                 cp_lhs = s_cp + p_kg
                 cp_rhs = m_cp + g_cp + end_cp + exc_cp
-                # Exact math.isclose semantics: |a - b| <= max(1e-9 * max(|a|, |b|), abs_tol)
-                me_ok = np.abs(me_lhs - me_rhs) <= np.maximum(1e-9 * np.maximum(np.abs(me_lhs), np.abs(me_rhs)), 1e-8)
-                cp_ok = np.abs(cp_lhs - cp_rhs) <= np.maximum(1e-9 * np.maximum(np.abs(cp_lhs), np.abs(cp_rhs)), 1e-9)
+                me_ok = _finite_balance(me_lhs, me_rhs, 1e-8)
+                cp_ok = _finite_balance(cp_lhs, cp_rhs, 1e-9)
                 res_entry["assertions"] += n
                 if not (bool(np.all(me_ok)) and bool(np.all(cp_ok))):
                     bad = int(np.flatnonzero(~(me_ok & cp_ok))[0])
@@ -591,7 +595,53 @@ def audit_feeding(audit, months, events, enter, exit_at, anchors, health, runner
                                                for k in growth.keys() | flows.keys()), (month, path))
 
 
-def audit_finance(audit, closes, outcomes, *, check_months=None):
+def _audit_published_rows(audit, gate, table, expected_rows, month=None):
+    for index, (actual, expected) in enumerate(zip_longest(audit.rows(table, month), expected_rows), 1):
+        valid = False
+        if actual is not None and expected is not None:
+            fields = vars(expected)
+            valid = len(actual) == len(fields) + 1 and all(
+                name in actual and actual[name] == value for name, value in fields.items()
+            )
+        audit.check(gate, valid, (table, month, index))
+
+
+def audit_warehouse_publication(audit, runner):
+    supply = runner.supply
+    snapshot = runner.warehouse_snapshot
+    for name in ("ingredients", "suppliers", "warehouses", "bins", "batches", "assays", "prices", "orders", "equipment"):
+        _audit_published_rows(audit, "warehouse_replay_publication", f"warehouse_{name}",
+                              getattr(supply.masters, name))
+    for table, rows in (
+        ("warehouse_transactions", supply.transactions),
+        ("warehouse_entries", snapshot.entries),
+        ("warehouse_receipts", snapshot.receipts),
+        ("warehouse_layers", snapshot.layers),
+        ("warehouse_balances", snapshot.balances),
+        ("warehouse_po_status", snapshot.purchase_status),
+        ("warehouse_af_bridge", runner.warehouse_stock_bridges),
+    ):
+        _audit_published_rows(audit, "warehouse_replay_publication", table, rows)
+
+
+def _audit_close_publication(audit, closes, check_months):
+    by_month = defaultdict(list)
+    for _, result in closes:
+        month = result[0].month
+        if check_months is None or month in check_months:
+            by_month[month].append(result)
+    for month, results in by_month.items():
+        for table, index in (
+            ("wip", 1), ("finance_soh", 2), ("warehouse_close", 3),
+            ("trial_balance", 4), ("finance_exceptions", 5),
+        ):
+            expected = (row for result in results for row in result[index])
+            _audit_published_rows(audit, "financial_close_publication", table, expected, month)
+        _audit_published_rows(audit, "financial_close_publication", "finance_monthly",
+                              (result[6] for result in results), month)
+
+
+def audit_finance(audit, closes, outcomes, approvals, *, check_months=None):
     sources = {}
     pk_entry = audit.checks.setdefault("primary_keys", {"passed": True, "assertions": 0})
     for batch in audit.batches("financial_sources", columns=["source_id", "available_at"]):
@@ -612,6 +662,9 @@ def audit_finance(audit, closes, outcomes, *, check_months=None):
             if sources[parent_id] > sources[child_id]:
                 raise ValueError(f"Stage 6A gate finance_source_timing failed: {child_id}")
 
+    _audit_published_rows(audit, "financial_close_publication", "financial_approvals",
+                          sorted(approvals, key=lambda row: business_date(row.approved_at).isoformat()[:7]))
+    _audit_close_publication(audit, closes, check_months)
     published = audit.index(audit.rows("finance_snapshots"), "close_id", "financial snapshot")
     audit.check("snapshot_publication", len(published) == len(closes))
     by_view = {}
@@ -841,9 +894,9 @@ def audit_finance(audit, closes, outcomes, *, check_months=None):
         n = batch.num_rows
         if not n:
             continue
-        af_tot = sum(batch.column(i).to_numpy(zero_copy_only=False) for i in range(1, 9))
+        af_tot = sum(np.asarray(batch.column(i).to_pylist(), dtype=object) for i in range(1, 9))
         af_cls = batch.column(9).to_numpy(zero_copy_only=False)
-        c_tot = sum(batch.column(i).to_numpy(zero_copy_only=False) for i in range(10, 19))
+        c_tot = sum(np.asarray(batch.column(i).to_pylist(), dtype=object) for i in range(10, 19))
         c_cls = batch.column(19).to_numpy(zero_copy_only=False)
         wh_af_entry["assertions"] += 2 * n
         if not (bool(np.all((af_tot == af_cls) & (af_cls >= 0))) and bool(np.all((c_tot == c_cls) & (c_cls >= 0)))):
@@ -858,7 +911,7 @@ def audit_finance(audit, closes, outcomes, *, check_months=None):
         n = batch.num_rows
         if not n:
             continue
-        dm_tot = sum(batch.column(i).to_numpy(zero_copy_only=False) for i in range(1, 10))
+        dm_tot = sum(np.asarray(batch.column(i).to_pylist(), dtype=object) for i in range(1, 10))
         dm_cls = batch.column(10).to_numpy(zero_copy_only=False)
         wh_dm_entry["assertions"] += n
         if not bool(np.all((dm_tot == dm_cls) & (dm_cls >= 0))):
@@ -939,7 +992,8 @@ def reconcile(root, tables, runner, replay, daily, monthly, closes):
     _, events, enter, exit_at, outcomes = audit_movements(audit, runner, replay, daily, monthly)
     observations, anchors, health = audit_observations(audit, events, enter, exit_at)
     audit_feeding(audit, [row.month for row in runner.calendar], events, enter, exit_at, anchors, health, runner)
-    audit_finance(audit, closes, outcomes)
+    audit_warehouse_publication(audit, runner)
+    audit_finance(audit, closes, outcomes, runner.financial_approvals)
     audit_sales(audit, observations, events)
     audit_weather(audit, runner)
     return audit.checks
@@ -964,19 +1018,23 @@ def reconcile_incremental(root, tables, runner, replay, daily, monthly, closes, 
     changed_files = [name for name, info in tables.items() if info["month"] is None or info["month"] in dependent_set]
     _check_schema(audit, root, changed_files)
 
+    if prior_partition_digests is None:
+        raise ValueError("incremental validation requires prior_partition_digests")
     verified_unchanged = 0
-    if prior_partition_digests is not None:
-        for name, info in sorted(tables.items()):
-            if info["month"] is not None and info["month"] not in dependent_set:
-                expected_sha = prior_partition_digests.get(name)
-                actual_sha = file_digest_sha256(root / name)
-                audit.check("immutable_partition_digest", expected_sha is not None and actual_sha == expected_sha, name)
-                verified_unchanged += 1
+    for name in sorted(tables.keys() | prior_partition_digests.keys()):
+        partition = PurePosixPath(name).parent.name
+        if not partition.startswith("month=") or partition.removeprefix("month=") in dependent_set:
+            continue
+        expected_sha = prior_partition_digests.get(name)
+        audit.check("immutable_partition_digest", name in tables and expected_sha is not None
+                    and (root / name).is_file() and file_digest_sha256(root / name) == expected_sha, name)
+        verified_unchanged += 1
 
     _, events, enter, exit_at, outcomes = audit_movements(audit, runner, replay, daily, monthly)
     observations, anchors, health = audit_observations(audit, events, enter, exit_at)
-    audit_feeding(audit, changed, events, enter, exit_at, anchors, health, runner)
-    audit_finance(audit, closes, outcomes, check_months=dependent_set)
+    audit_feeding(audit, dependent_months, events, enter, exit_at, anchors, health, runner)
+    audit_warehouse_publication(audit, runner)
+    audit_finance(audit, closes, outcomes, runner.financial_approvals, check_months=dependent_set)
     audit_sales(audit, observations, events)
     audit_weather(audit, runner)
     return {

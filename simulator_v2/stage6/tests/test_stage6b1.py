@@ -14,7 +14,7 @@ from simulator_v2.stage4.ledger import Account, Journal
 from simulator_v2.stage6.__main__ import build
 from simulator_v2.stage6.benchmark_configs import CONFIGS, SIZES, stage6b1_config
 from simulator_v2.stage6.close_index import canonical_journal_bytes, canonical_journal_from_columns
-from simulator_v2.stage6.config import DIAGNOSTIC, load
+from simulator_v2.stage6.config import Draw, load
 from simulator_v2.stage6.epidemiology import epidemiological_bridge, markov_expected_rates
 from simulator_v2.stage6.export import Output
 from simulator_v2.stage6.runner import Runner
@@ -147,9 +147,68 @@ def test_chronic_death_hazard_override_and_daily_compounded_recovery(tmp_path):
     assert m_cmp["by_severity"]["severe"]["effective_review_recovery_prob"] == pytest.approx(1 - 0.88**2)
 
 
+def test_daily_recovery_compounding_is_applied_by_the_simulator(tmp_path):
+    base = controlled(
+        start="2025-12-28", end="2025-12-31",
+        capacities={"receiving": [1], "production": [2], "hospital": [1]},
+        placements=[{"date": "2025-12-28", "head": 1, "mean_kg": 370}],
+    )
+    review_day = date(2025, 12, 31)
+    draw = Draw(base["seed"])("health/recovery", "SYN-LOT-0001-A00001", review_day)
+    rate = (1 - (1 - draw) ** 0.5 + draw) / 2
+    assert rate < draw < 1 - (1 - rate) ** 2
+    base["health"].update(
+        onset_daily=1, severity_weights=[0, 0, 1], detection_daily=[1, 1, 1],
+        untreated_death_daily=[0, 0, 0], detected_death_daily=[0, 0, 0],
+        reassess_days=2, recovery_daily=[rate] * 3, chronic_after_days=9,
+    )
+    for basis in ("per_reassessment", "daily_compounded"):
+        base["health"]["recovery_basis"] = basis
+        out = tmp_path / basis
+        build(base, out)
+        events = read(out, "health_events")
+        reviews = [event for event in events if event["action"] == "reassessment"]
+        recovered = [event for event in events if event["action"] == "recovery"]
+        assert len(reviews) == 1
+        assert bool(recovered) == (basis == "daily_compounded")
+        if recovered:
+            assert recovered[0]["effective_at"] == reviews[0]["effective_at"]
+
+
+def test_markov_respects_detection_delay_and_non_exiting_episodes():
+    health = controlled()["health"]
+    health.update(
+        untreated_death_daily=[0, 0, 0], detected_death_daily=[0.1] * 3,
+        detection_daily=[0.2] * 3, recovery_daily=[0.2] * 3,
+        reassess_days=2, chronic_after_days=4, chronic_death_daily=0.01, chronic_probability=1,
+    )
+    # At detection lags of zero or one day, one reassessment precedes chronic eligibility.
+    # At longer lags, the first reassessment is already eligible.
+    chronic_cfr = (1 - 0.99 ** 2) / (1 - 0.99 ** 2 * 0.8)
+    eligible_cfr = 1 - 0.9 ** 2 + 0.9 ** 2 * 0.8 * chronic_cfr
+    early_cfr = 1 - 0.9 ** 2 + 0.9 ** 2 * 0.8 * eligible_cfr
+    expected = 100 * (0.36 * early_cfr + 0.64 * eligible_cfr)
+    assert markov_expected_rates(health)["by_severity"]["severe"]["overall_cfr_pct"] == round(expected, 3)
+    health.update(recovery_daily=[0, 0, 0], chronic_death_daily=0)
+    assert markov_expected_rates(health)["by_severity"]["severe"]["expected_post_detection_days"] is None
+
+
+def _replace_cell(root, tables, table, column, transform, *, month=None, position=0):
+    filename = next(name for name, info in tables.items()
+                    if info["table"] == table and (month is None or info["month"] == month))
+    path = root / filename
+    original = path.read_bytes()
+    data = pq.ParquetFile(path).read()
+    values = data[column].to_pylist()
+    values[position] = transform(values[position])
+    index = data.schema.get_field_index(column)
+    pq.write_table(data.set_column(index, data.schema.field(index), pa.array(values, type=data[column].type)), path)
+    return path, original
+
+
 def test_full_vs_incremental_validation_and_tamper_detection(tmp_path):
     cfg = controlled(
-        start="2025-12-30", end="2026-01-03",
+        start="2025-12-30", end="2026-01-10",
         capacities={"receiving": [2], "production": [2], "hospital": [1]},
         placements=[{"date": "2025-12-30", "head": 2, "mean_kg": 370}],
     )
@@ -183,6 +242,38 @@ def test_full_vs_incremental_validation_and_tamper_detection(tmp_path):
             out, tables, runner, replay, daily, monthly, closes,
             mode="incremental", changed_months=["2026-01"], prior_partition_digests=prior_digests_bad,
         )
+
+    with pytest.raises(ValueError, match="requires prior_partition_digests"):
+        reconcile_with_mode(out, tables, runner, replay, daily, monthly, closes,
+                            mode="incremental", changed_months=["2026-01"])
+    with pytest.raises(ValueError, match="immutable_partition_digest"):
+        reconcile_with_mode(out, {name: info for name, info in tables.items() if name != dec_part},
+                            runner, replay, daily, monthly, closes, mode="incremental",
+                            changed_months=["2026-01"], prior_partition_digests=prior_digests)
+
+    path, original = _replace_cell(out, tables, "feed_plans", "planned_g_dm", lambda value: value + 1, month="2026-01")
+    with pytest.raises(ValueError, match="ration_and_plan"):
+        reconcile_with_mode(out, tables, runner, replay, daily, monthly, closes, mode="incremental",
+                            changed_months=["2025-12"], prior_partition_digests=prior_digests)
+    path.write_bytes(original)
+
+    for table, column, gate in (
+        ("wip", "closing_cents", "financial_close_publication"),
+        ("finance_monthly", "sales_cogs_cents", "financial_close_publication"),
+        ("warehouse_receipts", "g_af", "warehouse_replay_publication"),
+    ):
+        path, original = _replace_cell(out, tables, table, column, lambda value: value + 1)
+        with pytest.raises(ValueError, match=gate):
+            reconcile_with_mode(out, tables, runner, replay, daily, monthly, closes, mode="full")
+        path.write_bytes(original)
+
+    growth = pq.ParquetFile(out / "growth_operational/month=2026-01/part.parquet").read()
+    no_feed = growth["window_start_at"].to_pylist().index(None)
+    path, original = _replace_cell(out, tables, "growth_operational", "starting_me_mj", lambda _: float("inf"),
+                                   month="2026-01", position=no_feed)
+    with pytest.raises(ValueError, match="biological_reserve_balance"):
+        reconcile_with_mode(out, tables, runner, replay, daily, monthly, closes, mode="full")
+    path.write_bytes(original)
 
     # Tamper with a changed 2026-01 journal amount -> incremental mode must fail fingerprint/line balance
     jan_j = out / "journals_as_known/month=2026-01/part.parquet"
