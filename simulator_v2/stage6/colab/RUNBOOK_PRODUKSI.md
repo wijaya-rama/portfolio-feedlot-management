@@ -1,6 +1,6 @@
 # Runbook produksi 15.000
 
-[Buka notebook produksi di Colab](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-colab-rescue-recovery/simulator_v2/stage6/colab/Feedlot_V2_Production.ipynb) · [Kebutuhan dan risiko](README_PRODUKSI.md) · [Monitor Drive baca-saja](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-colab-rescue-recovery/simulator_v2/stage6/colab/Feedlot_V2_Status.ipynb) · [Registrasi rescue operations](RESCUE_OPERATIONS.md)
+[Buka notebook produksi di Colab](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-colab-finance-memory/simulator_v2/stage6/colab/Feedlot_V2_Production.ipynb) · [Kebutuhan dan risiko](README_PRODUKSI.md) · [Monitor Drive baca-saja](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-colab-rescue-recovery/simulator_v2/stage6/colab/Feedlot_V2_Status.ipynb) · [Registrasi rescue operations](RESCUE_OPERATIONS.md)
 
 | Tindakan | Langkah |
 |---|---|

@@ -29,7 +29,7 @@ from .drive_storage import blob_matches, checked_id, connect, require
 from .drive_status import (ARTIFACTS, POLICY, SIMULATOR_COMMIT, VERSION, archive_metadata,
                            attempt_manifest, claim_chain, inspect_drive)
 from .production_audit import verify_dataset
-from .production_resources import LIVE_DISK_RESERVE, Resources
+from .production_resources import GIB, LIVE_DISK_RESERVE, Resources, discard_checkpoint_cache
 
 CONFIG = HERE / "configs" / "stage7-production-15000.json"
 CONFIG_SHA256 = "0fc8340ceebf54756876bfba10ace3dc097c8d10a8464083011437b6615ff375"
@@ -349,6 +349,7 @@ class Attempt:
         if local.exists():
             meta = self.checkpoints.verify(phase, parent)
             require(digest(local / "checkpoint.json") == info["seal"], f"Checkpoint lokal berbeda dari Drive ({phase}).")
+            discard_checkpoint_cache(local)
             return meta
         print(f"Memulihkan checkpoint {phase} dari Drive.", flush=True)
         self.status("restoring")
@@ -362,19 +363,31 @@ class Attempt:
             require(file_info(archive) == {key: info[key] for key in ("bytes", "sha256")},
                     f"SHA-256 unduhan checkpoint Drive berbeda ({phase}).")
             unpack(archive, temporary, phase, self.heartbeat)
+            archive.unlink()
             meta = Checkpoints(temporary, self.checkpoints.identity, retain=True).verify(phase, parent)
             require(meta and digest(temporary / phase / "checkpoint.json") == info["seal"],
                     f"Marker checkpoint hasil unduhan berbeda ({phase}).")
+            discard_checkpoint_cache(temporary / phase, flush=True)
             require(publish_directory(temporary / phase, local), f"Workspace checkpoint sudah terisi ({phase}).")
             return meta
 
+    def discard_saved_checkpoint_cache(self):
+        for phase in PHASES:
+            if phase in self.saved:
+                discard_checkpoint_cache(self.checkpoints.root / phase)
+
     def check_resources(self, *, staging=0):
         return self.resources.check(self.work, self.drive, local_credit=size_of(self.checkpoints.root) + size_of(self.dataset),
-                                    drive_credit=sum(item["bytes"] for item in self.saved.values()), staging=staging)
+                                    drive_credit=sum(item["bytes"] for item in self.saved.values()), staging=staging,
+                                    reclaim=self.discard_saved_checkpoint_cache if self.saved else None)
 
     def worker(self, phase, config_path, lock_fd, staging=0):
         print(f"Memeriksa sumber daya fase {phase}.", flush=True)
-        available = self.check_resources(staging=staging)["available_ram_bytes"]
+        resources = self.check_resources(staging=staging)
+        available = resources["available_ram_bytes"]
+        raw = resources.get("cgroup_headroom_bytes")
+        details = f" (headroom cgroup mentah {raw / GIB:.2f} GiB)" if raw is not None else ""
+        print(f"RAM efektif untuk {phase}: {available / GIB:.2f} GiB{details}.", flush=True)
         self.still_owner()
         command = [sys.executable, "-u", "-m", "simulator_v2.stage6", "--config", str(config_path),
                    "--output", str(self.dataset), "--checkpoint-dir", str(self.checkpoints.root)]

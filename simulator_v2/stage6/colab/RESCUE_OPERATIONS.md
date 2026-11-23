@@ -1,6 +1,6 @@
 # Registrasi rescue operasi ke percobaan yang sama
 
-[Buka notebook produksi](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-colab-rescue-recovery/simulator_v2/stage6/colab/Feedlot_V2_Production.ipynb) · [Monitor Drive baca-saja](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-colab-rescue-recovery/simulator_v2/stage6/colab/Feedlot_V2_Status.ipynb)
+[Buka notebook produksi](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-colab-finance-memory/simulator_v2/stage6/colab/Feedlot_V2_Production.ipynb) · [Monitor Drive baca-saja](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-colab-rescue-recovery/simulator_v2/stage6/colab/Feedlot_V2_Status.ipynb)
 
 Gunakan TAR rescue yang sudah lulus verifikasi SHA-256 server Drive. Pendaftaran menyalin isi terverifikasi ke ID slot `operations` yang sudah tercatat di `attempt.json`. File rescue independen tetap ada. Identitas simulator, manifes percobaan, serta checksum dan segel checkpoint dipertahankan. Pendaftaran dan RESUME adalah dua tindakan terpisah.
 
@@ -18,3 +18,11 @@ Runner mengunggah byte TAR yang sama ke slot Drive yang telah dipesan dengan nam
 - Pada runtime baru, sediakan ruang lokal sekitar dua kali ukuran TAR ditambah 2 GiB untuk unduhan dan ekstraksi. Drive memerlukan ruang tambahan untuk salinan resmi karena file rescue independen tetap disimpan. Jangka waktu transfer bergantung pada koneksi dan kuota.
 - Jika transfer atau publikasi gagal, jalankan **Registrasi Rescue Operations** lagi dengan nilai yang sama. Arsip sementara yang cocok dapat dipublikasikan kembali tanpa unggah ulang. File resmi dengan checksum berbeda menyebabkan proses berhenti. Jika ada error saat verifikasi, tahan RESUME dan periksa Monitor Drive.
 - Registrasi dapat memverifikasi arsip pada runtime baru tanpa menjalankan kode simulasi. RESUME masih memeriksa kecocokan runtime dengan manifes asli, termasuk versi Python, NumPy, PyArrow dan data zona waktu. Gunakan profil runtime semula bila perbandingan gagal.
+
+## RESUME pada runtime High-RAM baru setelah checkpoint resmi
+
+1. Pilih **CPU / None** dan **High-RAM**. Jalankan **Persiapan runtime**, **Hubungkan Drive** dengan akun yang sama, **Uji tampilan progres** dan **Persetujuan rilis integritas**.
+2. Masukkan ID percobaan lama di **RESUME**, biarkan `Wajib_checkpoint_operations` dicentang dan ketik `LANJUT 15000`. Slot resmi yang sudah terverifikasi langsung dipakai.
+3. Tunggu verifikasi metadata, unduhan, SHA-256 TAR, serta verifikasi checkpoint asli. Setelah restore, log menampilkan `RAM efektif untuk finance`, lalu `Fase finance dimulai` jika semua pemeriksaan lulus.
+
+Pemeriksaan sumber daya berjalan sebelum restore dan lagi tepat sebelum worker Finance. Unduhan dan hashing dapat membuat berkas checkpoint memenuhi page cache yang dihitung oleh cgroup. Runner melepas cache berkas lokal checkpoint yang sudah diperiksa. Untuk hasil ekstraksi baru, data ditulis tuntas ke disk sebelum pelepasan cache. Perhitungan headroom juga memberi kredit konservatif pada cache file bersih dan inaktif di setiap batas cgroup. Batas RAM efektif 24 GiB, pengaman RSS selama worker aktif, serta verifikasi SHA-256 tetap berlaku.

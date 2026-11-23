@@ -227,7 +227,7 @@ def test_cgroup_headroom_accounts_for_parent_and_leaf(tmp_path):
         (directory / "memory.max").write_text(limit)
         (directory / "memory.current").write_text(str(used))
     assert guards.cgroup_headroom("0::/delegated/tenant/job",
-                                  f"1 0 0:1 /delegated {point} ro - cgroup2 cgroup rw") == 30
+                                  f"1 0 0:1 /delegated {point} ro - cgroup2 cgroup rw") == (30, 30)
 
 
 def test_failed_audit_blocks_final_publication(attempt_setup, monkeypatch):
