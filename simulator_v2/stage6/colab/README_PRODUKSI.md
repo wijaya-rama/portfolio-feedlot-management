@@ -1,6 +1,6 @@
 # Produksi Feedlot V2 di Google Colab
 
-[Buka notebook produksi di Colab](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-colab-live-monitoring/simulator_v2/stage6/colab/Feedlot_V2_Production.ipynb) · [Runbook satu halaman](RUNBOOK_PRODUKSI.md) · [Monitoring dan pemulihan](MONITORING_PRODUKSI.md)
+[Buka notebook produksi di Colab](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-colab-rescue-recovery/simulator_v2/stage6/colab/Feedlot_V2_Production.ipynb) · [Runbook satu halaman](RUNBOOK_PRODUKSI.md) · [Monitoring dan pemulihan](MONITORING_PRODUKSI.md) · [Registrasi rescue operations](RESCUE_OPERATIONS.md)
 
 Notebook CPU High-RAM mematok seed 42 dan menjalankan tepat **15.000 placement baru selama 2024–2025**. Preflight rencana menunjukkan 3.500 carry-in dan, pada skenario keterlambatan penjualan 35 hari, puncak 4.591 ekor serentak, tujuh pen produksi cadangan, dan dua pen receiving cadangan. Angka kapasitas tersebut berasal dari skenario perencanaan. Audit hasil produksi memeriksa receipt aktual, kapasitas dan rekonsiliasi carry-in/carry-out. [Konfigurasi terpin](../configs/stage7-production-15000.json) · [Bukti perencanaan](../evidence/stage7/preflight-15000.json)
 

@@ -35,6 +35,7 @@ CONFIG = HERE / "configs" / "stage7-production-15000.json"
 CONFIG_SHA256 = "0fc8340ceebf54756876bfba10ace3dc097c8d10a8464083011437b6615ff375"
 SOURCE = HERE.parents[1]
 CONFIRMATIONS = {"start": "MULAI 15000", "resume": "LANJUT 15000", "recover": "PULIHKAN 15000"}
+REGISTER_CONFIRMATION = "DAFTARKAN OPERATIONS"
 FIRST_HEARTBEAT = 15
 HEARTBEAT_INTERVAL = 120
 
@@ -145,10 +146,10 @@ class Attempt:
         return cls(drive, folder, manifest, local, identity, resources, simulator_source)
 
     @classmethod
-    def open(cls, drive, folder, local, identity, resources, *, read_only=False, simulator_source=SOURCE):
+    def open(cls, drive, folder, local, identity, resources, *, check_runtime=True, simulator_source=SOURCE):
         manifest = attempt_manifest(drive, folder)
         saved_identity = manifest["identity"]
-        required = ("commit", "config_sha256", "run_id") if read_only else identity.keys()
+        required = identity.keys() if check_runtime else identity.keys() - {"runtime", "numpy"}
         require(all(saved_identity[key] == identity[key] for key in required),
                 "Manifest percobaan berbeda. Gunakan commit, konfigurasi, dan versi runtime semula.")
         return cls(drive, folder, manifest, local, saved_identity, resources, simulator_source)
@@ -251,23 +252,97 @@ class Attempt:
         with TemporaryDirectory(prefix=".transfer-", dir=self.work) as temporary:
             archive = Path(temporary) / ARTIFACTS[phase]
             pack(root, archive, self.resources, self.heartbeat)
-            info = file_info(archive)
-            props = {**info, "bytes": str(info["bytes"]), "seal": seal, "phase": phase, "parent": parent or "none"}
+            return self.publish_archive(phase, parent, archive, file_info(archive), seal)
+
+    def publish_archive(self, phase, parent, archive, info, seal):
+        file_id = self.slots[phase]
+        partial = f".{ARTIFACTS[phase]}.partial"
+        props = {"bytes": str(info["bytes"]), "sha256": info["sha256"], "seal": seal,
+                 "phase": phase, "parent": parent or "none"}
+        self.still_owner()
+        current = self.drive.get(file_id)
+        staged = False
+        if current is not None:
+            found, published, checksum = archive_metadata(current, self.folder, file_id, phase, parent)
+            require(not published, f"Slot transfer sudah dipublikasikan ({phase}). Muat ulang Status.")
+            staged = checksum and all(found[key] == value for key, value in info.items()) and found["seal"] == seal
+            require(not checksum or staged, f"Slot sementara {phase} memuat arsip terverifikasi yang berbeda.")
+        if not staged:
             self.resources.upload(self.drive, info["bytes"])
-            self.still_owner()
-            file_id = self.slots[phase]
-            current = self.drive.get(file_id)
-            partial = f".{archive.name}.partial"
-            require(current is None or (current["name"] == partial and current["parents"] == [self.folder]),
-                    f"Slot transfer sudah dipublikasikan ({phase}). Muat ulang Status.")
-            self.drive.upload(file_id, self.folder, partial, props, archive,
-                              lambda fraction: self.heartbeat(percent=round(fraction * 100, 1)), replace=current is not None)
-            require(blob_matches(self.drive.get(file_id), info["bytes"], info["sha256"]),
-                    f"SHA-256 atau ukuran unggahan Drive berbeda ({phase}).")
-            saved = self.artifact(phase, parent, promote=True)
-            require(saved and saved["sha256"] == info["sha256"] and saved["seal"] == seal,
-                    f"Publikasi Drive belum terverifikasi ({phase}).")
-            return saved
+            self.drive.upload(file_id, self.folder, partial, props, archive, self.transfer_progress,
+                              replace=current is not None)
+        current = self.drive.get(file_id)
+        require(blob_matches(current, info["bytes"], info["sha256"]) and current["appProperties"] == props
+                and current["name"] == partial and current["parents"] == [self.folder],
+                f"SHA-256, ukuran, atau metadata unggahan Drive berbeda ({phase}).")
+        saved = self.artifact(phase, parent, promote=True)
+        require(saved and all(saved[key] == value for key, value in info.items()) and saved["seal"] == seal,
+                f"Publikasi Drive belum terverifikasi ({phase}).")
+        return saved
+
+    def transfer_progress(self, fraction):
+        self.heartbeat(percent=round(fraction * 100, 1))
+
+    def register_operations(self, rescue_id, size, sha, *, local_tar=None, recover=False):
+        phase = "operations"
+        require(checked_id(rescue_id) not in self.slots.values() and size > 0 and re.fullmatch(r"[0-9a-f]{64}", sha),
+                "ID, ukuran, atau SHA-256 arsip rescue tidak valid.")
+        expected = {"bytes": size, "sha256": sha}
+        with self.lock(recover):
+            self.begin_phase(phase)
+            require(blob_matches(self.drive.get(rescue_id), size, sha),
+                    "Ukuran atau SHA-256 arsip rescue Drive berbeda dari nilai yang diberikan.")
+            official = self.artifact(phase, None)
+            if official is not None:
+                require(all(official[key] == value for key, value in expected.items()),
+                        "Checkpoint operasi resmi sudah ada dengan isi berbeda. Publikasi dihentikan.")
+            else:
+                require(all(self.drive.get(self.slots[key]) is None for key in ("finance", "dataset")),
+                        "Ada arsip turunan sebelum checkpoint operasi terverifikasi. Periksa Status.")
+                self.status("registering", rescue_file_id=rescue_id)
+                try:
+                    official = self._register_operations(rescue_id, expected, local_tar)
+                except BaseException as error:
+                    outcome = "interrupted" if isinstance(error, KeyboardInterrupt) else "save_failed"
+                    self.status(outcome, rescue_file_id=rescue_id, error=f"{type(error).__name__}: {error}"[:4000])
+                    raise
+                self.saved[phase] = official
+                self.status("checkpoint_verified", rescue_file_id=rescue_id)
+            print(f"OPERATIONS RESMI TERVERIFIKASI | {official['id']} | {size} byte | SHA-256 {sha}", flush=True)
+            return official
+
+    def _register_operations(self, rescue_id, expected, local_tar):
+        phase = "operations"
+        size = expected["bytes"]
+        self.checkpoints.root.mkdir(exist_ok=True)
+        existing = self.checkpoints.verify(phase, None)
+        # A fresh runtime needs space for the TAR plus an extracted native checkpoint.
+        self.resources.staging(self.work, size * (int(local_tar is None) + 1))
+        with TemporaryDirectory(prefix=".rescue-register-", dir=self.work) as temporary:
+            staging = Path(temporary)
+            if local_tar is None:
+                archive = staging / "rescue.tar"
+                print(f"Mengunduh arsip rescue Drive ({size} byte).", flush=True)
+                with archive.open("xb") as stream:
+                    self.drive.download(rescue_id, stream, self.transfer_progress)
+            else:
+                archive = Path(local_tar)
+            require(file_info(archive) == expected, "Ukuran atau SHA-256 TAR rescue lokal berbeda.")
+            print("Memeriksa identitas, segel, dan isi checkpoint rescue.", flush=True)
+            unpack(archive, staging, phase, self.heartbeat)
+            verified = Checkpoints(staging, self.checkpoints.identity, retain=True).verify(phase, None)
+            require(verified is not None, "Checkpoint rescue operations tidak ditemukan.")
+            restored = staging / phase
+            seal = digest(restored / "checkpoint.json")
+            local = self.checkpoints.root / phase
+            if existing is not None:
+                require(digest(local / "checkpoint.json") == seal,
+                        "Segel checkpoint lokal asli berbeda dari arsip rescue. Tidak ada berkas yang diganti.")
+            else:
+                # Keep proven local state available even if publishing to Drive fails.
+                require(publish_directory(restored, local), "Checkpoint lokal sudah terisi saat registrasi.")
+            print("Menerbitkan byte TAR rescue ke slot operations resmi.", flush=True)
+            return self.publish_archive(phase, None, archive, expected, seal)
 
     def restore(self, phase, parent, info):
         local = self.checkpoints.root / phase
@@ -340,13 +415,13 @@ class Attempt:
                 print(stream.read().decode(errors="replace"), flush=True)
             raise RuntimeError(f"Fase {phase} berhenti dengan kode {code}. Log lokal {log}.")
 
-    def run(self, config, config_path, *, recover=False):
+    def run(self, config, config_path, *, recover=False, require_operations=False):
         self.execution_started = self.phase_started = time.monotonic()
         self.last_heartbeat = None
         print("Memeriksa klaim Drive dan checkpoint yang sudah ada.", flush=True)
         with self.lock(recover) as lock_fd:
             try:
-                self._run(config, config_path, lock_fd)
+                self._run(config, config_path, lock_fd, require_operations=require_operations)
             except BaseException as error:
                 failed = ("interrupted" if isinstance(error, KeyboardInterrupt)
                           else "save_failed" if self.state == "uploading" else "failed")
@@ -357,7 +432,7 @@ class Attempt:
                       f"{self.folder}. Jika terkunci, putuskan runtime lama dan gunakan STOP/RECOVER.", flush=True)
                 raise
 
-    def _run(self, config, config_path, lock_fd):
+    def _run(self, config, config_path, lock_fd, *, require_operations=False):
         self.saved.clear()
         self.checkpoints.root.mkdir(exist_ok=True)
         for base, pattern in ((self.checkpoints.root, ".*-*"), (self.work, ".release-*"),
@@ -371,8 +446,11 @@ class Attempt:
         for index, phase in enumerate(phases):
             self.begin_phase(phase)
             self.state = "checking"
-            info = self.artifact(phase, parent, promote=True)
+            must_be_published = phase == "operations" and require_operations
+            info = self.artifact(phase, parent, promote=not must_be_published)
             if info is None:
+                require(not must_be_published,
+                        "Checkpoint operations resmi belum terverifikasi. Jalankan Registrasi Rescue dahulu.")
                 for downstream in phases[index + 1:]:
                     require(self.drive.get(self.slots[downstream]) is None,
                             f"Arsip {downstream} kehilangan checkpoint induk {phase}.")
@@ -472,21 +550,32 @@ def probe_drive(drive):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("preflight", "probe-drive", "status", *CONFIRMATIONS))
+    parser.add_argument("action", choices=("preflight", "probe-drive", "status", "register-operations", *CONFIRMATIONS))
     parser.add_argument("--local", type=Path, required=True)
     parser.add_argument("--commit", required=True, help="full reviewed monitoring Git commit")
     parser.add_argument("--simulator-source", required=True, type=Path, help="checkout of the original simulator commit")
     parser.add_argument("--folder", help="Google Drive attempt folder ID")
     parser.add_argument("--accept-integrity-only", action="store_true")
     parser.add_argument("--confirm")
+    parser.add_argument("--rescue-id", help="independent rescue archive Drive file ID")
+    parser.add_argument("--rescue-bytes", type=int)
+    parser.add_argument("--rescue-sha256")
+    parser.add_argument("--local-rescue-tar", type=Path, help="skip Drive download using a byte-identical local TAR")
+    parser.add_argument("--recover-claim", action="store_true", help="take over a stale claim for registration")
+    parser.add_argument("--require-operations", action="store_true", help="allow resume only from published operations")
     args = parser.parse_args()
     try:
         if args.action in CONFIRMATIONS:
             require(args.accept_integrity_only and args.confirm == CONFIRMATIONS[args.action],
                     "Diperlukan persetujuan rilis integritas dan otorisasi tindakan eksplisit.")
-        if args.action in {"status", "resume", "recover"}:
+        if args.action == "register-operations":
+            require(args.confirm == REGISTER_CONFIRMATION, "Registrasi memerlukan otorisasi eksplisit.")
+            require(args.rescue_bytes and args.rescue_bytes > 0 and args.rescue_sha256
+                    and re.fullmatch(r"[0-9a-f]{64}", args.rescue_sha256), "Berikan ukuran dan SHA-256 rescue.")
+            checked_id(args.rescue_id)
+        if args.action in {"status", "resume", "recover", "register-operations"}:
             checked_id(args.folder)
-        if args.action in {"resume", "recover"}:
+        if args.action in {"resume", "recover", "register-operations"}:
             print(f"Folder Drive {folder_url(args.folder)}", flush=True)
         print(f"{args.action.upper()} · memeriksa sumber dan koneksi Drive.", flush=True)
         config = production_config()
@@ -510,11 +599,15 @@ def main():
             Attempt.create(drive, args.local, identity, resources, simulator_source).run(config, config_path)
         else:
             attempt = Attempt.open(drive, args.folder, args.local, identity, resources,
-                                   read_only=args.action == "status", simulator_source=simulator_source)
+                                   check_runtime=args.action in {"resume", "recover"}, simulator_source=simulator_source)
             if args.action == "status":
                 print(json.dumps(attempt.inspect(), indent=2))
+            elif args.action == "register-operations":
+                attempt.register_operations(args.rescue_id, args.rescue_bytes, args.rescue_sha256,
+                                            local_tar=args.local_rescue_tar, recover=args.recover_claim)
             else:
-                attempt.run(config, config_path, recover=args.action == "recover")
+                attempt.run(config, config_path, recover=args.action == "recover",
+                            require_operations=args.require_operations)
     except (ValueError, KeyError, OSError, RuntimeError, HttpError) as error:
         parser.exit(1, f"{type(error).__name__}: {error}\n")
 

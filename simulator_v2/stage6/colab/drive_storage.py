@@ -3,11 +3,13 @@
 from hashlib import sha256
 import json
 import re
+from time import sleep
 
 from googleapiclient.errors import HttpError
-from googleapiclient.http import MediaFileUpload, MediaInMemoryUpload, MediaIoBaseDownload
+from googleapiclient.http import MediaInMemoryUpload, MediaIoBaseDownload
 
 from ...stage1.provenance import canonical
+from .drive_resumable import MIME, UploadError, upload_tar
 
 FIELDS = "id,name,parents,mimeType,trashed,size,sha256Checksum,appProperties,webViewLink"
 CHUNK = 32 * 1024**2
@@ -17,6 +19,7 @@ FOLDER = "application/vnd.google-apps.folder"
 
 def connect(*, read_only=False):
     import google.auth
+    from google.auth.transport.requests import AuthorizedSession
     from google_auth_httplib2 import AuthorizedHttp
     from googleapiclient.discovery import build
     import httplib2
@@ -24,7 +27,8 @@ def connect(*, read_only=False):
     scope = "drive.readonly" if read_only else "drive"
     credentials, _ = google.auth.default(scopes=[f"https://www.googleapis.com/auth/{scope}"])
     http = AuthorizedHttp(credentials, http=httplib2.Http(timeout=120))
-    return Drive(build("drive", "v3", http=http, cache_discovery=False))
+    upload_http = None if read_only else AuthorizedSession(credentials)
+    return Drive(build("drive", "v3", http=http, cache_discovery=False), upload_http)
 
 
 def require(condition, message):
@@ -39,9 +43,10 @@ def checked_id(value):
 
 
 class Drive:
-    def __init__(self, service):
+    def __init__(self, service, upload_http=None):
         self.service = service
         self.files = service.files()
+        self.upload_http = upload_http
 
     def free_bytes(self):
         quota = self.service.about().get(fields="storageQuota").execute(num_retries=RETRIES)["storageQuota"]
@@ -104,21 +109,29 @@ class Drive:
         self.files.update(fileId=file_id, body={"appProperties": {"released": "yes"}}).execute(num_retries=RETRIES)
 
     def upload(self, file_id, folder, name, properties, archive, progress, *, replace=False):
-        media = MediaFileUpload(str(archive), mimetype="application/x-tar", chunksize=CHUNK, resumable=True)
+        require(self.upload_http is not None, "Sesi Drive baca-saja tidak dapat mengunggah.")
         body = {"name": name, "appProperties": properties}
+        if not replace:
+            body.update(id=checked_id(file_id), parents=[checked_id(folder)], mimeType=MIME)
+        size = archive.stat().st_size
+        error = None
         try:
-            if replace:
-                request = self.files.update(fileId=file_id, body=body, media_body=media, fields=FIELDS)
-            else:
-                request = self.files.create(body={**body, "id": file_id, "parents": [folder]},
-                                            media_body=media, fields=FIELDS)
-            result = None
-            while result is None:
-                moved, result = request.next_chunk(num_retries=RETRIES)
-                if moved is not None:
-                    progress(moved.progress())
-        finally:
-            media.stream().close()
+            upload_tar(self.upload_http, checked_id(file_id), body, archive, progress, replace=replace)
+        except UploadError as exc:
+            error = exc
+        # The last bytes can commit before the response or the checksum becomes visible.
+        for attempt in range(6):
+            metadata = self.get(file_id)
+            if (blob_matches(metadata, size, properties["sha256"]) and metadata["name"] == name
+                    and metadata["parents"] == [folder] and metadata.get("appProperties") == properties):
+                if error:
+                    progress(1.0)
+                return
+            if attempt < 5:
+                sleep(min(2 ** attempt, 8))
+        if error:
+            raise error
+        raise UploadError("Drive belum mengonfirmasi ukuran, SHA-256, dan metadata unggahan.")
 
     def rename(self, file_id, name):
         self.files.update(fileId=file_id, body={"name": name}, fields=FIELDS).execute(num_retries=RETRIES)

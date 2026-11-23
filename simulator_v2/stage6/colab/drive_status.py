@@ -19,7 +19,7 @@ ARTIFACTS = {
 }
 CHECKPOINTS = ("operations", "finance")
 READ_ERRORS = (ValueError, KeyError, TypeError, HttpError, OSError)
-ACTIVE_STATES = {"checking", "running", "restoring", "uploading", "validating", "checkpoint_verified"}
+ACTIVE_STATES = {"checking", "running", "restoring", "registering", "uploading", "validating", "checkpoint_verified"}
 
 
 def attempt_manifest(drive, folder):

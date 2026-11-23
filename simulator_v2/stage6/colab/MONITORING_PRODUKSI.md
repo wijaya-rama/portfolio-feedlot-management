@@ -1,6 +1,6 @@
 # Monitoring produksi Stage 7
 
-[Buka notebook produksi](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-colab-live-monitoring/simulator_v2/stage6/colab/Feedlot_V2_Production.ipynb) · [Buka Monitor Drive baca-saja](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-colab-live-monitoring/simulator_v2/stage6/colab/Feedlot_V2_Status.ipynb)
+[Buka notebook produksi](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-colab-rescue-recovery/simulator_v2/stage6/colab/Feedlot_V2_Production.ipynb) · [Buka Monitor Drive baca-saja](https://colab.research.google.com/github/wijaya-rama/portfolio-feedlot-management/blob/stage7-colab-rescue-recovery/simulator_v2/stage6/colab/Feedlot_V2_Status.ipynb)
 
 ## Temuan insiden
 
